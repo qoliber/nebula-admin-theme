@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+    Nebula: Shared base layout for all login-style pages (login, TFA, forgot password).
+    Only defines the shell: branding panel, messages, footer.
+    Page-specific content goes into the action-specific layout handle.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-login"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="legal" remove="true"/>
+        <referenceContainer name="page.menu" remove="true"/>
+        <referenceContainer name="header" remove="true"/>
+        <referenceBlock name="page.title" remove="true"/>
+        <referenceBlock name="user" remove="true"/>
+        <referenceBlock name="global.search" remove="true"/>
+        <referenceBlock name="notification.messages" remove="true"/>
+        <referenceContainer name="after.body.start" remove="true"/>
+
+        <referenceContainer name="login.branding">
+            <block class="Magento\Backend\Block\Template"
+                   name="nebula.branding"
+                   template="Magento_Backend::admin/login_branding.phtml"/>
+        </referenceContainer>
+
+
+        <referenceContainer name="login.footer">
+            <block class="Magento\Backend\Block\Page\Copyright"
+                   name="copyright"
+                   template="Magento_Backend::admin/login_footer.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

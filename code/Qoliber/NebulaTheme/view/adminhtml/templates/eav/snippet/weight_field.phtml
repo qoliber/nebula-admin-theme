@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\WeightField $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\WeightField) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\WeightField::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+// Composite products derive weight from children
+if ($formBlock && $formBlock->isCompositeProduct()) {
+    return;
+}
+
+$weight = $entity ? $entity->getData('weight') : null;
+$hasWeight = $weight !== null && $weight !== '';
+
+$weightUnit = $viewModel->getWeightUnit();
+
+$inputClass = 'block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500';
+?>
+
+<div x-data="{
+        hasWeight: <?= $hasWeight ? 'true' : 'false' ?>,
+        weight: '<?= $escaper->escapeJs((string) ($weight ?? '')) ?>',
+        init() {
+            var models = Alpine.store('nebulaModels');
+            if (models) models.register('section:weight', this);
+        },
+        destroy() {
+            var models = Alpine.store('nebulaModels');
+            if (models) models.unregister('section:weight');
+        },
+        serialize() {
+            var pairs = [
+                { name: 'product[product_has_weight]', value: this.hasWeight ? '1' : '0' }
+            ];
+            if (this.hasWeight) {
+                pairs.push({ name: 'product[weight]', value: this.weight || '' });
+            } else {
+                pairs.push({ name: 'product[weight]', value: '' });
+            }
+            return pairs;
+        }
+     }" class="grid grid-cols-3 gap-4 py-4">
+    <label class="pt-2 text-sm font-medium text-gray-700">
+        <?= $escaper->escapeHtml((string) __('Weight')) ?>
+    </label>
+    <div class="col-span-2">
+        <!-- Has weight toggle -->
+        <div class="flex items-center gap-3 mb-3">
+            <button type="button" @click="hasWeight = !hasWeight"
+                    :class="hasWeight ? 'bg-indigo-600' : 'bg-gray-300 border border-gray-300'"
+                    class="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-sm transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                    role="switch" :aria-checked="hasWeight">
+                <span :class="hasWeight ? 'translate-x-5' : 'translate-x-0'"
+                      class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-1 ring-gray-200 transition duration-200 ease-in-out"></span>
+            </button>
+            <span class="text-sm font-semibold" :class="hasWeight ? 'text-indigo-600' : 'text-gray-500'"
+                  x-text="hasWeight ? '<?= $escaper->escapeJs((string) __('This item has weight')) ?>' : '<?= $escaper->escapeJs((string) __('This item has no weight')) ?>'"></span>
+        </div>
+
+        <!-- Weight input + unit -->
+        <div x-show="hasWeight" x-collapse>
+            <div class="flex items-center gap-2">
+                <input type="number"
+                       x-model="weight"
+                       step="0.01"
+                       min="0"
+                       placeholder="0.00"
+                       class="<?= /* @noEscape */ $inputClass ?> max-w-32">
+                <span class="text-sm font-medium text-gray-500"><?= $escaper->escapeHtml($weightUnit) ?></span>
+            </div>
+        </div>
+    </div>
+</div>

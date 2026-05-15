@@ -1,0 +1,168 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\BundleSettings $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\BundleSettings) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\BundleSettings::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+if (!$entity || $entity->getTypeId() !== 'bundle') {
+    return;
+}
+
+$skuType = (int) ($entity->getData('sku_type') ?? 1); // 1=Dynamic, 0=Fixed
+$priceType = (int) ($entity->getData('price_type') ?? 0); // 0=Dynamic, 1=Fixed
+$weightType = (int) ($entity->getData('weight_type') ?? 1); // 1=Dynamic, 0=Fixed
+$shipmentType = (int) ($entity->getData('shipment_type') ?? 0); // 0=Together, 1=Separately
+$weight = $entity->getData('weight') ?? '';
+$isNew = !$entity->getId();
+
+$weightUnit = $viewModel->getWeightUnit();
+
+$inputClass = 'block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500';
+?>
+
+<script>
+(function() {
+    if (window._nebulaBundleSettingsRegistered) return;
+    window._nebulaBundleSettingsRegistered = true;
+
+    var register = function() {
+        Alpine.data('nebulaBundleSettings', function(config) {
+            return {
+                skuType: config.skuType,
+                priceType: config.priceType,
+                weightType: config.weightType,
+                shipmentType: config.shipmentType,
+                weight: config.weight,
+                isNew: config.isNew,
+
+                get isDynamicSku() { return this.skuType === 1; },
+                get isDynamicPrice() { return this.priceType === 0; },
+                get isDynamicWeight() { return this.weightType === 1; },
+
+                toggleSku: function() { this.skuType = this.skuType === 1 ? 0 : 1; },
+                toggleWeight: function() { this.weightType = this.weightType === 1 ? 0 : 1; }
+            };
+        });
+    };
+
+    if (window.Alpine) { register(); }
+    else { document.addEventListener('alpine:init', register); }
+})();
+</script>
+
+<?php
+$settingsConfig = json_encode([
+    'skuType' => $skuType,
+    'priceType' => $priceType,
+    'weightType' => $weightType,
+    'shipmentType' => $shipmentType,
+    'weight' => (string) $weight,
+    'isNew' => $isNew,
+], JSON_HEX_APOS | JSON_HEX_QUOT);
+?>
+
+<div x-data="nebulaBundleSettings(<?= $escaper->escapeHtmlAttr($settingsConfig) ?>)" class="space-y-4">
+
+    <!-- Dynamic SKU -->
+    <div class="grid grid-cols-3 gap-4 py-3">
+        <label class="pt-1 text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Dynamic SKU')) ?></label>
+        <div class="col-span-2">
+            <input type="hidden" name="product[sku_type]" :value="skuType">
+            <div class="flex items-center gap-3">
+                <button type="button" @click="toggleSku()"
+                        :class="isDynamicSku ? 'bg-indigo-600' : 'bg-gray-300 ring-1 ring-inset ring-gray-400'"
+                        class="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-sm transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                        role="switch" :aria-checked="isDynamicSku">
+                    <span :class="isDynamicSku ? 'translate-x-5' : 'translate-x-0'"
+                          class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-1 ring-gray-200 transition duration-200 ease-in-out"></span>
+                </button>
+                <span class="text-sm font-semibold" :class="isDynamicSku ? 'text-indigo-600' : 'text-gray-500'"
+                      x-text="isDynamicSku ? '<?= $escaper->escapeJs((string) __('Dynamic')) ?>' : '<?= $escaper->escapeJs((string) __('Fixed')) ?>'"></span>
+            </div>
+            <p class="mt-1 text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Dynamic SKU is composed from selection SKUs')) ?></p>
+        </div>
+    </div>
+
+    <!-- Dynamic Price -->
+    <div class="grid grid-cols-3 gap-4 py-3 border-t border-gray-100">
+        <label class="pt-1 text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Dynamic Price')) ?></label>
+        <div class="col-span-2">
+            <input type="hidden" name="product[price_type]" :value="priceType">
+            <div class="flex items-center gap-3">
+                <button type="button"
+                        :disabled="!isNew"
+                        @click="if (isNew) { priceType = priceType === 0 ? 1 : 0; }"
+                        :class="[
+                            isDynamicPrice ? 'bg-indigo-600' : 'bg-gray-300 ring-1 ring-inset ring-gray-400',
+                            !isNew ? 'cursor-not-allowed opacity-40 grayscale' : 'cursor-pointer'
+                        ]"
+                        class="relative inline-flex h-7 w-12 flex-shrink-0 rounded-full border-2 border-transparent shadow-sm transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                        role="switch" :aria-checked="isDynamicPrice">
+                    <span :class="isDynamicPrice ? 'translate-x-5' : 'translate-x-0'"
+                          class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-1 ring-gray-200 transition duration-200 ease-in-out"></span>
+                </button>
+                <span class="text-sm font-semibold" :class="[isDynamicPrice ? 'text-indigo-600' : 'text-gray-500', !isNew ? 'opacity-50' : '']"
+                      x-text="isDynamicPrice ? '<?= $escaper->escapeJs((string) __('Dynamic')) ?>' : '<?= $escaper->escapeJs((string) __('Fixed')) ?>'"></span>
+            </div>
+            <template x-if="!isNew">
+                <p class="mt-1 text-xs text-amber-600"><?= $escaper->escapeHtml((string) __('Price type cannot be changed after product is saved')) ?></p>
+            </template>
+            <template x-if="isNew">
+                <p class="mt-1 text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Dynamic price is calculated from selected options')) ?></p>
+            </template>
+        </div>
+    </div>
+
+    <!-- Dynamic Weight -->
+    <div class="grid grid-cols-3 gap-4 py-3 border-t border-gray-100">
+        <label class="pt-1 text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Dynamic Weight')) ?></label>
+        <div class="col-span-2">
+            <input type="hidden" name="product[weight_type]" :value="weightType">
+            <div class="flex items-center gap-3">
+                <button type="button" @click="toggleWeight()"
+                        :class="isDynamicWeight ? 'bg-indigo-600' : 'bg-gray-300 ring-1 ring-inset ring-gray-400'"
+                        class="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-sm transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                        role="switch" :aria-checked="isDynamicWeight">
+                    <span :class="isDynamicWeight ? 'translate-x-5' : 'translate-x-0'"
+                          class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-1 ring-gray-200 transition duration-200 ease-in-out"></span>
+                </button>
+                <span class="text-sm font-semibold" :class="isDynamicWeight ? 'text-indigo-600' : 'text-gray-500'"
+                      x-text="isDynamicWeight ? '<?= $escaper->escapeJs((string) __('Dynamic')) ?>' : '<?= $escaper->escapeJs((string) __('Fixed')) ?>'"></span>
+            </div>
+
+            <!-- Weight input (only when Fixed) -->
+            <div x-show="!isDynamicWeight" x-collapse class="mt-3">
+                <div class="flex items-center gap-2">
+                    <input type="number" name="product[weight]"
+                           x-model="weight" step="0.01" min="0" placeholder="0.00"
+                           class="<?= /* @noEscape */ $inputClass ?> max-w-32">
+                    <span class="text-sm font-medium text-gray-500"><?= $escaper->escapeHtml($weightUnit) ?></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ship Bundle Items -->
+    <div class="grid grid-cols-3 gap-4 py-3 border-t border-gray-100">
+        <label class="pt-1 text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Ship Bundle Items')) ?></label>
+        <div class="col-span-2">
+            <select name="product[shipment_type]" x-model="shipmentType"
+                    class="<?= /* @noEscape */ $inputClass ?> max-w-48">
+                <option value="0" :selected="shipmentType == 0"><?= $escaper->escapeHtml((string) __('Together')) ?></option>
+                <option value="1" :selected="shipmentType == 1"><?= $escaper->escapeHtml((string) __('Separately')) ?></option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('How bundle items are shipped to the customer')) ?></p>
+        </div>
+    </div>
+</div>

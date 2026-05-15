@@ -1,0 +1,65 @@
+/* Dark mode form inputs */
+.dark .nebula-config-value select,
+.dark .nebula-config-value input[type="text"],
+.dark .nebula-config-value input[type="password"],
+.dark .nebula-config-value input[type="number"],
+.dark .nebula-config-value textarea {
+  background: var(--nebula-bg-tertiary);
+  border-color: var(--nebula-border-default);
+  color: var(--nebula-text-primary);
+}
+.dark .admin__control-text,
+.dark .admin__control-textarea,
+.dark .admin__control-select {
+  background: var(--nebula-bg-tertiary);
+  border-color: var(--nebula-border-default);
+  color: var(--nebula-text-primary);
+}
+
+.dark .nebula-main select,
+.dark .nebula-main .admin__control-select {
+  color-scheme: dark;
+}
+
+/* Global dark-mode select menu styling: replace browser blue option highlight. */
+.dark .nebula-main select option {
+  background-color: var(--nebula-bg-secondary);
+  color: var(--color-nebula-100);
+}
+
+.dark .nebula-main select option:checked,
+.dark .nebula-main select option:hover,
+.dark .nebula-main select option:focus {
+  background-color: var(--nebula-bg-tertiary);
+  color: var(--color-nebula-100);
+}
+
+/* Strong fallback for engines that ignore option background but honor inset painting/text fill. */
+.dark .nebula-main select option:checked,
+.dark .nebula-main #rate_services option:checked {
+  background: var(--nebula-bg-tertiary) !important;
+  color: var(--color-nebula-100) !important;
+  -webkit-text-fill-color: var(--color-nebula-100);
+  box-shadow: inset 0 0 0 9999px var(--nebula-bg-tertiary);
+}
+
+.dark
+  .nebula-main
+  .nebula-config-value
+  select[multiple]:not([disabled])
+  option:checked {
+  background: color-mix(
+    in oklab,
+    var(--color-nebula-400) 35%,
+    var(--nebula-bg-tertiary)
+  ) !important;
+  color: var(--color-nebula-100) !important;
+  -webkit-text-fill-color: var(--color-nebula-100);
+  box-shadow: inset 0 0 0 9999px
+    color-mix(in oklab, var(--color-nebula-400) 35%, var(--nebula-bg-tertiary));
+}
+
+/* Status badges stay colorful in dark mode */
+.dark tr:has(.grid-severity-minor) {
+  @apply bg-amber-900/20;
+}

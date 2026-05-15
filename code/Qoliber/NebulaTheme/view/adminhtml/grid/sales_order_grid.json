@@ -1,0 +1,100 @@
+{
+  "id": "sales_order_grid",
+  "acl": "Magento_Sales::sales_order",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "sales_order.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "entity_id",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "increment_id": {
+      "label": "Order #",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "store_id": {
+      "label": "Store",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Store\\Model\\System\\Store",
+      "position": 25
+    },
+    "created_at": {
+      "label": "Purchase Date",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 30
+    },
+    "billing_name": {
+      "label": "Bill-to Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 40
+    },
+    "shipping_name": {
+      "label": "Ship-to Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 50
+    },
+    "base_grand_total": {
+      "label": "Grand Total (Base)",
+      "type": "price",
+      "sortable": true,
+      "filter": "range",
+      "position": 60
+    },
+    "grand_total": {
+      "label": "Grand Total (Purchased)",
+      "type": "price",
+      "sortable": true,
+      "filter": "range",
+      "position": 70
+    },
+    "status": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Sales\\Model\\Config\\Source\\Order\\Status",
+      "position": 80
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "View",
+          "url": "sales/order/view/order_id/{{entity_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

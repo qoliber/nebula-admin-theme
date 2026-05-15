@@ -1,0 +1,250 @@
+{
+  "id": "catalog_product_edit_tabs",
+  "type": "eav",
+  "entity": "catalog_product",
+  "acl": "Magento_Catalog::products",
+  "dataSource": {
+    "provider": "product.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Product",
+    "saveUrl": "catalog/product/save",
+    "backUrl": "catalog/product/index",
+    "deleteUrl": "catalog/product/delete",
+    "identifierField": "id",
+    "identifierParam": "id",
+    "fieldPrefix": "product",
+    "hiddenParams": ["type", "set", "store"]
+  },
+  "layout": [
+    {
+      "id": "product_edit_tabs",
+      "type": "tabs",
+      "children": [
+        {
+          "id": "general_tab",
+          "label": "General",
+          "children": [
+            {
+              "id": "general_main_row",
+              "type": "row",
+              "children": [
+                {
+                  "id": "general_left_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "product_details",
+                      "type": "section",
+                      "label": "Product Details",
+                      "fields": [
+                        "name",
+                        "sku",
+                        "status",
+                        "visibility",
+                        "weight",
+                        "country_of_manufacture",
+                        "news_from_date",
+                        "news_to_date"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "general_right_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "categories",
+                      "type": "section",
+                      "label": "Categories",
+                      "renderer": "snippet.category_tree"
+                    },
+                    {
+                      "id": "websites",
+                      "type": "section",
+                      "label": "Websites",
+                      "renderer": "snippet.website_checkboxes"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "content_tab",
+          "label": "Content",
+          "children": [
+            {
+              "id": "content_full_width",
+              "type": "section",
+              "label": "Content",
+              "fields": ["description", "short_description"]
+            },
+            {
+              "id": "content_media_full_width",
+              "type": "section",
+              "label": "Media",
+              "renderer": "snippet.media_gallery"
+            },
+            {
+              "id": "content_design_full_width",
+              "type": "section",
+              "label": "Design",
+              "groups": ["design", "schedule-design-update"]
+            }
+          ]
+        },
+        {
+          "id": "commerce_tab",
+          "label": "Commerce",
+          "children": [
+            {
+              "id": "commerce_main_row",
+              "type": "row",
+              "children": [
+                {
+                  "id": "commerce_left_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "pricing",
+                      "type": "section",
+                      "label": "Pricing",
+                      "condition": {
+                        "type_id": ["simple", "virtual", "downloadable"]
+                      },
+                      "children": [
+                        {
+                          "type": "fields",
+                          "fields": [
+                            "price",
+                            "cost",
+                            "msrp",
+                            "msrp_display_actual_price_type",
+                            "tax_class_id"
+                          ]
+                        },
+                        {
+                          "type": "snippet",
+                          "renderer": "snippet.special_price"
+                        },
+                        {
+                          "type": "snippet",
+                          "renderer": "snippet.tier_prices"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "commerce_right_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "inventory",
+                      "type": "section",
+                      "label": "Inventory",
+                      "renderer": "snippet.stock_fields"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "commerce_custom_options_section",
+              "type": "section",
+              "label": "Custom Options",
+              "renderer": "snippet.custom_options"
+            },
+            {
+              "id": "commerce_related_section",
+              "type": "section",
+              "label": "Related Products",
+              "renderer": "snippet.related_products"
+            },
+            {
+              "id": "commerce_upsell_section",
+              "type": "section",
+              "label": "Upsell Products",
+              "renderer": "snippet.upsell_products"
+            },
+            {
+              "id": "commerce_crosssell_section",
+              "type": "section",
+              "label": "Cross-sell Products",
+              "renderer": "snippet.crosssell_products"
+            }
+          ]
+        },
+        {
+          "id": "seo_tab",
+          "label": "SEO",
+          "children": [
+            {
+              "id": "seo_preview_full_width",
+              "type": "section",
+              "label": "Google Preview",
+              "renderer": "snippet.seo_preview",
+              "entity_type": "product"
+            },
+            {
+              "id": "seo_fields_full_width",
+              "type": "section",
+              "label": "Search Engine Optimization",
+              "children": [
+                {
+                  "type": "fields",
+                  "fields": [
+                    "url_key",
+                    "meta_title",
+                    "meta_keyword",
+                    "meta_description"
+                  ]
+                },
+                {
+                  "type": "snippet",
+                  "renderer": "snippet.indexing_toggles"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "attributes_tab",
+          "label": "Attributes",
+          "children": []
+        },
+        {
+          "id": "advanced_tab",
+          "label": "Advanced",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "excludeGroups": [
+    "image-management",
+    "bundle-items",
+    "autosettings",
+    "advanced-pricing",
+    "search-engine-optimization"
+  ],
+  "overrides": {
+    "fields": {
+      "description": { "type": "wysiwyg" },
+      "short_description": { "type": "wysiwyg" },
+      "weight": { "renderer": "snippet.weight_field" },
+      "news_from_date": { "renderer": "snippet.new_dates" },
+      "news_to_date": { "$remove": true }
+    }
+  }
+}

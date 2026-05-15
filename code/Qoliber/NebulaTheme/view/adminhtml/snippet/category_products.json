@@ -1,0 +1,4 @@
+{
+  "id": "category_products",
+  "template": "Qoliber_NebulaTheme::eav/snippet/category_products.phtml"
+}

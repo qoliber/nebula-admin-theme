@@ -1,0 +1,4 @@
+{
+  "id": "product_selector",
+  "template": "Qoliber_NebulaComponent::snippet/product_selector.phtml"
+}

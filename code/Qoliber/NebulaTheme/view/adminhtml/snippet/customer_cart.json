@@ -1,0 +1,4 @@
+{
+    "id": "customer_cart",
+    "template": "Qoliber_NebulaTheme::customer/snippet/cart.phtml"
+}

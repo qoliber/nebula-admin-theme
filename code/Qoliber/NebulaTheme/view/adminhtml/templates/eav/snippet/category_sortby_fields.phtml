@@ -1,0 +1,179 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Catalog\Model\Category;
+use Magento\Catalog\Model\CategoryFactory;
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+$storeId = 0;
+if ($entity instanceof Category) {
+    $storeId = (int) $entity->getStoreId();
+} elseif ($formBlock) {
+    $storeId = (int) ($formBlock->getFieldValue('store_id') ?? 0);
+}
+
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$categoryFactory = $objectManager->get(CategoryFactory::class);
+
+$configCategory = $categoryFactory->create();
+$configCategory->setStoreId($storeId);
+
+$allOptions = [];
+foreach ($configCategory->getAvailableSortByOptions() as $value => $label) {
+    $optionValue = (string) $value;
+    $optionLabel = (string) $label;
+
+    $allOptions[] = [
+        'value' => $optionValue,
+        'label' => $optionLabel,
+    ];
+}
+
+$rawAvailable = $entity instanceof Category ? $entity->getData('available_sort_by') : [];
+$currentAvailable = [];
+if (is_array($rawAvailable)) {
+    $currentAvailable = array_values(array_filter(array_map('strval', $rawAvailable), static fn (string $value): bool => $value !== ''));
+} elseif (is_string($rawAvailable) && $rawAvailable !== '') {
+    $currentAvailable = array_values(array_filter(explode(',', $rawAvailable), static fn (string $value): bool => $value !== ''));
+}
+
+$currentDefault = $entity instanceof Category ? trim((string) $entity->getData('default_sort_by')) : '';
+$configDefaultValue = (string) $configCategory->getDefaultSortBy();
+
+$fieldConfig = json_encode([
+    'availableSortBy' => [
+        'value' => $currentAvailable,
+        'useConfig' => $currentAvailable === [],
+    ],
+    'defaultSortBy' => [
+        'value' => $currentDefault,
+        'useConfig' => $currentDefault === '',
+        'configDefaultValue' => $configDefaultValue,
+    ],
+], JSON_HEX_APOS | JSON_HEX_QUOT);
+
+$inputClass = 'block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400';
+?>
+
+<div x-data="nebulaCategorySortby(<?= $escaper->escapeHtmlAttr((string) $fieldConfig) ?>)"
+     class="space-y-0 divide-y divide-gray-200">
+    <div class="grid grid-cols-3 gap-4 items-start py-3">
+        <label class="pt-1 text-sm font-medium text-gray-700">
+            <?= $escaper->escapeHtml((string) __('Available Product Listing Sort By')) ?>
+        </label>
+
+        <div class="space-y-1.5"
+             :class="fields.availableSortBy.useConfig ? 'opacity-50 pointer-events-none' : ''">
+            <?php foreach ($allOptions as $option) : ?>
+                <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox"
+                           name="available_sort_by[]"
+                           value="<?= $escaper->escapeHtmlAttr($option['value']) ?>"
+                           :checked="fields.availableSortBy.value.includes('<?= $escaper->escapeJs($option['value']) ?>')"
+                           @change="toggleAvailable('<?= $escaper->escapeJs($option['value']) ?>')"
+                           :disabled="fields.availableSortBy.useConfig"
+                           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                    <?= $escaper->escapeHtml((string) __($option['label'])) ?>
+                </label>
+            <?php endforeach; ?>
+        </div>
+
+        <label class="flex cursor-pointer items-center gap-2 pt-1 text-xs text-gray-500">
+            <input type="checkbox"
+                   name="use_config[available_sort_by]"
+                   value="1"
+                   :checked="fields.availableSortBy.useConfig"
+                   @change="setAvailableUseConfig($event.target.checked)"
+                   class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+            <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+        </label>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 items-center py-3">
+        <label for="nebula-default-sort-by" class="text-sm font-medium text-gray-700">
+            <?= $escaper->escapeHtml((string) __('Default Product Listing Sort By')) ?>
+        </label>
+
+        <div>
+            <select id="nebula-default-sort-by"
+                    name="default_sort_by"
+                    x-model="fields.defaultSortBy.value"
+                    :disabled="fields.defaultSortBy.useConfig"
+                    class="<?= /* @noEscape */ $inputClass ?>">
+                <option value="">-- <?= $escaper->escapeHtml((string) __('Please Select')) ?> --</option>
+                <?php foreach ($allOptions as $option) : ?>
+                    <option value="<?= $escaper->escapeHtmlAttr($option['value']) ?>"
+                            :disabled="!fields.availableSortBy.useConfig && !fields.availableSortBy.value.includes('<?= $escaper->escapeJs($option['value']) ?>')">
+                        <?= $escaper->escapeHtml((string) __($option['label'])) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <label class="flex cursor-pointer items-center gap-2 text-xs text-gray-500">
+            <input type="checkbox"
+                   name="use_config[default_sort_by]"
+                   value="1"
+                   :checked="fields.defaultSortBy.useConfig"
+                   @change="setDefaultUseConfig($event.target.checked)"
+                   class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+            <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+        </label>
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window._nebulaCategorySortbyRegistered) {
+        return;
+    }
+
+    window._nebulaCategorySortbyRegistered = true;
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('nebulaCategorySortby', (config) => ({
+            fields: config,
+
+            toggleAvailable(value) {
+                const index = this.fields.availableSortBy.value.indexOf(value);
+
+                if (index === -1) {
+                    this.fields.availableSortBy.value.push(value);
+                } else {
+                    this.fields.availableSortBy.value.splice(index, 1);
+                }
+
+                if (
+                    !this.fields.defaultSortBy.useConfig
+                    && this.fields.defaultSortBy.value
+                    && !this.fields.availableSortBy.value.includes(this.fields.defaultSortBy.value)
+                ) {
+                    this.fields.defaultSortBy.value = '';
+                }
+            },
+
+            setAvailableUseConfig(useConfig) {
+                this.fields.availableSortBy.useConfig = useConfig;
+                this.fields.defaultSortBy.useConfig = useConfig;
+
+                if (!useConfig && !this.fields.defaultSortBy.value) {
+                    this.fields.defaultSortBy.value = this.fields.defaultSortBy.configDefaultValue || '';
+                }
+            },
+
+            setDefaultUseConfig(useConfig) {
+                this.fields.defaultSortBy.useConfig = useConfig;
+
+                if (!useConfig && !this.fields.defaultSortBy.value) {
+                    this.fields.defaultSortBy.value = this.fields.defaultSortBy.configDefaultValue || '';
+                }
+            },
+        }));
+    });
+})();
+</script>

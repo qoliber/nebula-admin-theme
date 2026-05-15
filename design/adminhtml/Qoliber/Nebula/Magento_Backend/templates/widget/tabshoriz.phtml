@@ -1,0 +1,48 @@
+<?php
+/**
+ * Qoliber Nebula — Horizontal tabs (Alpine.js, no RequireJS)
+ *
+ * @var \Magento\Backend\Block\Widget\Tabs $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+if (empty($tabs)) {
+    return;
+}
+
+$blockId = $block->getId();
+$activeTab = $block->getActiveTabId();
+$tabList = [];
+foreach ($tabs as $tab) {
+    $tabList[] = [
+        'id' => $block->getTabId($tab),
+        'label' => $block->getTabLabel($tab),
+    ];
+}
+$firstTab = $activeTab ?: ($tabList[0]['id'] ?? '');
+?>
+<div x-data="{ activeTab: '<?= $escaper->escapeJs($firstTab) ?>' }" id="<?= $escaper->escapeHtmlAttr($blockId) ?>">
+    <div class="flex gap-1 border-b border-gray-200 mb-4">
+        <?php foreach ($tabList as $t): ?>
+            <button type="button"
+                    @click="activeTab = '<?= $escaper->escapeJs($t['id']) ?>'; $nextTick(() => window.dispatchEvent(new CustomEvent('nebula-chart-tab-visible', { detail: '<?= $escaper->escapeJs($t['id']) ?>' })))"
+                    :class="activeTab === '<?= $escaper->escapeJs($t['id']) ?>'
+                        ? 'border-nebula-500 text-nebula-700 font-medium'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="px-4 py-2 text-sm border-b-2 -mb-px transition">
+                <?= $escaper->escapeHtml($t['label']) ?>
+            </button>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="relative" style="min-height: 300px;">
+        <?php foreach ($tabs as $tab): ?>
+            <?php $tabId = $block->getTabId($tab); ?>
+            <div :class="activeTab === '<?= $escaper->escapeJs($tabId) ?>'
+                ? 'relative z-10'
+                : 'absolute inset-0 invisible pointer-events-none'">
+                <?= /* @noEscape */ $block->getTabContent($tab) ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>

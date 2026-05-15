@@ -1,0 +1,36 @@
+{
+  "name": "html",
+  "label": "HTML Code",
+  "icon": "fa-solid fa-code",
+  "menuSection": "elements",
+  "sortOrder": 30,
+  "isContainer": false,
+  "parents": { "defaultPolicy": "allow", "deny": ["stage"] },
+  "children": { "defaultPolicy": "deny" },
+  "appearances": {
+    "default": {
+      "default": true,
+      "label": "Default",
+      "masterTemplate": "master/html/default.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "html",
+            "data-appearance": "default"
+          },
+          "styles": {
+            "display": { "source": "display", "converter": "display" },
+            "margin": { "source": "margins_and_padding", "converter": "margins" },
+            "padding": { "source": "margins_and_padding", "converter": "paddings" }
+          },
+          "cssSource": "css_classes"
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "default",
+    "html": ""
+  }
+}

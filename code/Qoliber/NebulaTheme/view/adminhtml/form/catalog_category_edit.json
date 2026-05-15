@@ -1,0 +1,89 @@
+{
+  "id": "catalog_category_edit",
+  "type": "eav",
+  "entity": "catalog_category",
+  "acl": "Magento_Catalog::categories",
+  "dataSource": {
+    "provider": "category.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Category",
+    "saveUrl": "catalog/category/save",
+    "backUrl": "catalog/category/index",
+    "deleteUrl": "catalog/category/delete",
+    "identifierField": "entity_id",
+    "identifierParam": "id",
+    "sidebarRenderer": "snippet.category_navigation_tree",
+    "template": "Qoliber_NebulaTheme::eav/form-with-sidebar.phtml"
+  },
+  "layout": [
+    {
+      "type": "row",
+      "children": [
+        {
+          "type": "column",
+          "width": "1/2",
+          "children": [
+            {
+              "type": "section",
+              "label": "General",
+              "fields": ["name", "is_active", "include_in_menu"]
+            },
+            {
+              "type": "section",
+              "label": "Content",
+              "fields": ["description", "landing_page"]
+            }
+          ]
+        },
+        {
+          "type": "column",
+          "width": "1/2",
+          "children": [
+            {
+              "type": "section",
+              "label": "Display Settings",
+              "children": [
+                { "type": "fields", "fields": ["display_mode", "is_anchor"] },
+                { "type": "snippet", "renderer": "snippet.category_sortby_fields" }
+              ]
+            },
+            {
+              "type": "section",
+              "label": "Search Engine Optimization",
+              "children": [
+                { "type": "fields", "fields": ["url_key", "meta_title", "meta_keywords", "meta_description"] },
+                { "type": "snippet", "renderer": "snippet.seo_preview", "entity_type": "category", "entity_noun": "category", "title_placeholder": "Category Name", "url_placeholder": "category-url" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "tabs",
+      "children": [
+        {
+          "label": "Products in Category",
+          "renderer": "snippet.category_products"
+        },
+        {
+          "label": "Design",
+          "groups": ["custom-design"]
+        }
+      ]
+    }
+  ],
+  "excludeGroups": ["general-information", "display-settings"],
+  "overrides": {
+    "fields": {
+      "description": { "type": "wysiwyg" },
+      "is_active": { "type": "toggle" },
+      "include_in_menu": { "type": "toggle" },
+      "is_anchor": { "type": "toggle" }
+    }
+  }
+}

@@ -1,0 +1,316 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\MediaGallery $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\MediaGallery) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\MediaGallery::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+$uploadUrl = $formBlock->getUrl('catalog/product_gallery/upload');
+$formKey = $formBlock->getFormKey();
+
+$galleryData = $entity ? $entity->getData('media_gallery') : ['images' => []];
+$existingImages = $galleryData['images'] ?? [];
+
+$baseImage = $entity ? $entity->getData('image') : null;
+$smallImage = $entity ? $entity->getData('small_image') : null;
+$thumbnail = $entity ? $entity->getData('thumbnail') : null;
+$swatchImage = $entity ? $entity->getData('swatch_image') : null;
+
+$imagesData = $viewModel->buildImagesData($entity, $existingImages);
+
+$configJson = json_encode([
+    'images' => $imagesData,
+    'baseImage' => $baseImage,
+    'smallImage' => $smallImage,
+    'thumbnailImage' => $thumbnail,
+    'swatchImage' => $swatchImage,
+    'uploadUrl' => $uploadUrl,
+    'formKey' => $formKey,
+], JSON_HEX_APOS | JSON_HEX_QUOT);
+?>
+
+<div x-data="nebulaMediaGallery(<?= $escaper->escapeHtmlAttr($configJson) ?>)">
+
+    <!-- Upload area -->
+    <div @drop.prevent="handleDrop($event)"
+         @dragover.prevent="uploadDragging = true"
+         @dragleave.prevent="uploadDragging = false"
+         :class="uploadDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'"
+         class="rounded-lg border-2 border-dashed p-6 text-center cursor-pointer mb-6 transition-colors"
+         @click="$refs.fileInput.click()">
+        <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/>
+        </svg>
+        <p class="text-sm text-gray-600"><?= $escaper->escapeHtml((string) __('Drop images here or')) ?> <span class="text-indigo-600 font-semibold"><?= $escaper->escapeHtml((string) __('browse')) ?></span></p>
+        <p class="text-xs text-gray-400 mt-1">JPG, JPEG, PNG, GIF</p>
+        <input x-ref="fileInput" type="file" accept="image/jpeg,image/png,image/gif" multiple @change="handleFiles($event)" class="hidden">
+    </div>
+
+    <!-- Uploading indicator -->
+    <div x-show="uploading" x-cloak class="mb-4 flex items-center gap-2 text-sm text-indigo-600">
+        <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <?= $escaper->escapeHtml((string) __('Uploading...')) ?>
+    </div>
+
+    <!-- Image list (drag to reorder) -->
+    <div class="space-y-4" x-ref="imageList" :style="dragIndex !== null ? 'min-height:' + $refs.imageList.offsetHeight + 'px' : ''">
+        <template x-for="(img, index) in visibleImages" :key="img.file + '_' + index">
+            <div class="relative flex gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                 :class="{
+                    'opacity-50': dragIndex === getRealIndex(img),
+                    'ring-2 ring-indigo-400 ring-offset-2': dragOverIndex === getRealIndex(img) && dragIndex !== getRealIndex(img)
+                 }"
+                 draggable="true"
+                 @dragstart="startDrag(getRealIndex(img), $event)"
+                 @dragend="endDrag()"
+                 @dragover.prevent="dragOver(getRealIndex(img))"
+                 @drop.prevent="drop(getRealIndex(img))">
+
+                <!-- Drag handle -->
+                <div class="flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                        <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
+                        <circle cx="9" cy="10" r="1.5"/><circle cx="15" cy="10" r="1.5"/>
+                        <circle cx="9" cy="15" r="1.5"/><circle cx="15" cy="15" r="1.5"/>
+                        <circle cx="9" cy="20" r="1.5"/><circle cx="15" cy="20" r="1.5"/>
+                    </svg>
+                </div>
+
+                <!-- Preview -->
+                <div class="flex-shrink-0">
+                    <img :src="img.url" class="h-12 w-12 rounded object-cover border border-gray-200" alt="" loading="lazy">
+                </div>
+
+                <!-- Fields -->
+                <div class="flex-1 min-w-0 space-y-2">
+                    <!-- Row 1: Filename + Visibility -->
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-medium text-gray-700 truncate" x-text="img.file.split('/').pop()"></p>
+                        <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                            <button type="button" @click="img.disabled = !img.disabled"
+                                    :class="img.disabled ? 'bg-gray-300 border border-gray-300' : 'bg-indigo-600'"
+                                    class="relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
+                                    role="switch" :aria-checked="!img.disabled">
+                                <span :class="img.disabled ? 'translate-x-0' : 'translate-x-4'"
+                                      class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow transition duration-200"></span>
+                            </button>
+                            <template x-if="img.disabled"><span class="text-xs text-gray-400 dark:text-slate-400"><?= $escaper->escapeHtml((string) __('Hidden')) ?></span></template>
+                            <template x-if="!img.disabled"><span class="text-xs text-green-600 dark:text-emerald-300"><?= $escaper->escapeHtml((string) __('Visible')) ?></span></template>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Alt text -->
+                    <input type="text"
+                           :name="'product[media_gallery][images][' + getRealIndex(img) + '][label]'"
+                           x-model="img.label"
+                           placeholder="<?= $escaper->escapeHtmlAttr((string) __('Image alt text...')) ?>"
+                           class="block w-full rounded-md border-0 py-1.5 px-2.5 text-sm text-gray-900 border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+
+                    <!-- Row 3: Roles -->
+                    <div class="flex items-center gap-4 flex-wrap pt-1 text-gray-700 dark:text-slate-100">
+                        <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                            <input type="radio" name="product[image]" :value="img.file" :checked="img.file === baseImage" @change="baseImage = img.file" class="h-3 w-3 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                            <?= $escaper->escapeHtml((string) __('Base')) ?>
+                        </label>
+                        <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                            <input type="radio" name="product[small_image]" :value="img.file" :checked="img.file === smallImage" @change="smallImage = img.file" class="h-3 w-3 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                            <?= $escaper->escapeHtml((string) __('Small')) ?>
+                        </label>
+                        <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                            <input type="radio" name="product[thumbnail]" :value="img.file" :checked="img.file === thumbnailImage" @change="thumbnailImage = img.file" class="h-3 w-3 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                            <?= $escaper->escapeHtml((string) __('Thumb')) ?>
+                        </label>
+                        <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                            <input type="radio" name="product[swatch_image]" :value="img.file" :checked="img.file === swatchImage" @change="swatchImage = img.file" class="h-3 w-3 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                            <?= $escaper->escapeHtml((string) __('Swatch')) ?>
+                        </label>
+                    </div>
+
+                    <!-- Hidden fields -->
+                    <input type="hidden" :name="'product[media_gallery][images][' + getRealIndex(img) + '][file]'" :value="img.file">
+                    <input type="hidden" :name="'product[media_gallery][images][' + getRealIndex(img) + '][media_type]'" value="image">
+                    <input type="hidden" :name="'product[media_gallery][images][' + getRealIndex(img) + '][value_id]'" :value="img.value_id || ''">
+                    <input type="hidden" :name="'product[media_gallery][images][' + getRealIndex(img) + '][position]'" :value="index + 1">
+                    <input type="hidden" :name="'product[media_gallery][images][' + getRealIndex(img) + '][disabled]'" :value="img.disabled ? 1 : 0">
+                    <input type="hidden" :name="'product[media_gallery][images][' + getRealIndex(img) + '][removed]'" :value="0">
+                </div>
+
+                <!-- Delete button (bottom-right corner) -->
+                <button type="button" @click="removeImage(getRealIndex(img))"
+                        class="absolute bottom-3 right-3 cursor-pointer text-gray-300 hover:text-red-500 transition"
+                        title="<?= $escaper->escapeHtmlAttr((string) __('Remove image')) ?>">
+                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                </button>
+            </div>
+        </template>
+    </div>
+
+    <!-- Removed images (hidden inputs to mark deletion) -->
+    <template x-for="(img, index) in removedImages" :key="'removed_' + img.file">
+        <div>
+            <input type="hidden" :name="'product[media_gallery][images][' + (visibleImages.length + index) + '][file]'" :value="img.file">
+            <input type="hidden" :name="'product[media_gallery][images][' + (visibleImages.length + index) + '][value_id]'" :value="img.value_id || ''">
+            <input type="hidden" :name="'product[media_gallery][images][' + (visibleImages.length + index) + '][removed]'" value="1">
+            <input type="hidden" :name="'product[media_gallery][images][' + (visibleImages.length + index) + '][media_type]'" value="image">
+        </div>
+    </template>
+
+    <!-- Empty state -->
+    <div x-show="visibleImages.length === 0 && !uploading"
+         class="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center text-sm text-gray-500">
+        <?= $escaper->escapeHtml((string) __('No images yet. Upload some above.')) ?>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    if (window._nebulaMediaGalleryRegistered) return;
+    window._nebulaMediaGalleryRegistered = true;
+
+    Alpine.data('nebulaMediaGallery', (config) => ({
+        images: config.images || [],
+        baseImage: config.baseImage || '',
+        smallImage: config.smallImage || '',
+        thumbnailImage: config.thumbnailImage || '',
+        swatchImage: config.swatchImage || '',
+        uploadUrl: config.uploadUrl,
+        formKey: config.formKey,
+        uploadDragging: false,
+        uploading: false,
+        dragIndex: null,
+
+        get visibleImages() {
+            return this.images.filter(i => !i.removed);
+        },
+
+        get removedImages() {
+            return this.images.filter(i => i.removed && i.value_id);
+        },
+
+        getRealIndex(img) {
+            return this.images.indexOf(img);
+        },
+
+        // --- Drag to reorder ---
+        dragOverIndex: null,
+
+        startDrag(index, event) {
+            this.dragIndex = index;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', index);
+        },
+
+        endDrag() {
+            this.dragIndex = null;
+            this.dragOverIndex = null;
+        },
+
+        dragOver(index) {
+            if (this.dragIndex === null || this.dragIndex === index) return;
+            this.dragOverIndex = index;
+        },
+
+        drop(index) {
+            if (this.dragIndex === null || this.dragIndex === index) {
+                this.dragIndex = null;
+                this.dragOverIndex = null;
+                return;
+            }
+            const item = this.images.splice(this.dragIndex, 1)[0];
+            this.images.splice(index, 0, item);
+            this.images.forEach((img, i) => { img.position = i + 1; });
+            this.dragIndex = null;
+            this.dragOverIndex = null;
+        },
+
+        // --- Upload ---
+        handleDrop(event) {
+            this.uploadDragging = false;
+            if (event.dataTransfer.files.length) {
+                this.uploadFiles(event.dataTransfer.files);
+            }
+        },
+
+        handleFiles(event) {
+            this.uploadFiles(event.target.files);
+            event.target.value = '';
+        },
+
+        async uploadFiles(files) {
+            this.uploading = true;
+            for (const file of files) {
+                await this.uploadFile(file);
+            }
+            this.uploading = false;
+        },
+
+        async uploadFile(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('form_key', this.formKey);
+
+            try {
+                const resp = await fetch(this.uploadUrl, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!resp.ok) {
+                    throw new Error('HTTP ' + resp.status);
+                }
+                const result = await resp.json();
+                if (!result.error) {
+                    const newImg = {
+                        value_id: null,
+                        file: result.file,
+                        url: result.url,
+                        label: '',
+                        position: this.images.length + 1,
+                        disabled: false,
+                        removed: false,
+                        media_type: 'image',
+                        new: true
+                    };
+                    this.images.push(newImg);
+                    // Auto-assign all roles to first image
+                    if (this.visibleImages.length === 1) {
+                        this.baseImage = result.file;
+                        this.smallImage = result.file;
+                        this.thumbnailImage = result.file;
+                        this.swatchImage = result.file;
+                    }
+                } else {
+                    alert('Upload error: ' + (result.message || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error('Upload failed:', e);
+                alert('Upload failed. Check console for details.');
+            }
+        },
+
+        removeImage(index) {
+            this.images[index].removed = true;
+            // If removed image had a role, clear it
+            const file = this.images[index].file;
+            if (this.baseImage === file) this.baseImage = '';
+            if (this.smallImage === file) this.smallImage = '';
+            if (this.thumbnailImage === file) this.thumbnailImage = '';
+            if (this.swatchImage === file) this.swatchImage = '';
+        }
+    }));
+});
+</script>

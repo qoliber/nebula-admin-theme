@@ -1,0 +1,81 @@
+{
+  "id": "admin_user_edit",
+  "acl": "Magento_User::acl_users",
+  "route": "adminhtml_user_edit",
+  "replaces": ["adminhtml.user.edit.tabs", "adminhtml.user.edit", "adminhtml.user.roles.grid.js"],
+  "dataSource": {
+    "provider": "admin_user.form",
+    "config": {
+      "identifierParam": "user_id"
+    }
+  },
+  "settings": {
+    "title": "Admin User",
+    "identifierField": "user_id",
+    "backUrl": "adminhtml/user/index",
+    "saveUrl": "adminhtml/user/save"
+  },
+  "fieldsets": {
+    "account": {
+      "label": "Account Information",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "username": {
+          "label": "User Name",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "firstname": {
+          "label": "First Name",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "lastname": {
+          "label": "Last Name",
+          "type": "text",
+          "required": true,
+          "position": 30
+        },
+        "email": {
+          "label": "Email",
+          "type": "text",
+          "required": true,
+          "position": 40
+        },
+        "password": {
+          "label": "Password",
+          "type": "password",
+          "position": 50,
+          "note": "Leave empty to keep the current password"
+        },
+        "password_confirmation": {
+          "label": "Password Confirmation",
+          "type": "password",
+          "position": 60
+        },
+        "interface_locale": {
+          "label": "Interface Locale",
+          "type": "select",
+          "optionsSource": "Magento\\Framework\\Locale\\OptionInterface",
+          "optionsMethod": "getOptionLocales",
+          "position": 70
+        },
+        "current_password": {
+          "label": "Your Password",
+          "type": "password",
+          "required": true,
+          "position": 80,
+          "note": "Enter your current password to confirm changes"
+        },
+        "is_active": {
+          "label": "This account is",
+          "type": "toggle",
+          "position": 90
+        }
+      }
+    }
+  }
+}

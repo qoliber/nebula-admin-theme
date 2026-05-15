@@ -1,0 +1,91 @@
+{
+  "id": "sales_rule_listing",
+  "acl": "Magento_SalesRule::quote",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "sales_rule.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "rule_id",
+      "direction": "asc"
+    },
+    "addButton": {
+      "label": "Add New Rule",
+      "url": "sales_rule/promo_quote/new"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "rule_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Rule",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "coupon_code": {
+      "label": "Coupon Code",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "is_active": {
+      "label": "Status",
+      "type": "badge",
+      "sortable": true,
+      "filter": "select",
+      "options": {
+        "1": {"label": "Enabled", "class": "success"},
+        "0": {"label": "Disabled", "class": "error"}
+      },
+      "position": 40
+    },
+    "from_date": {
+      "label": "Start",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "to_date": {
+      "label": "End",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 60
+    },
+    "sort_order": {
+      "label": "Priority",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 70
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "sales_rule/promo_quote/edit/id/{{rule_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

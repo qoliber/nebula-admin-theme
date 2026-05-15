@@ -1,0 +1,405 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaTheme\Block\OrderView $block */
+$order = $block->getOrder();
+
+if (!$order) {
+    return;
+}
+
+$billing = $order->getBillingAddress();
+$shipping = $order->getShippingAddress();
+$items = $order->getAllVisibleItems();
+$statusHistories = $order->getStatusHistoryCollection();
+?>
+
+<div class="nebula-order-view" x-data="{ commentOpen: true }">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <a href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>"
+               class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                <?= $escaper->escapeHtml(__('Back to Orders')) ?>
+            </a>
+        </div>
+
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">
+                    <?= $escaper->escapeHtml(__('Order #%1', $order->getIncrementId())) ?>
+                </h1>
+                <div class="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                    <span><?= $escaper->escapeHtml($order->getCustomerFirstname() . ' ' . $order->getCustomerLastname()) ?></span>
+                    <?php if ($order->getCustomerEmail()) : ?>
+                        <span class="text-gray-300">|</span>
+                        <a href="mailto:<?= $escaper->escapeHtmlAttr($order->getCustomerEmail()) ?>"
+                           class="text-blue-600 hover:text-blue-800">
+                            <?= $escaper->escapeHtml($order->getCustomerEmail()) ?>
+                        </a>
+                    <?php endif; ?>
+                    <span class="text-gray-300">|</span>
+                    <span><?= $escaper->escapeHtml($block->formatDate($order->getCreatedAt(), \IntlDateFormatter::MEDIUM, true)) ?></span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $escaper->escapeHtmlAttr($block->getStatusBadgeClass()) ?>">
+                        <?= $escaper->escapeHtml($block->getStatusLabel()) ?>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+                <?php if ($order->canInvoice()) : ?>
+                    <a href="<?= $escaper->escapeUrl($block->getInvoiceUrl()) ?>"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Invoice')) ?>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($order->canShip()) : ?>
+                    <a href="<?= $escaper->escapeUrl($block->getShipUrl()) ?>"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Ship')) ?>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($order->canCreditmemo()) : ?>
+                    <a href="<?= $escaper->escapeUrl($block->getCreditMemoUrl()) ?>"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Credit Memo')) ?>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($order->canCancel()) : ?>
+                    <a href="<?= $escaper->escapeUrl($block->getCancelUrl()) ?>"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-red-600 border border-red-300 hover:bg-red-50 transition-colors"
+                       @click.prevent="(async () => { if (await window.Nebula.confirm({ title: '<?= $escaper->escapeJs((string) __('Cancel this order?')) ?>', message: '<?= $escaper->escapeJs((string) __('The order will be marked as cancelled.')) ?>', danger: true, confirmText: '<?= $escaper->escapeJs((string) __('Cancel order')) ?>', cancelText: '<?= $escaper->escapeJs((string) __('Keep order')) ?>' })) { window.location.href = $event.currentTarget.href; } })()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Cancel')) ?>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($order->canHold()) : ?>
+                    <a href="<?= $escaper->escapeUrl($block->getHoldUrl()) ?>"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Hold')) ?>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($order->canUnhold()) : ?>
+                    <a href="<?= $escaper->escapeUrl($block->getUnholdUrl()) ?>"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Unhold')) ?>
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Section: 3 columns -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Billing Address -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <?= $escaper->escapeHtml(__('Billing Address')) ?>
+            </h3>
+            <?php if ($billing) : ?>
+                <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                    <?= $escaper->escapeHtml($block->getFormattedAddress($billing)) ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <?= $escaper->escapeHtml(__('Shipping Address')) ?>
+            </h3>
+            <?php if ($shipping) : ?>
+                <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                    <?= $escaper->escapeHtml($block->getFormattedAddress($shipping)) ?>
+                </div>
+            <?php else : ?>
+                <p class="text-sm text-gray-400 italic"><?= $escaper->escapeHtml(__('Virtual Order — No shipping address')) ?></p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Payment & Shipping Method -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <?= $escaper->escapeHtml(__('Payment & Shipping')) ?>
+            </h3>
+            <div class="space-y-3">
+                <div>
+                    <span class="text-xs font-medium text-gray-400 uppercase"><?= $escaper->escapeHtml(__('Payment Method')) ?></span>
+                    <p class="text-sm text-gray-700 mt-0.5"><?= $escaper->escapeHtml($block->getPaymentMethodTitle()) ?></p>
+                </div>
+                <?php if ($order->getShippingDescription()) : ?>
+                    <div>
+                        <span class="text-xs font-medium text-gray-400 uppercase"><?= $escaper->escapeHtml(__('Shipping Method')) ?></span>
+                        <p class="text-sm text-gray-700 mt-0.5">
+                            <?= $escaper->escapeHtml($order->getShippingDescription()) ?>
+                            <span class="text-gray-500">(<?= $escaper->escapeHtml($block->formatPrice($order->getShippingAmount())) ?>)</span>
+                        </p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Ordered -->
+    <div class="bg-white rounded-xl border border-gray-200 mb-6 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Items Ordered')) ?></h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <th class="px-5 py-3"><?= $escaper->escapeHtml(__('Product')) ?></th>
+                        <th class="px-5 py-3"><?= $escaper->escapeHtml(__('SKU')) ?></th>
+                        <th class="px-5 py-3"><?= $escaper->escapeHtml(__('Status')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Price')) ?></th>
+                        <th class="px-5 py-3 text-center"><?= $escaper->escapeHtml(__('Qty')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Subtotal')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Tax')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Discount')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Row Total')) ?></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <?php foreach ($items as $item) : ?>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4">
+                                <div class="font-medium text-gray-900"><?= $escaper->escapeHtml($item->getName()) ?></div>
+                                <?php
+                                $options = $item->getProductOptions();
+                        if (!empty($options['options'])) : ?>
+                                    <div class="mt-1 space-y-0.5">
+                                                        <?php foreach ($options['options'] as $option) : ?>
+                                            <div class="text-xs text-gray-500">
+                                                            <?= $escaper->escapeHtml($option['label']) ?>:
+                                                <span class="text-gray-700"><?= $escaper->escapeHtml($option['print_value'] ?? $option['value']) ?></span>
+                                            </div>
+                                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($options['attributes_info'])) : ?>
+                                    <div class="mt-1 space-y-0.5">
+                                        <?php foreach ($options['attributes_info'] as $attr) : ?>
+                                            <div class="text-xs text-gray-500">
+                                                <?= $escaper->escapeHtml($attr['label']) ?>:
+                                                <span class="text-gray-700"><?= $escaper->escapeHtml($attr['value']) ?></span>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-5 py-4 text-gray-500 font-mono text-xs"><?= $escaper->escapeHtml($item->getSku()) ?></td>
+                            <td class="px-5 py-4">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                    <?= $escaper->escapeHtml((string) $item->getStatusId()) ?>
+                                </span>
+                            </td>
+                            <td class="px-5 py-4 text-right text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($item->getPrice())) ?></td>
+                            <td class="px-5 py-4 text-center">
+                                <div class="text-gray-700">
+                                    <?= $escaper->escapeHtml(__('Ordered: %1', (int) $item->getQtyOrdered())) ?>
+                                </div>
+                                <?php if ((float) $item->getQtyInvoiced() > 0) : ?>
+                                    <div class="text-xs text-gray-500"><?= $escaper->escapeHtml(__('Invoiced: %1', (int) $item->getQtyInvoiced())) ?></div>
+                                <?php endif; ?>
+                                <?php if ((float) $item->getQtyShipped() > 0) : ?>
+                                    <div class="text-xs text-gray-500"><?= $escaper->escapeHtml(__('Shipped: %1', (int) $item->getQtyShipped())) ?></div>
+                                <?php endif; ?>
+                                <?php if ((float) $item->getQtyRefunded() > 0) : ?>
+                                    <div class="text-xs text-gray-500"><?= $escaper->escapeHtml(__('Refunded: %1', (int) $item->getQtyRefunded())) ?></div>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-5 py-4 text-right text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($item->getRowTotal())) ?></td>
+                            <td class="px-5 py-4 text-right text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($item->getTaxAmount())) ?></td>
+                            <td class="px-5 py-4 text-right text-gray-700">
+                                <?php if ((float) $item->getDiscountAmount() > 0) : ?>
+                                    -<?= $escaper->escapeHtml($block->formatPrice($item->getDiscountAmount())) ?>
+                                <?php else : ?>
+                                    <?= $escaper->escapeHtml($block->formatPrice(0)) ?>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-5 py-4 text-right font-medium text-gray-900">
+                                <?= $escaper->escapeHtml($block->formatPrice(
+                                    $item->getRowTotal()
+                                    + $item->getTaxAmount()
+                                    - $item->getDiscountAmount()
+                                )) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totals -->
+        <div class="border-t border-gray-200 bg-gray-50 px-5 py-4">
+            <div class="flex justify-end">
+                <dl class="w-72 space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Subtotal')) ?></dt>
+                        <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($order->getSubtotal())) ?></dd>
+                    </div>
+                    <?php if ((float) $order->getShippingAmount() > 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Shipping & Handling')) ?></dt>
+                            <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($order->getShippingAmount())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ((float) $order->getDiscountAmount() != 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500">
+                                <?= $escaper->escapeHtml(__('Discount')) ?>
+                                <?php if ($order->getCouponCode()) : ?>
+                                    <span class="text-xs text-gray-400">(<?= $escaper->escapeHtml($order->getCouponCode()) ?>)</span>
+                                <?php endif; ?>
+                            </dt>
+                            <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($order->getDiscountAmount())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ((float) $order->getTaxAmount() > 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Tax')) ?></dt>
+                            <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($order->getTaxAmount())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <div class="flex justify-between pt-2 border-t border-gray-300">
+                        <dt class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Grand Total')) ?></dt>
+                        <dd class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml($block->formatPrice($order->getGrandTotal())) ?></dd>
+                    </div>
+                    <?php if ((float) $order->getTotalPaid() > 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Total Paid')) ?></dt>
+                            <dd class="text-green-600 font-medium"><?= $escaper->escapeHtml($block->formatPrice($order->getTotalPaid())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ((float) $order->getTotalRefunded() > 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Total Refunded')) ?></dt>
+                            <dd class="text-red-600 font-medium"><?= $escaper->escapeHtml($block->formatPrice($order->getTotalRefunded())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ((float) $order->getTotalDue() > 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Total Due')) ?></dt>
+                            <dd class="text-amber-600 font-medium"><?= $escaper->escapeHtml($block->formatPrice($order->getTotalDue())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments / History -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Order History & Comments')) ?></h3>
+        </div>
+
+        <!-- Add Comment Form -->
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-100">
+            <form action="<?= $escaper->escapeUrl($block->getCommentUrl()) ?>" method="post" id="order-comment-form">
+                <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKeyValue()) ?>"/>
+                <input type="hidden" name="order_id" value="<?= $escaper->escapeHtmlAttr((string) $order->getEntityId()) ?>"/>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="flex-1">
+                        <label for="history_comment" class="sr-only"><?= $escaper->escapeHtml(__('Comment')) ?></label>
+                        <textarea
+                            id="history_comment"
+                            name="history[comment]"
+                            rows="3"
+                            placeholder="<?= $escaper->escapeHtmlAttr(__('Add a comment...')) ?>"
+                            class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors resize-y"
+                        ></textarea>
+                    </div>
+                    <div class="flex flex-col justify-between gap-2">
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                <input type="checkbox" name="history[is_customer_notified]" value="1"
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/>
+                                <?= $escaper->escapeHtml(__('Notify Customer')) ?>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                <input type="checkbox" name="history[is_visible_on_front]" value="1"
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/>
+                                <?= $escaper->escapeHtml(__('Visible on Storefront')) ?>
+                            </label>
+                        </div>
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            </svg>
+                            <?= $escaper->escapeHtml(__('Submit Comment')) ?>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- History Timeline -->
+        <div class="px-5 py-4">
+            <?php if (count($statusHistories) > 0) : ?>
+                <div class="space-y-0">
+                    <?php foreach ($statusHistories as $history) : ?>
+                        <div class="relative pl-6 pb-5 last:pb-0 border-l-2 border-gray-200 last:border-l-0">
+                            <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-gray-400"></div>
+                            <div class="flex items-start gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <span class="text-xs text-gray-400">
+                                            <?= $escaper->escapeHtml(
+                                                $block->formatDate($history->getCreatedAt(), \IntlDateFormatter::MEDIUM, true)
+                                            ) ?>
+                                        </span>
+                                        <?php if ($history->getStatusLabel()) : ?>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                                <?= $escaper->escapeHtml($history->getStatusLabel()) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if ($history->getIsCustomerNotified()) : ?>
+                                            <span class="text-xs text-green-600"><?= $escaper->escapeHtml(__('Customer Notified')) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($history->getComment()) : ?>
+                                        <p class="text-sm text-gray-700"><?= $escaper->escapeHtml($history->getComment()) ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else : ?>
+                <p class="text-sm text-gray-400 italic py-2"><?= $escaper->escapeHtml(__('No history records found.')) ?></p>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>

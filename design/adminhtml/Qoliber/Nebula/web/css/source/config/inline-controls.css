@@ -1,0 +1,39 @@
+/*
+ * Vendor renderers that pack multiple controls into one value cell
+ * (Reports YtdStart/MtdStart, Cron schedule date pickers, etc.) set
+ * inline width="…px" / style="width:…" on the elements expecting them
+ * to flow on one line. Default .nebula-config-value rules force
+ * display: block so they stack — opt those back into inline flow.
+ */
+.nebula-config-value select[style*="width"],
+.nebula-config-value input[type="text"][style*="width"],
+.nebula-config-value input[type="number"][style*="width"] {
+  display: inline-block;
+  width: auto;
+}
+/*
+ * Multi-control value cells where vendor doesn't set inline width — Catalog
+ * DateFieldsOrder emits three <select class="select-date"> joined by
+ * <span>/</span>. Use :has() to detect any cell containing multiple adjacent
+ * selects and force the children inline. Covers any future vendor renderer
+ * following the same pattern without enumerating class names.
+ */
+.nebula-config-value:has(select + select) select,
+.nebula-config-value:has(select + span + select) select,
+.nebula-config-value:has(select.select-date) select {
+  display: inline-block;
+  width: auto;
+}
+.nebula-config-value:has(select + select) > span,
+.nebula-config-value:has(select + span + select) > span,
+.nebula-config-value:has(select.select-date) > span {
+  display: inline-block;
+  padding: 0 0.4rem;
+  color: var(--nebula-text-tertiary);
+}
+.nebula-config-value .time-separator {
+  @apply inline px-1 text-gray-400 font-medium;
+}
+.nebula-config-value > style {
+  display: none;
+}

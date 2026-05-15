@@ -1,0 +1,89 @@
+{
+  "id": "sales_order_invoice_grid",
+  "acl": "Magento_Sales::sales_invoice",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "sales_order_invoice.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "entity_id",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "increment_id": {
+      "label": "Invoice #",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "created_at": {
+      "label": "Invoice Date",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 30
+    },
+    "order_increment_id": {
+      "label": "Order #",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 40
+    },
+    "billing_name": {
+      "label": "Bill-to Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 50
+    },
+    "state": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "1": "Pending",
+        "2": "Paid",
+        "3": "Canceled"
+      },
+      "position": 60
+    },
+    "grand_total": {
+      "label": "Grand Total",
+      "type": "price",
+      "sortable": true,
+      "filter": "range",
+      "position": 70
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "View",
+          "url": "sales/invoice/view/invoice_id/{{entity_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

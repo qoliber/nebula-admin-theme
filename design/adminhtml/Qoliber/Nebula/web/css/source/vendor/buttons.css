@@ -1,0 +1,40 @@
+/* --- Buttons (rendered by Magento\Backend\Block\Widget\Button) --- */
+.nebula-page-actions button,
+.nebula-page-actions a.action-secondary,
+.nebula-page-actions a.action-primary,
+.nebula-page-actions .action-primary,
+.nebula-page-actions [class*="save"] {
+  @apply inline-flex items-center text-sm font-semibold transition cursor-pointer;
+  gap: var(--nebula-spacing-sm);
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-lg);
+  border-radius: var(--nebula-radius-lg);
+  text-decoration: none;
+  line-height: 1.1;
+}
+.action-primary,
+button.primary,
+button.action-primary {
+  @apply text-white border-none;
+  background: var(--nebula-button-primary-bg);
+  box-shadow: var(--nebula-shadow-sm);
+  border-radius: var(--nebula-radius-lg);
+}
+.action-primary:hover,
+button.primary:hover,
+button.action-primary:hover {
+  @apply bg-nebula-500;
+  box-shadow: var(--nebula-shadow-md);
+}
+.action-secondary,
+button.secondary {
+  @apply text-gray-700 border border-gray-200;
+  background: var(--nebula-button-bg);
+  border-radius: var(--nebula-radius-lg);
+}
+.action-secondary:hover,
+button.secondary:hover {
+  @apply bg-gray-50;
+}
+.page-actions-buttons {
+  @apply flex gap-2;
+}

@@ -1,0 +1,4 @@
+{
+  "id": "coupon_codes_grid",
+  "template": "Qoliber_NebulaTheme::snippet/coupon_codes_grid.phtml"
+}

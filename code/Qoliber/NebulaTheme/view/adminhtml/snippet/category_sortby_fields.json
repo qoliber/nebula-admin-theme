@@ -1,0 +1,4 @@
+{
+  "id": "category_sortby_fields",
+  "template": "Qoliber_NebulaTheme::eav/snippet/category_sortby_fields.phtml"
+}

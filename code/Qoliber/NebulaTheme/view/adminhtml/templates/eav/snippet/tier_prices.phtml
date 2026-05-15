@@ -1,0 +1,163 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\TierPrices $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\TierPrices) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\TierPrices::class);
+}
+
+$entity = $block->getData('entity');
+$tierPrices = $entity ? $entity->getData('tier_price') : [];
+if (!is_array($tierPrices)) {
+    $tierPrices = [];
+}
+
+$tierPricesData = [];
+foreach ($tierPrices as $tp) {
+    $tierPricesData[] = [
+        'website_id' => (string)($tp['website_id'] ?? '0'),
+        'cust_group' => (string)($tp['cust_group'] ?? '32000'),
+        'price_qty' => (string)($tp['price_qty'] ?? ''),
+        'price' => (string)($tp['price'] ?? ''),
+        'value_type' => (string)($tp['value_type'] ?? 'fixed'),
+    ];
+}
+
+$groups = $viewModel->getCustomerGroups();
+$websites = $viewModel->getWebsites();
+
+$inputClass = 'w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none';
+?>
+
+<div class="border-t border-gray-200 pt-4 mt-4">
+    <label class="block text-sm font-semibold text-gray-700 mb-3">
+        <?= $escaper->escapeHtml((string) __('Tier Prices')) ?>
+    </label>
+
+    <div x-data="nebulaTierPrices(<?= $escaper->escapeHtmlAttr(json_encode($tierPricesData)) ?>)">
+        <!-- Table -->
+        <div x-show="rows.length > 0" class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Website')) ?></th>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Customer Group')) ?></th>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Qty')) ?></th>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Price')) ?></th>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Type')) ?></th>
+                        <th class="px-3 py-2.5 w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <template x-for="(row, index) in rows" :key="index">
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-3 py-2.5">
+                                <select :name="'product[tier_price][' + index + '][website_id]'"
+                                        x-model="row.website_id"
+                                        class="<?= /* @noEscape */ $inputClass ?>">
+                                    <option value="0"><?= $escaper->escapeHtml((string) __('All Websites')) ?></option>
+                                    <?php foreach ($websites as $website) : ?>
+                                        <option value="<?= $escaper->escapeHtmlAttr((string) $website->getId()) ?>">
+                                            <?= $escaper->escapeHtml($website->getName()) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                            <td class="px-3 py-2.5">
+                                <select :name="'product[tier_price][' + index + '][cust_group]'"
+                                        x-model="row.cust_group"
+                                        class="<?= /* @noEscape */ $inputClass ?>">
+                                    <option value="32000"><?= $escaper->escapeHtml((string) __('ALL GROUPS')) ?></option>
+                                    <?php foreach ($groups as $group) : ?>
+                                        <option value="<?= $escaper->escapeHtmlAttr((string) $group->getId()) ?>">
+                                            <?= $escaper->escapeHtml($group->getCode()) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                            <td class="px-3 py-2.5">
+                                <input type="number"
+                                       :name="'product[tier_price][' + index + '][price_qty]'"
+                                       x-model="row.price_qty"
+                                       min="1" step="1" placeholder="1"
+                                       data-validate="required|number|min:1"
+                                       data-validate-label="<?= $escaper->escapeHtmlAttr((string) __('Quantity')) ?>"
+                                       class="<?= /* @noEscape */ $inputClass ?> w-16">
+                            </td>
+                            <td class="px-3 py-2.5">
+                                <input type="number"
+                                       :name="'product[tier_price][' + index + '][price]'"
+                                       x-model="row.price"
+                                       step="0.01" min="0" placeholder="0.00"
+                                       data-validate="required|number|min:0.01"
+                                       data-validate-label="<?= $escaper->escapeHtmlAttr((string) __('Price')) ?>"
+                                       class="<?= /* @noEscape */ $inputClass ?> w-24">
+                            </td>
+                            <td class="px-3 py-2.5">
+                                <select :name="'product[tier_price][' + index + '][value_type]'"
+                                        x-model="row.value_type"
+                                        class="<?= /* @noEscape */ $inputClass ?>">
+                                    <option value="fixed"><?= $escaper->escapeHtml((string) __('Fixed')) ?></option>
+                                    <option value="discount"><?= $escaper->escapeHtml((string) __('Discount')) ?></option>
+                                </select>
+                            </td>
+                            <td class="px-3 py-2.5 text-center">
+                                <button @click="removeRow(index)" type="button"
+                                        class="cursor-pointer inline-flex items-center justify-center h-8 w-8 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition"
+                                        title="<?= $escaper->escapeHtmlAttr((string) __('Remove')) ?>">
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty state -->
+        <div x-show="rows.length === 0" class="text-center py-4 text-sm text-gray-400">
+            <?= $escaper->escapeHtml((string) __('No tier prices configured.')) ?>
+        </div>
+
+        <!-- Add button -->
+        <button @click="addRow()" type="button"
+                class="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            <?= $escaper->escapeHtml((string) __('Add Tier Price')) ?>
+        </button>
+    </div>
+</div>
+
+<script>
+(function() {
+    if (window._nebulaTierPricesRegistered) return;
+    window._nebulaTierPricesRegistered = true;
+
+    var register = function() {
+        Alpine.data('nebulaTierPrices', function(initialData) {
+            return {
+                rows: initialData || [],
+                addRow: function() {
+                    this.rows.push({ website_id: '0', cust_group: '32000', price_qty: '', price: '', value_type: 'fixed' });
+                },
+                removeRow: function(index) {
+                    this.rows.splice(index, 1);
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) { register(); }
+    else { document.addEventListener('alpine:init', register); }
+})();
+</script>

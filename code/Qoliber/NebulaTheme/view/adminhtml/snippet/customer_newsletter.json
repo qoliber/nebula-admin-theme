@@ -1,0 +1,4 @@
+{
+    "id": "customer_newsletter",
+    "template": "Qoliber_NebulaTheme::customer/snippet/newsletter.phtml"
+}

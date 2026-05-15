@@ -1,0 +1,101 @@
+<?php
+/**
+ * Qoliber Nebula — Grid column set (table body)
+ *
+ * @var \Magento\Backend\Block\Widget\Grid\ColumnSet $block
+ */
+
+$numColumns = count($block->getColumns());
+?>
+<?php if ($block->getCollection()): ?>
+    <?php if ($block->isHeaderVisible()): ?>
+        <thead>
+            <tr>
+                <?php foreach ($block->getColumns() as $column): ?>
+                    <?php if ($column->getHeaderHtml() === '&nbsp;'): ?>
+                        <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 bg-gray-50"
+                            data-column="<?= $block->escapeHtmlAttr($column->getId()) ?>"
+                            <?= $column->getHeaderHtmlProperty() ?>>&nbsp;</th>
+                    <?php else: ?>
+                        <?= $column->getHeaderHtml() ?>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </tr>
+            <?php if ($block->isFilterVisible()): ?>
+                <tr class="bg-gray-50/50">
+                    <?php foreach ($block->getColumns() as $column): ?>
+                        <td class="px-4 py-2" data-column="<?= $block->escapeHtmlAttr($column->getId()) ?>"
+                            <?= $column->getHeaderHtmlProperty() ?>>
+                            <?= $column->getFilterHtml() ?>
+                        </td>
+                    <?php endforeach; ?>
+                </tr>
+            <?php endif; ?>
+        </thead>
+    <?php endif; ?>
+
+    <tbody class="divide-y divide-gray-100">
+        <?php if ($block->getCollection()->getSize() > 0 && !$block->getIsCollapsed()): ?>
+            <?php foreach ($block->getCollection() as $index => $item): ?>
+                <?php if (!$block->hasMultipleRows($item)): ?>
+                    <tr data-role="row"
+                        class="hover:bg-gray-50/50 transition <?= $block->escapeHtmlAttr($block->getRowClass($item) ?: '') ?>">
+                        <?php foreach ($block->getColumns() as $column): ?>
+                            <?php if ($block->shouldRenderCell($item, $column)): ?>
+                                <td data-column="<?= $block->escapeHtmlAttr($column->getId()) ?>"
+                                    class="px-4 py-2.5 text-sm text-gray-700 <?= $column->getId() === 'massaction' ? 'w-10' : '' ?>">
+                                    <?php $html = $column->getRowField($item); ?>
+                                    <?= /* @noEscape */ ($html !== '' ? $html : '&mdash;') ?>
+                                </td>
+                                <?php if ($block->shouldRenderEmptyCell($item, $column)): ?>
+                                    <td colspan="<?= $block->escapeHtmlAttr($block->getEmptyCellColspan($item)) ?>"
+                                        class="px-4 py-2.5 text-sm text-gray-400">
+                                        <?= $block->escapeHtml($block->getEmptyCellLabel()) ?>
+                                    </td>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tr>
+                <?php else: ?>
+                    <?php $block->updateItemByFirstMultiRow($item); ?>
+                    <tr data-role="row" class="hover:bg-gray-50/50 transition">
+                        <?php foreach ($block->getColumns() as $column): ?>
+                            <?php if ($block->shouldRenderCell($item, $column)): ?>
+                                <?php $rowspan = $block->getRowspan($item, $column); ?>
+                                <td data-column="<?= $block->escapeHtmlAttr($column->getId()) ?>"
+                                    <?= $rowspan ? 'rowspan="' . $rowspan . '"' : '' ?>
+                                    class="px-4 py-2.5 text-sm text-gray-700">
+                                    <?php $html = $column->getRowField($item); ?>
+                                    <?= /* @noEscape */ ($html !== '' ? $html : '&mdash;') ?>
+                                </td>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tr>
+                    <?php $first = true; ?>
+                    <?php foreach ($block->getMultipleRows($item) as $row): ?>
+                        <?php if ($first) {
+                            $first = false;
+                            continue;
+                        } ?>
+                        <tr data-role="row" class="hover:bg-gray-50/50 transition">
+                            <?php foreach ($block->getMultipleRowColumns($row) as $column): ?>
+                                <td data-column="<?= $block->escapeHtmlAttr($column->getId()) ?>"
+                                    class="px-4 py-2.5 text-sm text-gray-700">
+                                    <?php $html = $column->getRowField($row); ?>
+                                    <?= /* @noEscape */ ($html !== '' ? $html : '&mdash;') ?>
+                                </td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        <?php elseif ($block->getEmptyText()): ?>
+            <tr>
+                <td colspan="<?= $block->escapeHtmlAttr($numColumns) ?>"
+                    class="px-4 py-10 text-center text-sm text-gray-400">
+                    <?= $block->escapeHtml($block->getEmptyText()) ?>
+                </td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+<?php endif; ?>

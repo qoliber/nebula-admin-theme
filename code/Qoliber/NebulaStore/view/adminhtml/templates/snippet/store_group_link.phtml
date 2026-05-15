@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Snippet: store_group_link
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ */
+
+$value = $block->getData('value');
+$item = $block->getData('item');
+$groupId = $item['group_id'] ?? '';
+
+if ($value) {
+    $url = $block->getUrl('adminhtml/system_store/editGroup', ['group_id' => $groupId]);
+    ?>
+    <a href="<?= $escaper->escapeUrl($url) ?>" class="text-nebula-600 hover:text-nebula-500 dark:text-nebula-200 dark:hover:text-nebula-100">
+        <?= $escaper->escapeHtml($value) ?>
+    </a>
+    <?php
+}

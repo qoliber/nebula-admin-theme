@@ -1,0 +1,18 @@
+<?php
+/**
+ * Copyright (c) Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/**
+ * @var $block \Magento\CurrencySymbol\Block\Adminhtml\System\Currency\Rate\Services
+ */
+?>
+<div class="admin__field currency-rates-service-field">
+    <label class="admin__field-label" for="rate_services">
+        <span><?= $block->escapeHtml(__('Import Service')) ?></span>
+    </label>
+    <div class="admin__field-control">
+        <?= $block->getChildHtml('import_services') ?>
+    </div>
+</div>

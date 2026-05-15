@@ -1,0 +1,8 @@
+{
+  "id": "two_column",
+  "type": "row",
+  "children": [
+    { "type": "column", "width": "1/2", "slot": "left" },
+    { "type": "column", "width": "1/2", "slot": "right" }
+  ]
+}

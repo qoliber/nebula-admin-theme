@@ -1,0 +1,4 @@
+{
+  "id": "bundle_settings",
+  "template": "Qoliber_NebulaTheme::snippet/bundle_settings.phtml"
+}

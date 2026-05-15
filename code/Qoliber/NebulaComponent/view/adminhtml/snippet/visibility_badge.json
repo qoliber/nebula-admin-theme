@@ -1,0 +1,10 @@
+{
+  "id": "visibility_badge",
+  "template": "Qoliber_NebulaComponent::snippet/status_badge.phtml",
+  "options": {
+    "1": {"label": "Not Visible Individually", "class": "neutral"},
+    "2": {"label": "Catalog", "class": "info"},
+    "3": {"label": "Search", "class": "info"},
+    "4": {"label": "Catalog, Search", "class": "success"}
+  }
+}

@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+// @noEscape — this renderer is opt-in for pre-escaped trusted HTML content.
+$value = $block->getData('value');
+if (is_array($value)) {
+    $value = implode('<br>', array_map('strval', $value));
+}
+?>
+<?= /* @noEscape */ (string) ($value ?? '');

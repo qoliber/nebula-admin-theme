@@ -1,0 +1,72 @@
+/* --- Field row --- */
+.nebula-config-field {
+  @apply grid items-start border-b border-gray-100;
+  column-gap: var(--nebula-spacing-lg);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xl);
+  grid-template-columns: 14rem 1fr auto;
+}
+.nebula-config-field:last-child {
+  @apply border-b-0;
+}
+.nebula-config-label {
+  padding-top: var(--nebula-spacing-xs);
+}
+.nebula-config-label label {
+  @apply block text-sm font-medium text-gray-800;
+}
+.nebula-config-label [data-config-scope] {
+  color: var(--nebula-text-secondary);
+}
+.nebula-config-label [data-config-scope]::after {
+  content: attr(data-config-scope);
+  @apply block text-[11px] font-normal text-gray-400 mt-0.5;
+}
+
+/* --- Field value inputs --- */
+.nebula-config-value select,
+.nebula-config-value input[type="text"],
+.nebula-config-value input[type="password"],
+.nebula-config-value input[type="number"],
+.nebula-config-value input[type="email"],
+.nebula-config-value input[type="url"],
+.nebula-config-value textarea {
+  @apply block w-full border border-gray-300 text-sm text-gray-900 bg-white transition;
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  border-radius: var(--nebula-input-radius);
+  box-shadow: var(--nebula-shadow-sm);
+}
+.nebula-config-value select:focus,
+.nebula-config-value input:focus,
+.nebula-config-value textarea:focus {
+  @apply border-nebula-500 ring-2 ring-nebula-500/20 outline-none;
+}
+.nebula-config-value select[multiple] {
+  @apply min-h-32;
+  padding: var(--nebula-spacing-xs);
+}
+.nebula-config-value select[multiple] option {
+  @apply text-sm;
+  border-radius: 0;
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-md);
+}
+.nebula-config-value select[multiple] option:checked {
+  background: var(--nebula-bg-tertiary);
+  color: var(--nebula-text-primary);
+}
+.nebula-config-value select[multiple]:not([disabled]) option:checked {
+  background: color-mix(
+    in oklab,
+    var(--color-nebula-500) 28%,
+    var(--nebula-bg-primary)
+  );
+  color: var(--nebula-text-primary);
+  font-weight: 600;
+}
+.nebula-config-value select[disabled],
+.nebula-config-value input[disabled],
+.nebula-config-value textarea[disabled] {
+  background: var(--nebula-bg-secondary);
+  color: var(--nebula-text-secondary);
+  border-color: var(--nebula-border-default);
+  cursor: not-allowed;
+}

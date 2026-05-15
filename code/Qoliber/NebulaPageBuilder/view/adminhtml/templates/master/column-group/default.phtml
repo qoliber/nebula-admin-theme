@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaPageBuilder\Block\MasterTemplate $block */
+$elements = $block->getElements();
+$main = $elements['main'] ?? [];
+$childrenHtml = $block->getChildrenHtml();
+$mainStyle = $block->buildStyleString($main['styles'] ?? []);
+$data = $block->getNodeData();
+$gridSize = $data['grid_size'] ?? '12';
+$classes = array_merge(['pagebuilder-column-group'], $main['cssClasses'] ?? []);
+?><div class="<?= $escaper->escapeHtmlAttr(implode(' ', $classes)) ?>" data-content-type="column-group" data-appearance="default" data-grid-size="<?= $escaper->escapeHtmlAttr($gridSize) ?>"<?php if ($mainStyle) :
+    ?> style="<?= $escaper->escapeHtmlAttr($mainStyle) ?>"<?php
+endif; ?>><?= /* @noEscape */ $childrenHtml ?></div>

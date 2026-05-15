@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Text / password / email field — Alpine model-backed.
+ *
+ * @var \Qoliber\NebulaForm\Block\Form $block
+ * @var string $fKey
+ * @var array<string, mixed> $field
+ * @var string $fieldType
+ * @var string $fieldName
+ * @var string $fieldId
+ * @var mixed $fieldValue
+ * @var bool $isRequired
+ * @var bool $isDisabled
+ * @var bool $isReadonly
+ */
+$type = in_array($fieldType, ['password', 'email'], true) ? $fieldType : 'text';
+$config = json_encode([
+    'fieldName' => $fieldName,
+    'value' => (string) ($fieldValue ?? ''),
+    'disabled' => $isDisabled,
+    'required' => $isRequired,
+    'validation' => $field['validation'] ?? [],
+], JSON_UNESCAPED_SLASHES);
+$validateRules = [];
+if ($isRequired) {
+    $validateRules[] = 'required';
+}
+if ($type === 'email') {
+    $validateRules[] = 'email';
+}
+foreach (($field['validation'] ?? []) as $rule => $value) {
+    if ($value === true) {
+        $validateRules[] = $rule;
+    } elseif ($value !== false) {
+        $validateRules[] = $rule . ':' . $value;
+    }
+}
+$fieldControl = '<div x-data="nebulaField_text(' . htmlspecialchars((string) $config, ENT_QUOTES, 'UTF-8') . ')">'
+    . '<input type="' . $escaper->escapeHtmlAttr($type) . '"'
+    . ' id="' . $escaper->escapeHtmlAttr($fieldId) . '"'
+    . ' x-model="value"'
+    . ($validateRules !== [] ? ' data-validate="' . $escaper->escapeHtmlAttr(implode('|', $validateRules)) . '" data-validate-label="' . $escaper->escapeHtmlAttr($block->translate((string) ($field['label'] ?? $fKey))) . '"' : '')
+    . ($isDisabled ? ' disabled' : '')
+    . ($isReadonly ? ' readonly' : '')
+    . ' placeholder="' . $escaper->escapeHtmlAttr($block->translate((string) ($field['placeholder'] ?? ''))) . '"'
+    . ' class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500">'
+    . '</div>';
+include __DIR__ . '/_row.phtml';

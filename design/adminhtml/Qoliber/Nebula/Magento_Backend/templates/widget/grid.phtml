@@ -1,0 +1,42 @@
+<?php
+/**
+ * Qoliber Nebula — Widget Grid
+ * Styled table with Tailwind, no varienGrid JS
+ *
+ * @var \Magento\Backend\Block\Widget\Grid $block
+ */
+
+$numColumns = $block->getColumns() !== null ? count($block->getColumns()) : 0;
+$massActionAvailable = $block->getChildBlock('grid.massaction') && $block->getChildBlock('grid.massaction')->isAvailable();
+?>
+<?php if ($block->getCollection()): ?>
+    <?php if ($block->canDisplayContainer()): ?>
+    <div id="<?= $block->escapeHtmlAttr($block->getId()) ?>"
+         data-grid-id="<?= $block->escapeHtmlAttr($block->getId()) ?>"
+         class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <?php endif; ?>
+
+        <?php if ($massActionAvailable): ?>
+            <?= $block->getChildHtml('grid.massaction') ?>
+        <?php endif; ?>
+
+        <?php if ($block->getPagerVisibility()): ?>
+            <?php $countRecords = $block->getCollection()->getSize(); ?>
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                <span class="text-xs text-gray-500">
+                    <strong class="font-semibold text-gray-700"><?= (int) $countRecords ?></strong>
+                    <?= $block->escapeHtml(__('records found')) ?>
+                </span>
+            </div>
+        <?php endif; ?>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <?= $block->getChildHtml('grid.columnSet') ?>
+            </table>
+        </div>
+
+    <?php if ($block->canDisplayContainer()): ?>
+    </div>
+    <?php endif; ?>
+<?php endif; ?>

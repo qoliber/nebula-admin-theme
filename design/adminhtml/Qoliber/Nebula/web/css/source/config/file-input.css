@@ -1,0 +1,93 @@
+/* --- Time picker (inline selects) --- */
+.nebula-config-value select.select80wide {
+  display: inline-block !important;
+  width: 5rem !important;
+  @apply border border-gray-300 px-2 py-2 text-sm text-gray-900 bg-white;
+  border-radius: var(--nebula-input-radius);
+  box-shadow: var(--nebula-shadow-sm);
+}
+/*
+ * Vendor image upload widget — \Magento\Framework\Data\Form\Element\Image emits
+ * an optional preview <a><img></a>, then <input type="file" class="input-file">,
+ * then <span class="delete-image"><input type=checkbox><label>Delete Image</label></span>.
+ * Used by product image attributes (image, small_image, thumbnail, swatch_image)
+ * and any custom EAV attribute of frontend_input=image.
+ *
+ * 1. Style the file input + ::file-selector-button to match nebula buttons.
+ * 2. Force the .delete-image span onto its own line below the file picker.
+ * 3. Bump the 22x22 vendor preview thumbnail to a usable 64x64 with hover
+ *    scale and zoom-in cursor — click is hooked by ts/components/image-preview.ts.
+ */
+input[type="file"].input-file,
+.nebula-config-value input[type="file"],
+.nebula-eav-field input[type="file"] {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font-size: 0.875rem;
+  color: var(--nebula-text-secondary);
+}
+input[type="file"].input-file::file-selector-button,
+.nebula-config-value input[type="file"]::file-selector-button,
+.nebula-eav-field input[type="file"]::file-selector-button {
+  margin-right: 0.75rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--nebula-border-default);
+  border-radius: var(--nebula-radius-lg);
+  background: var(--nebula-bg-secondary);
+  color: var(--nebula-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+input[type="file"].input-file::file-selector-button:hover,
+.nebula-config-value input[type="file"]::file-selector-button:hover,
+.nebula-eav-field input[type="file"]::file-selector-button:hover {
+  background: var(--nebula-bg-tertiary);
+  border-color: var(--color-nebula-400);
+}
+.dark input[type="file"].input-file::file-selector-button,
+.dark .nebula-config-value input[type="file"]::file-selector-button,
+.dark .nebula-eav-field input[type="file"]::file-selector-button {
+  background: var(--nebula-bg-tertiary);
+  color: var(--nebula-text-primary);
+  border-color: var(--nebula-border-default);
+}
+/* Push the "Delete Image" checkbox onto its own line */
+span.delete-image {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--nebula-text-secondary);
+}
+span.delete-image label {
+  margin-left: 0.4rem;
+  cursor: pointer;
+}
+/*
+ * Vendor's hard-coded 22x22 preview thumbnail — bump to a usable size with
+ * pointer cursor. The width/height attrs from PHP are inline so use !important
+ * to override. Click is hooked by ts/components/image-preview.ts (lightbox).
+ */
+img.small-image-preview {
+  width: 64px !important;
+  height: 64px !important;
+  object-fit: cover;
+  border-radius: var(--nebula-radius-lg);
+  box-shadow: var(--nebula-shadow-sm);
+  cursor: zoom-in;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+img.small-image-preview:hover {
+  transform: scale(1.04);
+  box-shadow: var(--nebula-shadow-md);
+}
+a[previewlinkid] {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}

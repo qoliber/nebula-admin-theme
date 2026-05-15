@@ -1,0 +1,50 @@
+<?php /** @var \Qoliber\NebulaGrid\Block\Grid $block */ ?>
+<?php
+
+$columns = $block->getColumns();
+$hasMassActions = $block->hasMassActions();
+$sort = $block->getSort();
+$sortDir = $block->getSortDir();
+$page = $block->getPage();
+?>
+<tr>
+    <?php if ($hasMassActions) : ?>
+        <th scope="col" aria-label="<?= $escaper->escapeHtmlAttr((string) __('Select rows')) ?>" class="w-10 px-4 py-3">
+            <input type="checkbox"
+                   @change="toggleSelectAll($event.target.checked)"
+                   class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+        </th>
+    <?php endif; ?>
+
+    <?php foreach ($columns as $key => $col) : ?>
+        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <?php
+            $columnLabel = trim((string) ($col['label'] ?? ''));
+        if ($columnLabel === '') {
+            if (($col['type'] ?? '') === 'actions') {
+                $columnLabel = (string) __('Actions');
+            } else {
+                $columnLabel = ucwords(str_replace('_', ' ', (string) $key));
+            }
+        }
+        ?>
+            <?php if (!empty($col['sortable'])) : ?>
+                <a href="<?= $escaper->escapeUrl($block->getGridUrl([
+            'sort' => $key,
+            'dir' => ($sort === $key && $sortDir === 'asc') ? 'desc' : 'asc',
+            'page' => $page,
+        ])) ?>"
+                   class="group inline-flex items-center gap-1 hover:text-gray-700">
+                    <?= $escaper->escapeHtml($block->translate($columnLabel)) ?>
+                    <?php if ($sort === $key) : ?>
+                        <span class="text-indigo-600"><?= $sortDir === 'asc' ? '&#8593;' : '&#8595;' ?></span>
+                    <?php else : ?>
+                        <span class="text-gray-300 group-hover:text-gray-400">&#8597;</span>
+                    <?php endif; ?>
+                </a>
+            <?php else : ?>
+                <?= $escaper->escapeHtml($block->translate($columnLabel)) ?>
+            <?php endif; ?>
+        </th>
+    <?php endforeach; ?>
+</tr>

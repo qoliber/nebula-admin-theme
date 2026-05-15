@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Minimal stub kept after the legacy Nebula form-mount layout was removed.
+ *
+ * The form-mount block and the `attribute_edit_*` removals are now injected by
+ * Qoliber\NebulaForm\Plugin\InjectFormLayout from the form JSON definition
+ * (product_attribute_edit.json — its `route` array covers both edit and new).
+ *
+ * What the wirer CANNOT do — and why this file still exists: it sets the page
+ * `layout` attribute back to `admin-1column` for the single-column Nebula form.
+ * See catalog_product_attribute_edit.xml for the full rationale.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content" htmlTag="div"/>
+    </body>
+</page>

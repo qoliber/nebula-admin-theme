@@ -1,0 +1,31 @@
+<?php /** @var \Qoliber\NebulaGrid\Block\Grid $block */ ?>
+<?php
+
+$columns = $block->getColumns();
+$items = $block->getItems();
+$hasMassActions = $block->hasMassActions();
+$colCount = count($columns) + ($hasMassActions ? 1 : 0);
+?>
+<?php if (empty($items)) : ?>
+    <tr>
+        <td colspan="<?= /* @noEscape */ $colCount ?>" class="px-4 py-16 text-center">
+            <?php include $block->getTemplateFile('Qoliber_NebulaGrid::grid/empty-state.phtml'); ?>
+        </td>
+    </tr>
+<?php else : ?>
+    <?php foreach ($items as $item) : ?>
+        <tr class="hover:bg-gray-50 transition-colors">
+            <?php if ($hasMassActions) : ?>
+                <td class="w-10 px-4 py-3">
+                    <input type="checkbox"
+                           value="<?= $escaper->escapeHtmlAttr((string) ($item['id'] ?? '')) ?>"
+                           x-model="selected"
+                           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                </td>
+            <?php endif; ?>
+            <?php foreach ($columns as $key => $col) : ?>
+                <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700<?= ($col['type'] ?? '') === 'actions' ? ' text-right' : '' ?>"><?= /* @noEscape */ $block->renderColumnValue($col, $key, $item) ?></td>
+            <?php endforeach; ?>
+        </tr>
+    <?php endforeach; ?>
+<?php endif; ?>

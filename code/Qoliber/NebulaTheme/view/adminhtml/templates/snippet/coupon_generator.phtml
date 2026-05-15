@@ -1,0 +1,550 @@
+<?php
+
+/**
+ * Snippet: coupon_generator
+ *
+ * Renders the dynamic coupon-code generation panel for the sales-rule
+ * edit form. POSTs to \Magento\SalesRule\Controller\Adminhtml\Promo\Quote\Generate
+ * which validates the rule's coupon_type/use_auto_generation, queues a
+ * sales_rule.codegenerator message, and returns rendered messages-block HTML.
+ *
+ * Available block data:
+ *   - `entity_data`  — the rule entity data array (rule_id is the key field)
+ *   - `form_block`   — the parent form block (used for getEntityId())
+ *   - `view_model`   — \Qoliber\NebulaTheme\ViewModel\CouponGenerator
+ *   - `section`      — section config from JSON definition
+ *
+ * Note: there is no `depends` mechanism yet (deferred from P2.2), so this
+ * panel renders unconditionally. The Generate controller itself enforces
+ * coupon_type === Auto || use_auto_generation === 1 and returns an error
+ * if not — the panel surfaces that error in the messages area.
+ */
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\CouponGenerator) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback —
+    // matches the pattern used in snippet/rule_editor.phtml.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\CouponGenerator::class);
+}
+
+$entityData = (array) ($block->getData('entity_data') ?? []);
+$formBlock = $block->getData('form_block');
+
+$ruleId = (string) ($entityData['rule_id'] ?? '');
+if ($ruleId === '' && $formBlock instanceof \Qoliber\NebulaForm\Block\Form) {
+    $ruleId = (string) ($formBlock->getEntityId() ?? '');
+}
+
+$defaults = $viewModel->getDefaults();
+$formatOptions = $viewModel->getFormatOptions();
+$validFormatValues = array_column($formatOptions, 'value');
+$defaultFormat = in_array($defaults['format'], $validFormatValues, true)
+    ? $defaults['format']
+    : ($validFormatValues[0] ?? 'alphanum');
+
+$config = [
+    'generateUrl' => $viewModel->getGenerateUrl(),
+    'formKey' => $viewModel->getFormKey(),
+    'ruleId' => $ruleId,
+    'formats' => $formatOptions,
+    'defaults' => [
+        'qty' => 10,
+        'length' => $defaults['length'] > 0 ? $defaults['length'] : 12,
+        'format' => $defaultFormat,
+        'prefix' => $defaults['prefix'],
+        'suffix' => $defaults['suffix'],
+        'dash' => $defaults['dash'],
+    ],
+];
+
+$configJson = json_encode(
+    $config,
+    JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
+);
+
+$inputClass = 'w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm'
+    . ' focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none'
+    . ' disabled:bg-gray-50 disabled:text-gray-400';
+$labelClass = 'block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5';
+?>
+
+<div class="rounded-lg border border-gray-200 bg-white shadow-sm"
+     x-data="nebulaCouponGenerator(<?= $escaper->escapeHtmlAttr($configJson) ?>)">
+
+    <div class="border-b border-gray-200 px-6 py-4 flex items-start justify-between gap-4">
+        <div>
+            <h2 class="text-base font-semibold text-gray-900">
+                <?= $escaper->escapeHtml((string) __('Coupon Code Generator')) ?>
+            </h2>
+            <p class="mt-1 text-xs text-gray-500">
+                <?= $escaper->escapeHtml((string) __(
+                    'Available when the rule\'s coupon type is "Auto" or "Use Auto Generation" is on; '
+                    . 'save the rule first if changing those.'
+                )) ?>
+            </p>
+        </div>
+        <template x-if="!ruleId">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <?= $escaper->escapeHtml((string) __('Save the rule first')) ?>
+            </span>
+        </template>
+    </div>
+
+    <div class="px-6 py-5 space-y-5">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div>
+                <label class="<?= /* @noEscape */ $labelClass ?>" for="nebula-coupon-qty">
+                    <?= $escaper->escapeHtml((string) __('Coupons Qty')) ?>
+                    <span class="text-red-500">*</span>
+                </label>
+                <input id="nebula-coupon-qty"
+                       type="number"
+                       min="1"
+                       step="1"
+                       required
+                       class="<?= /* @noEscape */ $inputClass ?>"
+                       x-model.number="form.qty"
+                       :disabled="loading">
+            </div>
+
+            <div>
+                <label class="<?= /* @noEscape */ $labelClass ?>" for="nebula-coupon-length">
+                    <?= $escaper->escapeHtml((string) __('Code Length')) ?>
+                    <span class="text-red-500">*</span>
+                </label>
+                <input id="nebula-coupon-length"
+                       type="number"
+                       min="1"
+                       step="1"
+                       required
+                       class="<?= /* @noEscape */ $inputClass ?>"
+                       x-model.number="form.length"
+                       :disabled="loading">
+                <p class="mt-1 text-xs text-gray-400">
+                    <?= $escaper->escapeHtml((string) __('Excluding prefix, suffix and separators.')) ?>
+                </p>
+            </div>
+
+            <div>
+                <label class="<?= /* @noEscape */ $labelClass ?>" for="nebula-coupon-format">
+                    <?= $escaper->escapeHtml((string) __('Code Format')) ?>
+                    <span class="text-red-500">*</span>
+                </label>
+                <select id="nebula-coupon-format"
+                        required
+                        class="<?= /* @noEscape */ $inputClass ?>"
+                        x-model="form.format"
+                        :disabled="loading">
+                    <template x-for="opt in formats" :key="opt.value">
+                        <option :value="opt.value" x-text="opt.label"></option>
+                    </template>
+                </select>
+            </div>
+
+            <div>
+                <label class="<?= /* @noEscape */ $labelClass ?>" for="nebula-coupon-prefix">
+                    <?= $escaper->escapeHtml((string) __('Code Prefix')) ?>
+                </label>
+                <input id="nebula-coupon-prefix"
+                       type="text"
+                       class="<?= /* @noEscape */ $inputClass ?>"
+                       x-model="form.prefix"
+                       :disabled="loading">
+            </div>
+
+            <div>
+                <label class="<?= /* @noEscape */ $labelClass ?>" for="nebula-coupon-suffix">
+                    <?= $escaper->escapeHtml((string) __('Code Suffix')) ?>
+                </label>
+                <input id="nebula-coupon-suffix"
+                       type="text"
+                       class="<?= /* @noEscape */ $inputClass ?>"
+                       x-model="form.suffix"
+                       :disabled="loading">
+            </div>
+
+            <div>
+                <label class="<?= /* @noEscape */ $labelClass ?>" for="nebula-coupon-dash">
+                    <?= $escaper->escapeHtml((string) __('Dash Every X Characters')) ?>
+                </label>
+                <input id="nebula-coupon-dash"
+                       type="number"
+                       min="0"
+                       step="1"
+                       class="<?= /* @noEscape */ $inputClass ?>"
+                       x-model.number="form.dash"
+                       :disabled="loading">
+                <p class="mt-1 text-xs text-gray-400">
+                    <?= $escaper->escapeHtml((string) __('0 = no separator.')) ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+            <span x-show="loading" class="text-xs text-gray-500" x-cloak>
+                <i class="fa-solid fa-spinner fa-spin mr-1.5"></i>
+                <?= $escaper->escapeHtml((string) __('Queueing generation request...')) ?>
+            </span>
+            <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg bg-nebula-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm
+                           hover:bg-nebula-700 focus:outline-none focus:ring-2 focus:ring-nebula-500/40
+                           disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
+                    @click.prevent="generate()"
+                    :disabled="loading || !ruleId || !canSubmit">
+                <i class="fa-solid fa-bolt"></i>
+                <?= $escaper->escapeHtml((string) __('Generate')) ?>
+            </button>
+        </div>
+
+        <div x-show="messagesHtml || errorText" x-cloak class="space-y-2">
+            <template x-if="errorText">
+                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                     x-text="errorText"></div>
+            </template>
+            <template x-if="messagesHtml">
+                <div class="nebula-coupon-messages text-sm" x-html="messagesHtml"></div>
+            </template>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window._nebulaCouponGeneratorRegistered) {
+        return;
+    }
+    window._nebulaCouponGeneratorRegistered = true;
+
+    var register = function () {
+        Alpine.data('nebulaCouponGenerator', function (config) {
+            return {
+                generateUrl: config.generateUrl,
+                formKey: config.formKey,
+                ruleId: config.ruleId,
+                formats: config.formats || [],
+                defaults: config.defaults || {},
+                form: {
+                    qty: config.defaults.qty,
+                    length: config.defaults.length,
+                    format: config.defaults.format,
+                    prefix: config.defaults.prefix,
+                    suffix: config.defaults.suffix,
+                    dash: config.defaults.dash
+                },
+                loading: false,
+                messagesHtml: '',
+                errorText: '',
+
+                get canSubmit() {
+                    var qtyOk = Number.isFinite(this.form.qty) && this.form.qty >= 1;
+                    var lenOk = Number.isFinite(this.form.length) && this.form.length >= 1;
+                    return qtyOk && lenOk && !!this.form.format;
+                },
+
+                resetInputs: function () {
+                    this.form.qty = this.defaults.qty;
+                    this.form.length = this.defaults.length;
+                    this.form.format = this.defaults.format;
+                    this.form.prefix = this.defaults.prefix;
+                    this.form.suffix = this.defaults.suffix;
+                    this.form.dash = this.defaults.dash;
+                },
+
+                generate: function () {
+                    var self = this;
+
+                    if (!self.ruleId || !self.canSubmit || self.loading) {
+                        return;
+                    }
+
+                    self.loading = true;
+                    self.messagesHtml = '';
+                    self.errorText = '';
+
+                    var body = new FormData();
+                    body.append('form_key', self.formKey);
+                    body.append('rule_id', String(self.ruleId));
+                    body.append('qty', String(self.form.qty));
+                    body.append('length', String(self.form.length));
+                    body.append('format', String(self.form.format));
+                    body.append('prefix', String(self.form.prefix || ''));
+                    body.append('suffix', String(self.form.suffix || ''));
+                    body.append('dash', String(self.form.dash || 0));
+
+                    fetch(self.generateUrl, {
+                        method: 'POST',
+                        body: body,
+                        credentials: 'same-origin',
+                        headers: {
+                            // The Generate controller calls $request->isAjax();
+                            // Magento maps this header to that flag.
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('HTTP ' + response.status);
+                            }
+                            return response.text();
+                        })
+                        .then(function (raw) {
+                            var data;
+                            try {
+                                data = JSON.parse(raw);
+                            } catch (e) {
+                                self.errorText = 'Unexpected response from server.';
+                                return;
+                            }
+
+                            if (data.error) {
+                                self.errorText = typeof data.error === 'string'
+                                    ? data.error
+                                    : 'Generation failed.';
+                            }
+
+                            if (data.messages) {
+                                self.messagesHtml = data.messages;
+                                if (!data.error) {
+                                    self.resetInputs();
+                                }
+                            }
+                        })
+                        .catch(function (err) {
+                            self.errorText = 'Network error: ' + (err && err.message ? err.message : 'request failed');
+                        })
+                        .finally(function () {
+                            self.loading = false;
+                        });
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) {
+        register();
+    } else {
+        document.addEventListener('alpine:init', register);
+    }
+})();
+</script>
+
+<script>
+/**
+ * Sales-rule coupon UX bridge — buttons + modal popups.
+ *
+ * The Coupons fieldset stays visible (it carries the coupon_type select).
+ * The two big management panels — `manage_coupon_codes` (generator) and
+ * `manage_coupon_codes_grid` (existing-codes grid) — are hidden in-flow
+ * by default and opened as full-screen modal popups via two buttons
+ * injected into the Coupons fieldset body.
+ *
+ * Buttons appear only when the coupon mode is active (Specific = 2 or
+ * Auto = 3). For "No Coupon" (1) they hide.
+ *
+ * Modal mechanism uses CSS positioning (no DOM movement) so the panel's
+ * Alpine reactivity / event listeners stay intact across open/close cycles.
+ *
+ * Targets:
+ *   - select #nebula-field-coupon_type
+ *   - [data-nebula-fieldset="<key>"] wrappers (NebulaForm/form.phtml)
+ *
+ * Idempotent — guarded against double-init across snippet re-renders.
+ */
+(function () {
+    if (window.__nebulaSalesRuleCouponGate) {
+        return;
+    }
+    window.__nebulaSalesRuleCouponGate = true;
+
+    var ACTIVE_COUPON_TYPES = ['2', '3'];
+    var TOGGLE_BUTTONS = [
+        { key: 'manage_coupon_codes',      label: 'Manage Coupon Codes' },
+        { key: 'manage_coupon_codes_grid', label: 'Coupon Codes' }
+    ];
+
+    function findFieldset(key) {
+        return document.querySelector('[data-nebula-fieldset="' + key + '"]');
+    }
+
+    function openAsModal(panel) {
+        if (panel.dataset.nebulaModalOpen === '1') {
+            return;
+        }
+        panel.dataset.nebulaModalOpen = '1';
+
+        // Stash original style so we can restore on close (CSS-only modal —
+        // we don't move the panel in the DOM, so its Alpine bindings keep
+        // their references and event listeners intact).
+        panel.dataset.nebulaOrigStyle = panel.getAttribute('style') || '';
+
+        var backdrop = document.createElement('div');
+        backdrop.setAttribute('data-nebula-coupon-modal-backdrop', '');
+        backdrop.style.cssText =
+            'position: fixed; inset: 0; z-index: 9998; ' +
+            'background-color: rgba(17, 24, 39, 0.5); backdrop-filter: blur(2px);';
+
+        panel.style.cssText =
+            'display: block !important; position: fixed; top: 50%; left: 50%; ' +
+            'transform: translate(-50%, -50%); z-index: 10000; margin: 0; ' +
+            'width: min(64rem, calc(100vw - 2rem)); max-height: calc(100vh - 4rem); ' +
+            'overflow-y: auto;';
+
+        var closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.setAttribute('data-nebula-coupon-modal-close', '');
+        closeBtn.style.cssText =
+            'position: absolute; top: 0.75rem; right: 0.75rem; z-index: 1; ' +
+            'display: inline-flex; align-items: center; justify-content: center; ' +
+            'width: 2rem; height: 2rem; border-radius: 9999px; cursor: pointer; ' +
+            'background: rgb(243, 244, 246); border: 1px solid rgb(229, 231, 235); ' +
+            'color: rgb(75, 85, 99);';
+        closeBtn.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" ' +
+            'stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+        panel.appendChild(closeBtn);
+
+        function close() {
+            document.removeEventListener('keydown', onEsc);
+            backdrop.remove();
+            closeBtn.remove();
+            var orig = panel.dataset.nebulaOrigStyle || '';
+            if (orig === '') {
+                panel.removeAttribute('style');
+            } else {
+                panel.setAttribute('style', orig);
+            }
+            panel.style.display = 'none';
+            delete panel.dataset.nebulaModalOpen;
+            delete panel.dataset.nebulaOrigStyle;
+        }
+        function onEsc(e) {
+            if (e.key === 'Escape') {
+                close();
+            }
+        }
+        closeBtn.addEventListener('click', close);
+        backdrop.addEventListener('click', close);
+        document.addEventListener('keydown', onEsc);
+
+        document.body.appendChild(backdrop);
+    }
+
+    function init() {
+        var couponSelect = document.getElementById('nebula-field-coupon_type');
+        var couponsFieldset = findFieldset('coupons');
+        if (!couponSelect || !couponsFieldset) {
+            return;
+        }
+
+        // Hide both management panels in the form flow — they only open as modals.
+        TOGGLE_BUTTONS.forEach(function (btn) {
+            var fs = findFieldset(btn.key);
+            if (fs) {
+                fs.style.display = 'none';
+            }
+        });
+
+        var fieldsContainer = couponsFieldset.querySelector('.divide-y') || couponsFieldset;
+
+        // Locate the row that holds the coupon_type select — it's the only row
+        // that must always stay visible. Walk up from the select until we find
+        // its direct-child ancestor of fieldsContainer.
+        var couponTypeRow = null;
+        var cur = couponSelect;
+        while (cur && cur.parentNode && cur.parentNode !== fieldsContainer) {
+            cur = cur.parentNode;
+        }
+        if (cur && cur.parentNode === fieldsContainer) {
+            couponTypeRow = cur;
+        }
+
+        // Inject the button row into the top action bar (right cluster, on the
+        // same level as the "Cart Price Rule" title). Falls back to the Coupons
+        // fieldset body if the action bar isn't found.
+        var btnRow = document.createElement('div');
+        btnRow.setAttribute('data-nebula-coupon-buttons', '');
+        btnRow.className = 'inline-flex items-center gap-2';
+        TOGGLE_BUTTONS.forEach(function (btn) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.setAttribute('data-nebula-toggle', btn.key);
+            b.className = 'inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50';
+            b.textContent = btn.label;
+            btnRow.appendChild(b);
+        });
+        var actionsRight = document.querySelector('.nebula-form-actions-right');
+        if (actionsRight) {
+            actionsRight.insertBefore(btnRow, actionsRight.firstChild);
+        } else {
+            fieldsContainer.appendChild(btnRow);
+        }
+
+        var updateCouponSectionVisibility = function () {
+            var active = ACTIVE_COUPON_TYPES.indexOf(String(couponSelect.value)) !== -1;
+
+            // Show/hide every direct row in the Coupons fieldset body, EXCEPT
+            // the coupon_type row itself, which always stays visible.
+            var rows = fieldsContainer.children;
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                if (row === couponTypeRow) {
+                    row.style.display = '';
+                    continue;
+                }
+                row.style.display = active ? '' : 'none';
+            }
+
+            // Toggle the top-bar button cluster (it lives outside fieldsContainer).
+            btnRow.style.display = active ? '' : 'none';
+
+            // If switching to "No Coupon" while a modal is open, close it.
+            if (!active) {
+                TOGGLE_BUTTONS.forEach(function (b) {
+                    var fs = findFieldset(b.key);
+                    if (fs && fs.dataset.nebulaModalOpen === '1') {
+                        var bd = document.querySelector('[data-nebula-coupon-modal-backdrop]');
+                        if (bd) bd.click();
+                    }
+                });
+            }
+        };
+
+        couponSelect.addEventListener('change', updateCouponSectionVisibility);
+        couponSelect.addEventListener('input', updateCouponSectionVisibility);
+        // Initial visibility — on edit, Alpine x-model may set the select's value
+        // AFTER our DOMContentLoaded callback runs, so the first read is empty.
+        // Re-check after Alpine binds and via deferred ticks to catch late writes.
+        updateCouponSectionVisibility();
+        document.addEventListener('alpine:initialized', updateCouponSectionVisibility);
+        setTimeout(updateCouponSectionVisibility, 0);
+        setTimeout(updateCouponSectionVisibility, 250);
+        setTimeout(updateCouponSectionVisibility, 1000);
+
+        btnRow.addEventListener('click', function (event) {
+            var btn = event.target.closest('button[data-nebula-toggle]');
+            if (!btn) {
+                return;
+            }
+            var fs = findFieldset(btn.getAttribute('data-nebula-toggle'));
+            if (fs) {
+                openAsModal(fs);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>

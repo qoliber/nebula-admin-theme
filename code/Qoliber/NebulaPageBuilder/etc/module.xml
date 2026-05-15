@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Qoliber_NebulaPageBuilder">
+        <sequence>
+            <module name="Magento_Backend"/>
+            <module name="Magento_Cms"/>
+            <module name="Magento_PageBuilder"/>
+            <module name="Qoliber_NebulaComponent"/>
+            <module name="Qoliber_NebulaForm"/>
+            <module name="Qoliber_NebulaTheme"/>
+        </sequence>
+    </module>
+</config>

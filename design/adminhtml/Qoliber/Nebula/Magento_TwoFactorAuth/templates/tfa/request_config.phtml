@@ -1,0 +1,36 @@
+<?php
+/**
+ * Qoliber Nebula — TFA Request Config
+ *
+ * @var \Magento\Backend\Block\Template $block
+ */
+?>
+<div class="flex min-h-full flex-col justify-center px-8 py-12 lg:px-16">
+    <?= $block->getChildHtml('messages') ?>
+    <div class="w-full max-w-sm mx-auto text-center">
+        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+            <svg class="h-8 w-8 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+            </svg>
+        </div>
+
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">
+            <?= $block->escapeHtml(__('Two-Factor Authentication Required')) ?>
+        </h2>
+
+        <p class="mt-4 text-sm text-gray-500 leading-relaxed">
+            <?= $block->escapeHtml(__('You need to configure Two-Factor Authorization in order to proceed to your store\'s admin area')) ?>
+        </p>
+
+        <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+            <?= $block->escapeHtml(__('An E-mail was sent to you with further instructions')) ?>
+        </p>
+
+        <div class="mt-8">
+            <a href="<?= $block->escapeUrl($block->getUrl('adminhtml/auth/logout')) ?>"
+               class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">
+                <?= $block->escapeHtml(__('Logout')) ?>
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="sales_order_edit" remove="true"/>
+        <referenceBlock name="order_history" remove="true"/>
+        <referenceBlock name="order_tab_info" remove="true"/>
+        <referenceBlock name="order_items" remove="true"/>
+        <referenceBlock name="sales_order_tabs" remove="true"/>
+        <referenceContainer name="left" remove="true"/>
+        <referenceContainer name="content" htmlTag="div">
+            <block class="Qoliber\NebulaTheme\Block\OrderView"
+                   name="nebula.order_view"
+                   after="-"/>
+        </referenceContainer>
+    </body>
+</page>

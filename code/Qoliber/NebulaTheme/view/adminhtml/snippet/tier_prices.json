@@ -1,0 +1,4 @@
+{
+  "id": "tier_prices",
+  "template": "Qoliber_NebulaTheme::eav/snippet/tier_prices.phtml"
+}

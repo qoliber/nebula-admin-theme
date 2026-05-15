@@ -1,0 +1,20 @@
+/* Responsive widget-instance layout helpers.
+ *
+ * We intentionally avoid viewport breakpoint utilities here. Magento admin
+ * pages can render with a desktop-like layout viewport even when the browser
+ * is emulating a phone, so breakpoint-based Tailwind classes can misfire.
+ * `auto-fit + minmax()` responds to the available container width instead,
+ * which gives us the 1 / 2 / 3 card behavior we want without relying on
+ * `sm:` / `md:` / `lg:` classes.
+ */
+
+.nebula-widget-instance-layout {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    align-items: start;
+}
+
+.nebula-widget-instance-layout__card {
+    min-width: 0;
+}

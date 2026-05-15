@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Snippet: theme_preview
+ *
+ * Available variables:
+ * @var \Magento\Framework\View\Element\Template $block
+ * $block->getData('value')   - raw column value (preview_image path)
+ * $block->getData('item')    - full row data
+ * $block->getData('column')  - merged column config
+ * $block->getData('key')     - column key
+ */
+
+$value = $block->getData('value');
+$item = $block->getData('item');
+$themePath = $item['theme_path'] ?? '';
+
+if ($value) {
+    $previewUrl = $block->getViewFileUrl('Magento_Theme::' . $themePath . '/' . $value);
+    ?>
+    <img src="<?= $escaper->escapeUrl($previewUrl) ?>"
+         alt="<?= $escaper->escapeHtmlAttr($item['theme_title'] ?? 'Theme Preview') ?>"
+         class="h-12 w-auto rounded border border-gray-200" loading="lazy"/>
+    <?php
+} else {
+    ?>
+    <span class="text-gray-400 text-xs"><?= $escaper->escapeHtml(__('No preview')) ?></span>
+    <?php
+}

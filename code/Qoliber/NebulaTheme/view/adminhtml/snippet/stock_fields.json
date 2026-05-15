@@ -1,0 +1,4 @@
+{
+  "id": "stock_fields",
+  "template": "Qoliber_NebulaTheme::eav/snippet/stock_fields.phtml"
+}

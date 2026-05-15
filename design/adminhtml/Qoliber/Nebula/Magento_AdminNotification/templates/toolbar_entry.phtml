@@ -1,0 +1,112 @@
+<?php
+/**
+ * Qoliber Nebula — Notification bell
+ * No RequireJS, no data-mage-init
+ *
+ * @var \Magento\AdminNotification\Block\ToolbarEntry $block
+ */
+
+$count = $block->getUnreadNotificationCount();
+$max = $block->getNotificationCounterMax();
+$displayCount = ($count > $max) ? $max . '+' : (int) $count;
+$notifications = $block->getLatestUnreadNotifications();
+$notifUrl = $block->getUrl('adminhtml/notification/index');
+?>
+<style>
+    .nebula-notification-counter {
+        background: var(--nebula-button-primary-bg);
+        color: var(--color-white);
+        box-shadow: 0 0 0 2px var(--color-nebula-100);
+    }
+
+    .dark .nebula-notification-counter {
+        background: var(--nebula-button-primary-bg);
+        color: var(--color-nebula-950);
+        box-shadow: 0 0 0 2px var(--color-nebula-900);
+    }
+
+    .nebula-notification-pill {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 18%, var(--color-nebula-50));
+        color: color-mix(in srgb, var(--nebula-button-primary-bg) 88%, var(--color-nebula-900));
+    }
+
+    .dark .nebula-notification-pill {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 24%, var(--color-nebula-950));
+        color: var(--color-nebula-200);
+    }
+
+    .nebula-notification-trigger:hover,
+    .nebula-notification-trigger:focus-visible {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 16%, var(--color-nebula-50));
+        color: var(--nebula-button-primary-bg);
+        outline: none;
+    }
+
+    .dark .nebula-notification-trigger:hover,
+    .dark .nebula-notification-trigger:focus-visible {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 24%, var(--color-nebula-950));
+        color: var(--color-white);
+    }
+</style>
+<div x-data="{ open: false }" class="relative ml-auto">
+    <button @click="open = !open"
+            @click.outside="open = false"
+            class="nebula-notification-trigger nebula-accent-fg relative flex items-center justify-center h-9 w-9 rounded-lg transition"
+            title="<?= $block->escapeHtmlAttr(__('Notifications')) ?>">
+        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
+        </svg>
+        <?php if ($count > 0): ?>
+            <span class="nebula-notification-counter absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold">
+                <?= (int) $displayCount ?>
+            </span>
+        <?php endif; ?>
+    </button>
+
+    <div x-show="open"
+         x-cloak
+         x-transition:enter="transition ease-out duration-100"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-75"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         class="absolute right-0 z-50 mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+
+        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-gray-900"><?= $block->escapeHtml(__('Notifications')) ?></h3>
+            <?php if ($count > 0): ?>
+                <span class="nebula-notification-pill inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
+                    <?= (int) $count ?> <?= $block->escapeHtml(__('unread')) ?>
+                </span>
+            <?php endif; ?>
+        </div>
+
+        <div class="max-h-72 overflow-y-auto divide-y divide-gray-100">
+            <?php if ($count > 0): ?>
+                <?php foreach ($notifications as $notification): ?>
+                    <div class="px-4 py-3">
+                        <p class="text-sm font-medium text-gray-900"><?= $block->escapeHtml($notification->getTitle()) ?></p>
+                        <?php if ($notification->getDescription()): ?>
+                            <p class="mt-1 text-xs text-gray-500 line-clamp-2"><?= $block->escapeHtml($notification->getDescription()) ?></p>
+                        <?php endif; ?>
+                        <time class="mt-1 block text-xs text-gray-400">
+                            <?= $block->escapeHtml($block->formatNotificationDate($notification->getDateAdded())) ?>
+                        </time>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="px-4 py-6 text-center">
+                    <p class="text-sm text-gray-500"><?= $block->escapeHtml(__('No new notifications')) ?></p>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="border-t border-gray-100 px-4 py-2">
+            <a href="<?= $block->escapeUrl($notifUrl) ?>"
+               class="block text-center text-sm font-medium text-nebula-600 hover:text-nebula-500 transition">
+                <?= $block->escapeHtml(__('View all notifications')) ?>
+            </a>
+        </div>
+    </div>
+</div>

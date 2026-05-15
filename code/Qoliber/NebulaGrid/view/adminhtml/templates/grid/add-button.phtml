@@ -1,0 +1,41 @@
+<?php /** @var \Qoliber\NebulaGrid\Block\Grid $block */ ?>
+<?php
+
+$definition = $block->getDefinition();
+$addButton = $definition['settings']['addButton'] ?? null;
+if (!$addButton) {
+    return;
+}
+?>
+<?php if (!empty($addButton['options'])) : ?>
+    <div class="relative" x-data="{ open: false }">
+        <div class="flex">
+            <a href="<?= $escaper->escapeUrl($block->getUrl($addButton['options'][0]['url'] ?? '#')) ?>"
+               class="inline-flex items-center gap-1.5 rounded-l-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                <?= $escaper->escapeHtml((string) __($addButton['label'] ?? 'Add')) ?>
+            </a>
+            <button type="button" @click="open = !open"
+                    aria-label="<?= $escaper->escapeHtmlAttr((string) __('Open add options')) ?>"
+                    title="<?= $escaper->escapeHtmlAttr((string) __('Open add options')) ?>"
+                    class="inline-flex items-center rounded-r-lg border-l border-indigo-500 bg-indigo-600 px-2 py-2 text-white shadow-sm transition hover:bg-indigo-500">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+        </div>
+        <div x-show="open" @click.outside="open = false" x-cloak x-transition
+             class="absolute right-0 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg z-20">
+            <?php foreach ($addButton['options'] as $option) : ?>
+                <a href="<?= $escaper->escapeUrl($block->getUrl($option['url'] ?? '#')) ?>"
+                   class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                    <?= $escaper->escapeHtml((string) __($option['label'] ?? '')) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php else : ?>
+    <a href="<?= $escaper->escapeUrl($block->getUrl($addButton['url'] ?? '#')) ?>"
+       class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        <?= $escaper->escapeHtml((string) __($addButton['label'] ?? 'Add')) ?>
+    </a>
+<?php endif; ?>

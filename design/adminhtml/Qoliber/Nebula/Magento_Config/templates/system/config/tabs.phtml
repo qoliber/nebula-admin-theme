@@ -1,0 +1,120 @@
+<?php
+/**
+ * Qoliber Nebula — Config Tabs (left sidebar)
+ * Alpine.js accordion + search field — no RequireJS collapsible widget
+ *
+ * @var \Magento\Config\Block\System\Config\Tabs $block
+ */
+
+$tabs = $block->getTabs();
+if (!$tabs) {
+    return;
+}
+
+$tabsData = [];
+foreach ($tabs as $tab) {
+    $sections = [];
+    $hasActive = false;
+    foreach ($tab->getChildren() as $section) {
+        $isActive = $block->isSectionActive($section);
+        if ($isActive) {
+            $hasActive = true;
+        }
+        $sections[] = [
+            'label' => (string) $section->getLabel(),
+            'url' => $block->getSectionUrl($section),
+            'active' => $isActive,
+            'class' => (string) $section->getClass(),
+        ];
+    }
+    $tabsData[] = [
+        'label' => (string) $tab->getLabel(),
+        'hasActive' => $hasActive,
+        'sections' => $sections,
+    ];
+}
+?>
+<div x-data="nebulaConfigNav()" class="space-y-1">
+    <div class="mb-3">
+        <div class="relative">
+            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+            </svg>
+            <input type="text"
+                   x-model="search"
+                   placeholder="<?= $block->escapeHtmlAttr(__('Search config...')) ?>"
+                   class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-nebula-500 focus:bg-white focus:ring-2 focus:ring-nebula-500/20 focus:outline-none transition"/>
+        </div>
+    </div>
+
+    <?php foreach ($tabsData as $i => $tab): ?>
+        <div class="nebula-config-tab"
+             x-show="isTabVisible(<?= $i ?>)"
+             x-transition>
+            <button type="button"
+                    @click="toggle(<?= $i ?>)"
+                    class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider transition"
+                    :class="isOpen(<?= $i ?>) ? 'text-white bg-nebula-700 font-semibold' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'">
+                <span><?= $block->escapeHtml($tab['label']) ?></span>
+                <svg class="h-3.5 w-3.5 shrink-0 transition-transform duration-200"
+                     :class="isOpen(<?= $i ?>) ? 'rotate-90' : ''"
+                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                </svg>
+            </button>
+
+            <ul x-show="isOpen(<?= $i ?>) || searching"
+                x-collapse
+                class="mt-0.5 space-y-0.5 pb-1">
+                <?php foreach ($tab['sections'] as $section): ?>
+                    <li x-show="isSectionVisible('<?= $block->escapeJs($section['label']) ?>')">
+                        <a href="<?= $block->escapeUrl($section['url']) ?>"
+                           class="block rounded-md px-3 py-1.5 text-xs transition <?= $section['active']
+                               ? 'text-white font-semibold bg-nebula-700'
+                               : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700' ?>">
+                            <?= $block->escapeHtml($section['label']) ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+<script>
+    function nebulaConfigNav() {
+        const tabs = <?= /* @noEscape */ json_encode($tabsData) ?>;
+        const activeIndexes = tabs.reduce((acc, tab, i) => tab.hasActive ? [...acc, i] : acc, []);
+
+        return {
+            search: '',
+            openTabs: [...activeIndexes],
+
+            get searching() {
+                return this.search.length > 1;
+            },
+
+            toggle(i) {
+                if (this.searching) return;
+                const idx = this.openTabs.indexOf(i);
+                idx > -1 ? this.openTabs.splice(idx, 1) : this.openTabs.push(i);
+            },
+
+            isOpen(i) {
+                return this.openTabs.includes(i) || this.searching;
+            },
+
+            isSectionVisible(label) {
+                if (!this.searching) return true;
+                return label.toLowerCase().includes(this.search.toLowerCase());
+            },
+
+            isTabVisible(i) {
+                if (!this.searching) return true;
+                return tabs[i].sections.some(s =>
+                    s.label.toLowerCase().includes(this.search.toLowerCase())
+                );
+            }
+        }
+    }
+</script>

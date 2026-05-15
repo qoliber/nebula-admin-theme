@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+    Replaces Magento's legacy widget-instance edit form with the Nebula
+    wizard. Also covers the "new widget" flow — Magento's NewAction
+    controller `_forward('edit')`s into this handle.
+
+    Forces admin-1column so the 3-column wizard has the full content
+    width to work with. The legacy layout is admin-2columns-left whose
+    main content area is too narrow for our grid.
+-->
+<page layout="admin-1column"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="widget_instance_edit" remove="true"/>
+        <referenceBlock name="widget_instance_edit_tabs" remove="true"/>
+        <referenceBlock name="widget_instance_js" remove="true"/>
+        <referenceContainer name="content" htmlTag="div">
+            <block class="Magento\Backend\Block\Template"
+                   name="nebula.widget_instance_wizard"
+                   template="Qoliber_NebulaTheme::widget/widget-instance-wizard.phtml"
+                   after="-">
+                <arguments>
+                    <argument name="widget_type_listing"        xsi:type="object">Qoliber\NebulaTheme\ViewModel\Widget\TypeListing</argument>
+                    <argument name="widget_param_translator"    xsi:type="object">Qoliber\NebulaTheme\ViewModel\Widget\ParameterTranslator</argument>
+                    <argument name="widget_container_catalog"   xsi:type="object">Qoliber\NebulaTheme\ViewModel\Widget\ContainerCatalog</argument>
+                    <argument name="widget_page_group_catalog"  xsi:type="object">Qoliber\NebulaTheme\ViewModel\Widget\PageGroupCatalog</argument>
+                    <argument name="widget_instance_data"       xsi:type="object">Qoliber\NebulaTheme\ViewModel\WidgetInstanceData</argument>
+                    <argument name="store_view_source"          xsi:type="object">Qoliber\NebulaTheme\Model\Source\StoreView</argument>
+                    <!-- Chooser snippets + ViewModels are discovered dynamically via the registry. -->
+                    <argument name="widget_chooser_registry"    xsi:type="object">Qoliber\NebulaTheme\Model\Registry\WidgetChooserRegistry</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

@@ -1,0 +1,36 @@
+/* --- Status badges (cache grid, order grid, etc.) --- */
+.grid-severity-notice,
+.grid-severity-notice span {
+  @apply inline-flex items-center bg-green-100 text-xs font-semibold text-green-800;
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-full);
+}
+
+.grid-severity-critical,
+.grid-severity-critical span {
+  @apply inline-flex items-center bg-red-100 text-xs font-semibold text-red-800;
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-full);
+}
+
+.grid-severity-minor,
+.grid-severity-minor span {
+  @apply inline-flex items-center bg-amber-100 text-xs font-semibold text-amber-800;
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-full);
+}
+
+/* Remove the double span nesting — only style the outer */
+.grid-severity-notice > span,
+.grid-severity-critical > span,
+.grid-severity-minor > span {
+  @apply bg-transparent p-0;
+}
+
+/* Highlight entire row when cache is invalidated */
+tr:has(.grid-severity-minor) {
+  @apply bg-amber-50;
+}
+tr:has(.grid-severity-minor):hover {
+  @apply bg-amber-100/50;
+}

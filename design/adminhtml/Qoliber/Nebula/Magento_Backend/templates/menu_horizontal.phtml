@@ -1,0 +1,107 @@
+<?php
+/**
+ * Qoliber Nebula — Horizontal Top Menu
+ * Used when menu_position = "top"
+ *
+ * @var \Qoliber\Nebula\Block\Menu $block
+ */
+
+$data = $block->getNebulaMenuData();
+$items = $data['items'];
+$activeParents = $data['activeParents'];
+?>
+<div x-data="nebulaTopMenu()" class="nebula-topbar-menu flex flex-row items-center gap-1 flex-nowrap px-3 py-2">
+    <?php foreach ($items as $item): ?>
+        <?php $icon = $item['icon'] ?? 'fa-solid fa-circle'; ?>
+        <?php $isActive = ($item['isActive'] || $item['isActiveParent']); ?>
+        <?php if ($item['hasChildren']): ?>
+            <div class="relative shrink-0" x-data="{ open: false, tip: false }" @click.outside="open = false; tip = false">
+                <button @click="open = !open"
+                        @mouseenter="tip = true"
+                        @mouseleave="tip = false"
+                        @focus="tip = true"
+                        @blur="tip = false"
+                        type="button"
+                        aria-label="<?= htmlspecialchars($item['title'], ENT_QUOTES) ?>"
+                        class="flex items-center justify-center h-9 w-9 rounded-lg transition
+                               <?= $isActive
+                                   ? 'bg-white/15 text-white'
+                                   : 'text-nebula-300 hover:bg-white/10 hover:text-white' ?>">
+                    <i class="<?= htmlspecialchars($icon, ENT_QUOTES) ?> text-sm"></i>
+                </button>
+
+                <div x-show="tip && !open"
+                     x-cloak
+                     x-transition.opacity.duration.100ms
+                     class="nebula-topbar-tooltip">
+                    <?= htmlspecialchars($item['title'], ENT_QUOTES) ?>
+                </div>
+
+                <div x-show="open" x-cloak x-transition
+                     class="absolute left-0 z-50 mt-1 w-56 rounded-lg bg-white shadow-lg ring-1 ring-black/5 py-1">
+                    <div class="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        <?= htmlspecialchars($item['title'], ENT_QUOTES) ?>
+                    </div>
+                    <?php foreach ($item['children'] as $child): ?>
+                        <?php if ($child['hasChildren']): ?>
+                            <div x-data="{ sub: false }" class="border-t border-gray-100 first:border-t-0">
+                                <button @click="sub = !sub"
+                                        class="flex w-full items-center justify-between px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
+                                    <span><?= htmlspecialchars($child['title'], ENT_QUOTES) ?></span>
+                                    <svg class="h-3 w-3 text-gray-400 transition-transform" :class="sub ? 'rotate-90' : ''"
+                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                                    </svg>
+                                </button>
+                                <div x-show="sub" x-cloak x-collapse class="py-1 pl-2 pr-1">
+                                    <?php foreach ($child['children'] as $grandchild): ?>
+                                        <a href="<?= htmlspecialchars($grandchild['url'], ENT_QUOTES) ?>"
+                                           class="block rounded-md px-4 py-1.5 text-sm <?= $grandchild['isActive']
+                                               ? 'text-nebula-700 font-medium bg-nebula-50'
+                                               : 'text-gray-900 hover:bg-gray-100 hover:text-gray-900' ?>">
+                                            <?= htmlspecialchars($grandchild['title'], ENT_QUOTES) ?>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <a href="<?= htmlspecialchars($child['url'], ENT_QUOTES) ?>"
+                               class="block px-4 py-1.5 text-sm <?= $child['isActive']
+                                   ? 'text-nebula-700 font-medium bg-nebula-50'
+                                   : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900' ?>">
+                                <?= htmlspecialchars($child['title'], ENT_QUOTES) ?>
+                            </a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="relative shrink-0" x-data="{ tip: false }">
+                <a href="<?= htmlspecialchars($item['url'], ENT_QUOTES) ?>"
+                   @mouseenter="tip = true"
+                   @mouseleave="tip = false"
+                   @focus="tip = true"
+                   @blur="tip = false"
+                   aria-label="<?= htmlspecialchars($item['title'], ENT_QUOTES) ?>"
+                    class="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg transition
+                      <?= $item['isActive']
+                          ? 'bg-white/15 text-white'
+                          : 'text-nebula-300 hover:bg-white/10 hover:text-white' ?>">
+                    <i class="<?= htmlspecialchars($icon, ENT_QUOTES) ?> text-sm"></i>
+                </a>
+                <div x-show="tip"
+                     x-cloak
+                     x-transition.opacity.duration.100ms
+                     class="nebula-topbar-tooltip">
+                    <?= htmlspecialchars($item['title'], ENT_QUOTES) ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    <?php endforeach; ?>
+</div>
+
+<script>
+    function nebulaTopMenu() {
+        return {};
+    }
+</script>

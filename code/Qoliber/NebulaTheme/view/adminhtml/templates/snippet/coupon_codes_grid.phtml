@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * Snippet: coupon_codes_grid
+ *
+ * Mounts the `sales_rule_coupons` Nebula grid inside the sales-rule edit
+ * form's "Manage Coupon Codes" section. The grid is filtered by the current
+ * rule_id via {@see \Qoliber\NebulaTheme\Model\DataProvider\SalesRuleCouponsGridProvider},
+ * which reads the rule_id from the request `id` (or `rule_id`) param at fetch
+ * time — no extra glue is needed from the host form.
+ *
+ * Available block data (set by SectionRenderer when the snippet is mounted
+ * from a fieldset's `renderer` declaration):
+ *   - `entity_data` — the rule entity data array (used to derive rule_id when
+ *                     the URL doesn't carry it, e.g. on save-then-edit redirects)
+ *   - `form_block`  — the parent \Qoliber\NebulaForm\Block\Form
+ *   - `section`     — section config from the form JSON definition
+ *
+ * Renders nothing on the new-rule screen (no rule_id yet), since the grid
+ * would have no data and the mass-action targets need a current rule context.
+ */
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$entityData = (array) ($block->getData('entity_data') ?? []);
+$formBlock = $block->getData('form_block');
+
+$ruleId = (string) ($entityData['rule_id'] ?? '');
+if ($ruleId === '' && $formBlock instanceof \Qoliber\NebulaForm\Block\Form) {
+    $ruleId = (string) ($formBlock->getEntityId() ?? '');
+}
+
+if ($ruleId === '') {
+    ?>
+    <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-8 text-center text-sm text-gray-500">
+        <?= $escaper->escapeHtml((string) __('Save the rule first to view its generated coupon codes.')) ?>
+    </div>
+    <?php
+    return;
+}
+
+$gridBlock = $block->getLayout()->createBlock(
+    \Qoliber\NebulaGrid\Block\Grid::class,
+    '',
+    ['data' => ['grid_id' => 'sales_rule_coupons']]
+);
+?>
+
+<div class="space-y-2">
+    <div class="flex items-baseline justify-between gap-4">
+        <h3 class="text-sm font-semibold text-gray-900">
+            <?= $escaper->escapeHtml((string) __('Generated Coupon Codes')) ?>
+        </h3>
+        <p class="text-xs text-gray-500">
+            <?= $escaper->escapeHtml((string) __('Auto-generated codes attached to this rule.')) ?>
+        </p>
+    </div>
+    <?= /* @noEscape */ $gridBlock->toHtml() ?>
+</div>

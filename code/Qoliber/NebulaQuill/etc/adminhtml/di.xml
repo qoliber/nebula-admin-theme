@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Qoliber\NebulaForm\Model\Field\WysiwygRendererInterface"
+                type="Qoliber\NebulaQuill\Model\Field\QuillWysiwygRenderer"/>
+
+    <type name="Magento\Cms\Model\Config\Source\Wysiwyg\Editor">
+        <arguments>
+            <argument name="adapterOptions" xsi:type="array">
+                <item name="quill" xsi:type="array">
+                    <item name="value" xsi:type="const">Qoliber\NebulaQuill\Model\Config\QuillConfig::EDITOR_ADAPTER_PATH</item>
+                    <item name="label" xsi:type="string" translatable="true">Quill</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Ui\Block\Wysiwyg\ActiveEditor">
+        <arguments>
+            <argument name="availableAdapterPaths" xsi:type="array">
+                <item name="Qoliber_NebulaQuill/js/wysiwyg/quill-adapter" xsi:type="boolean">true</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

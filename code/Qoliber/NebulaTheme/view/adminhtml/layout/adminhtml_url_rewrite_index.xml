@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="url_rewrite_listing" remove="true"/>
+        <referenceContainer name="content" htmlTag="div">
+            <block class="Qoliber\NebulaGrid\Block\Grid"
+                   name="nebula.url_rewrite_listing"
+                   after="-">
+                <arguments>
+                    <argument name="grid_id" xsi:type="string">url_rewrite_listing</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

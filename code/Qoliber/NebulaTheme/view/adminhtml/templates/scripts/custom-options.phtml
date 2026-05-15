@@ -1,0 +1,8 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+$customOptionsJs = $block->getViewFileUrl('js/dist/nebula-custom-options.js');
+?>
+<script src="<?= /* @noEscape */ $customOptionsJs ?>"></script>

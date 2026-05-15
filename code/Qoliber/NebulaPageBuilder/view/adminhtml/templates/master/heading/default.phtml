@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaPageBuilder\Block\MasterTemplate $block */
+$elements = $block->getElements();
+$main = $elements['main'] ?? [];
+$data = $block->getNodeData();
+$tag = $data['heading_type'] ?? 'h2';
+$text = $data['heading_text'] ?? '';
+$mainStyle = $block->buildStyleString($main['styles'] ?? []);
+$classes = implode(' ', $main['cssClasses'] ?? []);
+
+// Sanitize tag
+$allowedTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+if (!in_array($tag, $allowedTags, true)) {
+    $tag = 'h2';
+}
+?><<?= /* @noEscape */ $tag ?> data-content-type="heading" data-appearance="default"<?php if ($classes) :
+    ?> class="<?= $escaper->escapeHtmlAttr($classes) ?>"<?php
+endif; ?><?php if ($mainStyle) :
+    ?> style="<?= $escaper->escapeHtmlAttr($mainStyle) ?>"<?php
+endif; ?>><?= $escaper->escapeHtml($text) ?></<?= /* @noEscape */ $tag ?>>

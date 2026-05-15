@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nebula.qoliber.dev/schemas/snippet.v1.json",
+  "title": "Nebula Snippet Definition",
+  "description": "Declarative schema for a Nebula snippet. Files live at view/adminhtml/snippet/<id>.json. A snippet is referenced from grid columns, form fieldsets/fields and layout sections as `snippet.<id>`. Three flavours: (a) template snippet (phtml only), (b) badge snippet (value -> {label, class}), (c) layout snippet (row-with-slots used by form layouts).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id"],
+  "properties": {
+    "id": {
+      "title": "Snippet identifier",
+      "description": "Unique snake_case identifier. MUST match the file name (without .json).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "type": {
+      "title": "Snippet type",
+      "description": "Discriminator. `row` denotes a layout snippet (two_column/three_column). `badge` denotes a value->badge lookup. Template snippets omit it.",
+      "type": "string",
+      "enum": ["row", "badge"]
+    },
+    "template": {
+      "title": "Template path",
+      "description": "Magento-style template reference, e.g. `Qoliber_NebulaComponent::snippet/status_badge.phtml`.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9_]*::[A-Za-z0-9_./-]+\\.phtml$"
+    },
+    "options": {
+      "title": "Badge options",
+      "description": "For badge snippets: map of cell value -> {label, class}.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "class"],
+        "properties": {
+          "label": {"title": "Badge label", "type": "string"},
+          "class": {
+            "title": "Badge class",
+            "type": "string",
+            "enum": ["success", "error", "warning", "info", "neutral"]
+          }
+        }
+      }
+    },
+    "children": {
+      "title": "Layout children",
+      "description": "For layout snippets (type=row): list of child columns defining the layout slots.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "title": "Layout node type",
+            "type": "string",
+            "enum": ["column"]
+          },
+          "width": {
+            "title": "Column width",
+            "description": "Fractional width, e.g. 1/2, 1/3, 2/3.",
+            "type": "string",
+            "pattern": "^[1-9][0-9]*\\/[1-9][0-9]*$"
+          },
+          "slot": {
+            "title": "Slot name",
+            "description": "Named slot consumers can target (e.g. `left`, `right`, `main`, `sidebar`).",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        }
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "title": "Template snippet",
+      "description": "Plain phtml snippet. Requires `template`, disallows `children`.",
+      "required": ["template"],
+      "not": {"required": ["children"]}
+    },
+    {
+      "title": "Badge snippet",
+      "description": "Badge lookup. Requires `options`, disallows `children`.",
+      "required": ["options"],
+      "not": {"required": ["children"]}
+    },
+    {
+      "title": "Layout snippet",
+      "description": "Row-with-slots snippet. Requires type=row and children. Disallows template/options.",
+      "required": ["type", "children"],
+      "properties": {
+        "type": {"const": "row"}
+      },
+      "not": {
+        "anyOf": [
+          {"required": ["template"]},
+          {"required": ["options"]}
+        ]
+      }
+    }
+  ]
+}

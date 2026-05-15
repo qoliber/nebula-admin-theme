@@ -1,0 +1,79 @@
+<?php /** @var \Qoliber\NebulaGrid\Block\Grid $block */ ?>
+<?php
+
+$definition = $block->getDefinition();
+$gridId = $block->getGridId();
+$searchValue = (string) $block->getRequest()->getParam('search', '');
+$activeFilters = $block->getActiveFilters();
+$hasActiveFilters = !empty($activeFilters);
+$hasMassActions = $block->hasMassActions();
+$sort = $block->getSort();
+$sortDir = $block->getSortDir();
+$pageSize = $block->getPageSize();
+$addButton = $definition['settings']['addButton'] ?? null;
+
+$exportParams = ['id' => $gridId, 'format' => 'csv', 'sort' => $sort, 'sortDir' => $sortDir, 'search' => $searchValue];
+foreach ($activeFilters as $fk => $fv) {
+    $exportParams['filters[' . $fk . ']'] = $fv;
+}
+?>
+<div class="flex items-center gap-3 border-b border-gray-200 px-4 py-3">
+    <div class="relative">
+        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="text"
+               value="<?= $escaper->escapeHtmlAttr($searchValue) ?>"
+               @input.debounce.500ms="let url = new URL('<?= $escaper->escapeJs($block->getGridUrl()) ?>'); if ($event.target.value) { url.searchParams.set('search', $event.target.value); } else { url.searchParams.delete('search'); } window.location.href = url.toString()"
+               placeholder="<?= $escaper->escapeHtmlAttr((string) __('Search...')) ?>"
+               class="block w-56 rounded-lg border-0 py-2 pl-9 pr-3 text-sm text-gray-900 shadow-sm border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+    </div>
+
+    <?php if ($searchValue !== '') : ?>
+        <a href="<?= $escaper->escapeUrl($block->getGridUrl()) ?>"
+           class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200 transition hover:bg-red-100">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            <?= $escaper->escapeHtml((string) __('Clear search')) ?>
+        </a>
+    <?php endif; ?>
+
+    <?php if ($hasActiveFilters) : ?>
+        <a href="<?= $escaper->escapeUrl($block->getGridUrl(['filters' => null])) ?>"
+           class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200 transition hover:bg-red-100">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            <?= $escaper->escapeHtml((string) __('Clear filters')) ?>
+        </a>
+    <?php endif; ?>
+
+    <?php if ($hasMassActions) : ?>
+        <div class="flex items-center gap-2" x-show="selected.length > 0" x-cloak>
+            <span class="text-sm font-medium text-gray-700" x-text="selected.length + ' selected'"></span>
+            <?php foreach ($block->getMassActions() as $action) : ?>
+                <button type="button"
+                        @click="confirmMassAction('<?= $escaper->escapeJs($action['url'] ?? '') ?>', '<?= $escaper->escapeJs((string) __($action['label'] ?? '')) ?>')"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    <?= $escaper->escapeHtml((string) __($action['label'] ?? '')) ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="flex-1"></div>
+
+    <a href="<?= $escaper->escapeUrl($block->getUrl('nebula/grid/export', $exportParams)) ?>"
+       class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+        <svg class="h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        <?= $escaper->escapeHtml((string) __('Export')) ?>
+    </a>
+
+    <select onchange="let url = new URL('<?= $escaper->escapeJs($block->getGridUrl()) ?>'); url.searchParams.set('pageSize', this.value); url.searchParams.set('page', '1'); window.location.href = url.toString()"
+            aria-label="<?= $escaper->escapeHtmlAttr((string) __('Items per page')) ?>"
+            title="<?= $escaper->escapeHtmlAttr((string) __('Items per page')) ?>"
+            class="rounded-lg border-0 py-2 pl-3 pr-8 text-sm text-gray-900 shadow-sm border border-gray-300 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+        <?php foreach ($block->getPageSizes() as $size) : ?>
+            <option value="<?= (int) $size ?>" <?= $size == $pageSize ? 'selected' : '' ?>><?= (int) $size ?> / <?= $escaper->escapeHtml((string) __('page')) ?></option>
+        <?php endforeach; ?>
+    </select>
+
+    <?php if ($addButton) : ?>
+        <?php include $block->getTemplateFile('Qoliber_NebulaGrid::grid/add-button.phtml'); ?>
+    <?php endif; ?>
+</div>

@@ -1,0 +1,69 @@
+/* --- Admin form elements (rendered by Magento form blocks) --- */
+.admin__field {
+  margin-bottom: var(--nebula-spacing-lg);
+}
+.admin__field-label {
+  @apply block text-sm font-medium;
+  color: var(--nebula-text-secondary);
+  margin-bottom: var(--nebula-spacing-xs);
+}
+.admin__field-label span {
+  @apply inline;
+}
+.admin__control-text,
+.admin__control-textarea,
+.admin__control-select,
+.admin__control-multiselect {
+  @apply block w-full text-sm text-gray-900 bg-white border border-gray-300 transition;
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  border-radius: var(--nebula-input-radius);
+}
+.admin__control-text:focus,
+.admin__control-textarea:focus,
+.admin__control-select:focus {
+  @apply border-nebula-500 ring-2 ring-nebula-500/20 outline-none;
+}
+.admin__control-textarea {
+  @apply min-h-24 resize-y;
+}
+.admin__control-select {
+  appearance: auto;
+}
+.admin__field-note {
+  @apply text-xs mt-1;
+  color: var(--nebula-text-tertiary);
+}
+.admin__field-error {
+  @apply text-xs text-red-600 mt-1;
+}
+._required .admin__field-label span::after {
+  content: " *";
+  @apply text-red-600;
+}
+
+/* --- Fieldsets (rendered by Magento form blocks) --- */
+.admin__fieldset {
+  @apply border;
+  background: var(--nebula-bg-primary);
+  border-color: var(--nebula-border-default);
+  padding: var(--nebula-spacing-xl);
+  margin-bottom: var(--nebula-spacing-xl);
+  border-radius: var(--nebula-radius-xl);
+}
+.admin__legend {
+  @apply text-lg font-semibold border-b;
+  color: var(--nebula-text-primary);
+  border-color: var(--nebula-border-default);
+  margin-bottom: var(--nebula-spacing-lg);
+  padding-bottom: var(--nebula-spacing-md);
+}
+
+.dark .admin__fieldset {
+  border-color: var(--nebula-border-strong);
+}
+
+.dark .admin__legend,
+.dark .admin__legend span {
+  color: var(--color-nebula-100);
+  border-color: var(--nebula-border-strong);
+}

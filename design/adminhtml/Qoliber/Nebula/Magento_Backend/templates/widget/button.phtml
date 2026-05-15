@@ -1,0 +1,53 @@
+<?php
+/**
+ * Qoliber Nebula — Button widget
+ * No data-mage-init, no RequireJS button widget.
+ * Save buttons auto-convert to type="submit" with form attribute.
+ *
+ * @var \Magento\Backend\Block\Widget\Button $block
+ */
+
+$id = $block->getId();
+$label = $block->escapeHtml($block->getLabel());
+$title = $block->escapeHtmlAttr($block->getTitle() ?: $block->getLabel());
+$disabled = $block->getDisabled() ? ' disabled="disabled"' : '';
+
+$classes = ['action-default', 'scalable'];
+if ($block->getClass()) {
+    $classes[] = $block->getClass();
+}
+if ($block->getDisabled()) {
+    $classes[] = 'disabled';
+}
+$classStr = implode(' ', $classes);
+
+// Detect save buttons — they need type="submit" + form target
+$dataAttr = $block->getDataAttribute();
+$isSaveButton = false;
+$formTarget = '';
+
+if (isset($dataAttr['mage-init'])) {
+    $mageInit = $dataAttr['mage-init'];
+    if (is_string($mageInit)) {
+        $mageInit = json_decode($mageInit, true) ?: [];
+    }
+    if (isset($mageInit['button']['event']) && $mageInit['button']['event'] === 'save') {
+        $isSaveButton = true;
+        $formTarget = ltrim($mageInit['button']['target'] ?? '', '#');
+    }
+}
+
+$type = $isSaveButton ? 'submit' : ($block->getType() ?: 'button');
+$formAttr = ($isSaveButton && $formTarget) ? ' form="' . $block->escapeHtmlAttr($formTarget) . '"' : '';
+?>
+<?= $block->getBeforeHtml() ?>
+<button id="<?= $block->escapeHtmlAttr($id) ?>"
+        type="<?= /* @noEscape */ $type ?>"
+        title="<?= /* @noEscape */ $title ?>"
+        class="<?= $block->escapeHtmlAttr($classStr) ?>"
+        <?= /* @noEscape */ $formAttr ?>
+        <?= /* @noEscape */ $disabled ?>
+        <?= /* @noEscape */ $block->getUiId() ?>>
+    <span><?= /* @noEscape */ $label ?></span>
+</button>
+<?= $block->getAfterHtml() ?>

@@ -1,0 +1,30 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$data = $block->getData('data') ?? [];
+$componentType = $data['componentType'] ?? 'unknown';
+$componentClass = $data['componentClass'] ?? '';
+$path = $data['path'] ?? '';
+$reason = $data['reason'] ?? '';
+$mode = $block->getData('mode') ?? 'production';
+$isDev = ($mode === 'developer');
+?>
+<div class="nebula-unsupported-node <?= $isDev ? 'nebula-unsupported-node--dev' : 'nebula-unsupported-node--prod' ?>"
+     style="<?= $isDev
+        ? 'border:2px dashed #d32f2f;padding:8px;margin:6px 0;background:#fff5f5;'
+        : 'padding:4px;margin:4px 0;color:#666;font-size:12px;' ?>">
+    <?php if ($isDev) : ?>
+        <strong>Unsupported UI component node</strong>
+        <div>Type: <code><?= $escaper->escapeHtml($componentType) ?></code></div>
+        <?php if ($componentClass !== '') : ?>
+            <div>Class: <code><?= $escaper->escapeHtml($componentClass) ?></code></div>
+        <?php endif; ?>
+        <div>Path: <code><?= $escaper->escapeHtml($path) ?></code></div>
+        <?php if ($reason !== '') : ?>
+            <div>Reason: <?= $escaper->escapeHtml($reason) ?></div>
+        <?php endif; ?>
+        <div style="margin-top:4px;">Add canonical Nebula JSON in your module to fix.</div>
+    <?php else : ?>
+        Node "<?= $escaper->escapeHtml($componentType) ?>" not yet covered.
+    <?php endif; ?>
+</div>

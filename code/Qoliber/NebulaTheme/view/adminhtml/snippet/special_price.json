@@ -1,0 +1,4 @@
+{
+  "id": "special_price",
+  "template": "Qoliber_NebulaTheme::eav/snippet/special_price.phtml"
+}

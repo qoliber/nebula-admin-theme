@@ -1,0 +1,18 @@
+<?php
+
+/** @var \Qoliber\NebulaForm\Block\Form $block */
+$config = json_encode([
+    'fieldName' => $fieldName,
+    'value' => (bool) $fieldValue,
+    'disabled' => $isDisabled,
+], JSON_UNESCAPED_SLASHES);
+$toggleLabel = !empty($field['toggleLabel']) ? $block->translate((string) $field['toggleLabel']) : '';
+$fieldControl = '<div class="flex items-center gap-3 pt-2" x-data="nebulaField_checkbox(' . htmlspecialchars((string) $config, ENT_QUOTES, 'UTF-8') . ')">'
+    . '<input type="checkbox"'
+    . ' id="' . $escaper->escapeHtmlAttr($fieldId) . '"'
+    . ' x-model="value"'
+    . ($isDisabled ? ' disabled' : '')
+    . ' class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">'
+    . ($toggleLabel !== '' ? '<span class="text-sm text-gray-600">' . $escaper->escapeHtml($toggleLabel) . '</span>' : '')
+    . '</div>';
+include __DIR__ . '/_row.phtml';

@@ -1,0 +1,23 @@
+/* Nebula admin grid component overrides extracted from template inline styles. */
+
+body.dark #widgetInstanceGrid th.data-grid-th,
+body.dark #widgetInstanceGrid th.data-grid-th > span,
+.dark #widgetInstanceGrid th.data-grid-th,
+.dark #widgetInstanceGrid th.data-grid-th > span {
+    color: #e2e8f0 !important;
+}
+
+body.dark .nebula-grid-highlight-text,
+.dark .nebula-grid-highlight-text {
+    color: #e5e7eb !important;
+}
+
+body.dark .nebula-grid-highlight-strong,
+.dark .nebula-grid-highlight-strong {
+    color: #ffffff !important;
+}
+
+body.dark th[data-nebula-grid-highlight="1"],
+.dark th[data-nebula-grid-highlight="1"] {
+    color: #e5e7eb !important;
+}

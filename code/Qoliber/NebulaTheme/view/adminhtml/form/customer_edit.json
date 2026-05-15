@@ -1,0 +1,118 @@
+{
+  "id": "customer_edit",
+  "type": "eav",
+  "entity": "customer",
+  "acl": "Magento_Customer::manage",
+  "dataSource": {
+    "provider": "customer.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Customer",
+    "saveUrl": "customer/index/save",
+    "backUrl": "customer/index/index",
+    "deleteUrl": "customer/index/delete",
+    "identifierField": "id",
+    "identifierParam": "id",
+    "fieldPrefix": "customer",
+    "hiddenParams": ["store"]
+  },
+  "layout": [
+    {
+      "id": "customer_overview_section",
+      "type": "section",
+      "renderer": "snippet.customer_overview"
+    },
+    {
+      "id": "main_row",
+      "type": "row",
+      "children": [
+        {
+          "id": "personal_col",
+          "type": "column",
+          "width": "1/3",
+          "children": [
+            {
+              "id": "personal_info",
+              "type": "section",
+              "label": "Personal Information",
+              "fields": ["prefix", "firstname", "middlename", "lastname", "suffix", "email", "dob", "taxvat", "gender"]
+            }
+          ]
+        },
+        {
+          "id": "account_col",
+          "type": "column",
+          "width": "1/3",
+          "children": [
+            {
+              "id": "account_settings",
+              "type": "section",
+              "label": "Account Settings",
+              "fields": ["group_id", "website_id", "store_id", "disable_auto_group_change"]
+            },
+            {
+              "id": "password_section",
+              "type": "section",
+              "label": "Password & Security",
+              "renderer": "snippet.customer_password_actions"
+            }
+          ]
+        },
+        {
+          "id": "newsletter_col",
+          "type": "column",
+          "width": "1/3",
+          "children": [
+            {
+              "id": "newsletter_section",
+              "type": "section",
+              "label": "Newsletter",
+              "renderer": "snippet.customer_newsletter"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "extra_tabs",
+      "type": "tabs",
+      "children": [
+        {
+          "id": "addresses_tab",
+          "label": "Addresses",
+          "renderer": "snippet.customer_addresses"
+        },
+        {
+          "id": "orders_tab",
+          "label": "Orders",
+          "renderer": "snippet.customer_orders_lazy"
+        },
+        {
+          "id": "cart_tab",
+          "label": "Shopping Cart",
+          "renderer": "snippet.customer_cart"
+        },
+        {
+          "id": "reviews_tab",
+          "label": "Product Reviews",
+          "renderer": "snippet.customer_reviews_lazy"
+        },
+        {
+          "id": "wishlist_tab",
+          "label": "Wishlist",
+          "renderer": "snippet.customer_wishlist_lazy"
+        }
+      ]
+    }
+  ],
+  "overrides": {
+    "fields": {
+      "dob": { "type": "date" },
+      "disable_auto_group_change": { "type": "toggle" }
+    }
+  },
+  "excludeGroups": ["customer_address"]
+}

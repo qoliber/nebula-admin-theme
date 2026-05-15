@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaPageBuilder\Block\MasterTemplate $block */
+$elements = $block->getElements();
+$main = $elements['main'] ?? [];
+$childrenHtml = $block->getChildrenHtml();
+$mainStyle = $block->buildStyleString($main['styles'] ?? []);
+$mainClasses = implode(' ', $main['cssClasses'] ?? []);
+$mainAttrs = $block->buildAttributeString($main['attributes'] ?? []);
+$rowClasses = trim('flex flex-col ' . $mainClasses);
+?><div data-content-type="row" data-appearance="full-bleed" class="<?= $escaper->escapeHtmlAttr($rowClasses) ?>"<?php if ($mainStyle) :
+    ?> style="<?= $escaper->escapeHtmlAttr($mainStyle) ?>"<?php
+endif; ?> <?= /* @noEscape */ $mainAttrs ?>><?= /* @noEscape */ $childrenHtml ?></div>

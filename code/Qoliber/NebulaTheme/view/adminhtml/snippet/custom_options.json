@@ -1,0 +1,4 @@
+{
+  "id": "custom_options",
+  "template": "Qoliber_NebulaTheme::eav/snippet/custom_options.phtml"
+}

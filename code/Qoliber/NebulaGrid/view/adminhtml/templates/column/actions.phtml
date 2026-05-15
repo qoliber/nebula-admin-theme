@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+/** @var array<int, array{label: string, url: string}> $actions */
+$actions = (array) $block->getData('actions');
+
+if ($actions === []) {
+    return;
+}
+?>
+<?php foreach ($actions as $i => $action) : ?>
+    <?php $confirm = !empty($action['confirm']) ? (string) __($action['confirm']) : ''; ?>
+    <?php if ($i > 0) :
+        ?> <?php
+    endif; ?><a href="<?= $escaper->escapeUrl($action['url']) ?>" class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50"<?php if ($confirm !== '') :
+        ?> onclick="return confirm(<?= $escaper->escapeHtml(json_encode($confirm)) ?>)"<?php
+    endif; ?>><?= $escaper->escapeHtml((string) __($action['label'])) ?></a>
+<?php endforeach; ?>

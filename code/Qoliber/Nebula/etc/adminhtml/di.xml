@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+<config
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd"
+>
+    <preference for="Magento\Backend\Block\Menu" type="Qoliber\Nebula\Block\Menu" />
+    <preference for="Magento\Config\Block\System\Config\Form\Field" type="Qoliber\Nebula\Block\Config\Form\Field" />
+    <preference
+        for="Magento\Config\Block\System\Config\Form\Fieldset"
+        type="Qoliber\Nebula\Block\Config\Form\Fieldset"
+    />
+    <preference for="Magento\Config\Block\System\Config\Form" type="Qoliber\Nebula\Block\Config\Form" />
+    <preference
+        for="Magento\Backend\Block\Widget\Form\Element\Dependence"
+        type="Qoliber\Nebula\Block\Widget\Form\Element\Dependence"
+    />
+    <preference
+        for="Magento\MediaStorage\Block\System\Config\System\Storage\Media\Synchronize"
+        type="Qoliber\Nebula\Block\Config\Form\Field\MediaSynchronize"
+    />
+
+    <type name="Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray">
+        <plugin
+            name="qoliber_nebula_array_field_render"
+            type="Qoliber\Nebula\Plugin\Config\ArrayFieldRenderPlugin"
+            sortOrder="10"
+        />
+    </type>
+
+    <type name="Magento\Framework\View\Page\Config\Renderer">
+        <plugin
+            name="qoliber_nebula_menu_position_body_class"
+            type="Qoliber\Nebula\Plugin\AddMenuPositionBodyClass"
+            sortOrder="10"
+        />
+    </type>
+
+    <type name="Magento\Framework\View\Model\Layout\Merge">
+        <plugin
+            name="qoliber_nebula_swap_page_layout_for_top_menu"
+            type="Qoliber\Nebula\Plugin\SwapPageLayoutForTopMenu"
+            sortOrder="20"
+        />
+    </type>
+
+    <type name="Magento\Theme\Model\View\Design">
+        <plugin name="qoliber_nebula_force_theme" type="Qoliber\Nebula\Plugin\ForceAdminTheme" sortOrder="100" />
+    </type>
+
+    <type name="Qoliber\NebulaForm\Block\EavForm">
+        <plugin
+            name="qoliber_nebula_product_edit_form_id_swap"
+            type="Qoliber\Nebula\Plugin\UseTabbedProductEditForm"
+            sortOrder="10"
+        />
+        <plugin
+            name="qoliber_nebula_category_refresh_form_id_swap"
+            type="Qoliber\Nebula\Plugin\UseCategoryRefreshForm"
+            sortOrder="20"
+        />
+    </type>
+    <type name="Qoliber\NebulaForm\Block\Form">
+        <plugin
+            name="qoliber_nebula_cms_page_edit_form_id_swap"
+            type="Qoliber\Nebula\Plugin\UseTabbedCmsPageEditForm"
+            sortOrder="10"
+        />
+    </type>
+</config>

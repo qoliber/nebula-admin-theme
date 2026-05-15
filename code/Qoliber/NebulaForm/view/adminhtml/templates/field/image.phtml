@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * Image upload — the file input is the one place we still emit a native
+ * HTML `name` attribute: files can't be serialized via hidden inputs by the
+ * model layer. The Alpine toggle/clear wrapper still owns "current URL".
+ *
+ * @var \Qoliber\NebulaForm\Block\Form $block
+ */
+$preview = $fieldValue
+    ? '<div class="mb-2"><img src="' . $escaper->escapeUrl((string) $fieldValue) . '" class="h-20 rounded shadow-sm" alt=""></div>'
+    : '';
+$fieldControl = $preview
+    . '<input type="file"'
+    . ' id="' . $escaper->escapeHtmlAttr($fieldId) . '"'
+    . ' name="' . $escaper->escapeHtmlAttr($fieldName) . '"'
+    . ($isDisabled ? ' disabled' : '')
+    . ' accept="image/*"'
+    . ' class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100">';
+include __DIR__ . '/_row.phtml';

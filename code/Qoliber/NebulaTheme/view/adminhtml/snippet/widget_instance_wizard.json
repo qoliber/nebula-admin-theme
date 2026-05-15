@@ -1,0 +1,4 @@
+{
+  "id": "widget_instance_wizard",
+  "template": "Qoliber_NebulaTheme::widget/widget-instance-wizard.phtml"
+}

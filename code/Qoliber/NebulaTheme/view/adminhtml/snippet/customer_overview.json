@@ -1,0 +1,4 @@
+{
+    "id": "customer_overview",
+    "template": "Qoliber_NebulaTheme::customer/snippet/overview.phtml"
+}

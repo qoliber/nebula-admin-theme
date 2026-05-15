@@ -1,0 +1,84 @@
+{
+  "id": "integration_listing",
+  "acl": "Magento_Integration::integrations",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "integration.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "integration_id",
+      "direction": "desc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add New Integration",
+      "url": "adminhtml/integration/new"
+    }
+  },
+  "columns": {
+    "integration_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "email": {
+      "label": "Email",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "endpoint": {
+      "label": "Callback URL",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 40
+    },
+    "status": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "0": "Inactive",
+        "1": "Active"
+      },
+      "position": 50
+    },
+    "created_at": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/integration/edit/id/{{integration_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

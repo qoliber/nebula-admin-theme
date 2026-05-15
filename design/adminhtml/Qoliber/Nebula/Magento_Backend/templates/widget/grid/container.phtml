@@ -1,0 +1,11 @@
+<?php
+/**
+ * Qoliber Nebula — Grid container (no floatingHeader)
+ */
+?>
+<?php if ($block->getButtonsHtml()): ?>
+    <div class="flex items-center gap-3 mb-4">
+        <?= /* @noEscape */ $block->getButtonsHtml() ?>
+    </div>
+<?php endif; ?>
+<?= $block->getGridHtml() ?>

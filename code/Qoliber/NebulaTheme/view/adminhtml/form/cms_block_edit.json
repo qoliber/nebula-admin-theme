@@ -1,0 +1,58 @@
+{
+  "id": "cms_block_edit",
+  "acl": "Magento_Cms::save",
+  "route": "cms_block_edit",
+  "replaces": "cms_block_form",
+  "dataSource": {
+    "provider": "cms_block.form",
+    "config": {
+      "identifierParam": "block_id"
+    }
+  },
+  "settings": {
+    "title": "CMS Block",
+    "identifierField": "block_id",
+    "backUrl": "cms/block/index",
+    "deleteUrl": "cms/block/delete",
+    "saveUrl": "cms/block/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "title": {
+          "label": "Block Title",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "identifier": {
+          "label": "Identifier",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "is_active": {
+          "label": "Enable Block",
+          "type": "toggle",
+          "position": 30
+        },
+        "store_id": {
+          "type": "multiselect",
+          "label": "Store View",
+          "optionsSource": "nebula.store.view",
+          "field_name": "store_id",
+          "required": true,
+          "position": 40
+        },
+        "content": {
+          "label": "Content",
+          "type": "wysiwyg",
+          "position": 50
+        }
+      }
+    }
+  }
+}

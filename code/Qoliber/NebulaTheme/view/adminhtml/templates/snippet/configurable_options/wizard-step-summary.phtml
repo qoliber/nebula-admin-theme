@@ -1,0 +1,72 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */ ?>
+
+<div x-show="currentStep === 2">
+    <div class="flex items-center justify-between mb-4">
+        <p class="text-sm text-gray-600">
+            <span class="font-semibold text-gray-900" x-text="previewVariations.length"></span>
+            <span x-text="previewVariations.length === 1 ? ' variation' : ' variations'"></span> will be created
+        </p>
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <label class="text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Set all prices:')) ?></label>
+                <input type="number" step="0.01" min="0" placeholder="0.00"
+                       @input="previewVariations.forEach(v => v.price = $event.target.value)"
+                       class="w-24 rounded-md border-0 py-1 px-2 text-sm border border-gray-300 focus:ring-2 focus:ring-indigo-600">
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Set all qty:')) ?></label>
+                <input type="number" step="1" min="0" placeholder="0"
+                       @input="previewVariations.forEach(v => v.qty = $event.target.value)"
+                       class="w-20 rounded-md border-0 py-1 px-2 text-sm border border-gray-300 focus:ring-2 focus:ring-indigo-600">
+            </div>
+        </div>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-gray-200">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <template x-for="attr in selectedAttributes" :key="attr.id">
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500" x-text="attr.label"></th>
+                    </template>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">SKU</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Price')) ?></th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Qty')) ?></th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"><?= $escaper->escapeHtml((string) __('Status')) ?></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <template x-for="(variation, i) in previewVariations" :key="i">
+                    <tr class="hover:bg-gray-50 transition">
+                        <template x-for="attr in selectedAttributes" :key="attr.id">
+                            <td class="px-4 py-2.5">
+                                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700"
+                                      x-text="getOptionLabel(attr.id, variation[attr.code])"></span>
+                            </td>
+                        </template>
+                        <td class="px-4 py-2.5">
+                            <input type="text" x-model="variation.sku"
+                                   class="w-full rounded-md border-0 py-1 px-2 text-sm font-mono border border-gray-300 focus:ring-2 focus:ring-indigo-600">
+                        </td>
+                        <td class="px-4 py-2.5">
+                            <input type="number" x-model="variation.price" step="0.01" min="0" placeholder="0.00"
+                                   class="w-24 rounded-md border-0 py-1 px-2 text-sm border border-gray-300 focus:ring-2 focus:ring-indigo-600">
+                        </td>
+                        <td class="px-4 py-2.5">
+                            <input type="number" x-model="variation.qty" step="1" min="0" placeholder="0"
+                                   class="w-20 rounded-md border-0 py-1 px-2 text-sm border border-gray-300 focus:ring-2 focus:ring-indigo-600">
+                        </td>
+                        <td class="px-4 py-2.5">
+                            <select x-model="variation.status"
+                                    class="rounded-md border-0 py-1 px-2 text-sm border border-gray-300 focus:ring-2 focus:ring-indigo-600">
+                                <option value="1"><?= $escaper->escapeHtml((string) __('Enabled')) ?></option>
+                                <option value="0"><?= $escaper->escapeHtml((string) __('Disabled')) ?></option>
+                            </select>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>

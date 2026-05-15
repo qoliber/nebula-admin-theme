@@ -1,0 +1,20 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */ ?>
+
+<div x-show="variations.length === 0" x-cloak>
+    <div class="text-center py-12 rounded-xl border-2 border-dashed border-gray-300">
+        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L12 12.75 6.429 9.75m11.142 0 4.179 2.25-9.75 5.25-9.75-5.25 4.179-2.25" />
+        </svg>
+        <p class="mt-4 text-sm font-medium text-gray-900">No variations configured</p>
+        <p class="mt-1 text-sm text-gray-500">Create product variations by selecting attributes and values.</p>
+        <button @click="openWizard()" type="button"
+                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Configure Variations
+        </button>
+    </div>
+</div>

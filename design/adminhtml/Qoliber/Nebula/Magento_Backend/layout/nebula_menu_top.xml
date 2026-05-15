@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+    Nebula: Top menu position — moves menu from sidebar to horizontal top bar.
+    The actual layout restructuring is done via CSS using the body class .nebula-menu-top
+    The menu block gets a different template for horizontal rendering.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="menu">
+            <action method="setTemplate">
+                <argument name="template" xsi:type="string">Magento_Backend::menu_horizontal.phtml</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>

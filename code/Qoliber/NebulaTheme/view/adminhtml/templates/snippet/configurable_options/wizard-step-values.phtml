@@ -1,0 +1,31 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */ ?>
+
+<div x-show="currentStep === 1">
+    <p class="text-sm text-gray-600 mb-4">Choose which values to include for each attribute:</p>
+    <div class="space-y-6">
+        <template x-for="attr in selectedAttributes" :key="attr.id">
+            <div class="rounded-xl border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-900" x-text="attr.label"></h3>
+                    <button type="button" @click="toggleAllOptions(attr.id)"
+                            class="text-xs font-medium text-indigo-600 hover:text-indigo-500 transition">
+                        Toggle All
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <template x-for="opt in attr.options" :key="opt.value">
+                        <label class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm cursor-pointer transition-all duration-150 select-none"
+                               :class="isOptionSelected(attr.id, opt.value) ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
+                            <input type="checkbox" class="sr-only"
+                                   :checked="isOptionSelected(attr.id, opt.value)"
+                                   @change="toggleOption(attr.id, opt.value)">
+                            <span x-text="opt.label"></span>
+                        </label>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>

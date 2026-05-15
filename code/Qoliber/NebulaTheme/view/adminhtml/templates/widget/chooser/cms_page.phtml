@@ -1,0 +1,74 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+/** @var \Qoliber\NebulaTheme\ViewModel\WidgetChooser\CmsPage $vm */
+$vm = $block->getData('widget_chooser_cms_page');
+
+// First-page server-render. B2 will add live AJAX pagination; for now
+// the first 50 are shown and the user can filter client-side.
+$initial     = $vm->search('', 1, 50);
+$initialJson = $escaper->escapeHtmlAttr(json_encode($initial, JSON_THROW_ON_ERROR));
+?>
+
+<div x-data="{ open: false, query: '', initial: <?= $initialJson ?>, fieldName: null }"
+     @open-chooser-cms-page.window="
+         open = true;
+         fieldName = $event.detail.fieldName;
+         query = '';
+     "
+     @keydown.escape.window="open = false">
+    <template x-if="open">
+        <div class="fixed inset-0 z-[10000] flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="open = false"></div>
+            <div class="relative w-full max-w-3xl max-h-[80vh] flex flex-col rounded-2xl bg-white shadow-2xl"
+                 role="dialog" aria-modal="true" @click.stop>
+                <div class="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                    <h3 class="text-base font-bold text-gray-900">Select CMS Page</h3>
+                    <button type="button" @click="open = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="px-6 py-3 border-b border-gray-200">
+                    <input type="text" x-model="query" placeholder="Filter by title or URL key&hellip;"
+                           class="block w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-6 py-4">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold">ID</th>
+                                <th class="px-3 py-2 text-left font-semibold">URL Key</th>
+                                <th class="px-3 py-2 text-left font-semibold">Title</th>
+                                <th class="px-3 py-2 text-left font-semibold">Active</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <template x-for="row in initial.rows.filter(r => !query || (r.title + ' ' + r.identifier).toLowerCase().includes(query.toLowerCase()))" :key="row.value">
+                                <tr class="hover:bg-indigo-50 cursor-pointer"
+                                    @click="$dispatch('chooser:selected', {fieldName, value: row.value, label: row.title + ' (' + row.identifier + ')'}); open = false">
+                                    <td class="px-3 py-2" x-text="row.value"></td>
+                                    <td class="px-3 py-2 font-mono text-xs" x-text="row.identifier"></td>
+                                    <td class="px-3 py-2" x-text="row.title"></td>
+                                    <td class="px-3 py-2">
+                                        <span x-show="row.is_active" class="text-emerald-600">Yes</span>
+                                        <span x-show="!row.is_active" class="text-gray-400">No</span>
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-if="!initial.rows.length">
+                                <tr><td colspan="4" class="px-3 py-4 text-center text-gray-500">No CMS pages defined.</td></tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>

@@ -1,0 +1,82 @@
+{
+  "id": "admin_user_listing",
+  "acl": "Magento_User::acl_users",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "admin_user.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "user_id",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "user_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "username": {
+      "label": "User Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "firstname": {
+      "label": "First Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "lastname": {
+      "label": "Last Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 40
+    },
+    "email": {
+      "label": "Email",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 50
+    },
+    "is_active": {
+      "label": "Status",
+      "type": "badge",
+      "sortable": true,
+      "filter": "select",
+      "options": {
+        "1": {"label": "Enabled", "class": "success"},
+        "0": {"label": "Disabled", "class": "danger"}
+      },
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/user/edit/user_id/{{user_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "id": "store_view_edit",
+  "acl": "Magento_Backend::store",
+  "route": "adminhtml_system_store_editstore",
+  "replaces": "adminhtml_admin_save_confirm",
+  "dataSource": {
+    "provider": "store_view.form",
+    "config": {
+      "identifierParam": "store_id"
+    }
+  },
+  "settings": {
+    "title": "Store View",
+    "identifierField": "store[store_id]",
+    "identifierParam": "store_id",
+    "backUrl": "adminhtml/system_store/index",
+    "saveUrl": "adminhtml/system_store/save"
+  },
+  "hiddenFields": {
+    "store_type": "store",
+    "store_action": "edit"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "store[store_id]": {
+          "type": "hidden",
+          "position": 1
+        },
+        "store[group_id]": {
+          "label": "Store",
+          "type": "select",
+          "required": true,
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getGroupValuesForForm",
+          "position": 10
+        },
+        "store[name]": {
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "store[code]": {
+          "label": "Code",
+          "type": "text",
+          "required": true,
+          "position": 30
+        },
+        "store[is_active]": {
+          "label": "Status",
+          "type": "toggle",
+          "position": 40
+        },
+        "store[sort_order]": {
+          "label": "Sort Order",
+          "type": "text",
+          "position": 50
+        }
+      }
+    }
+  }
+}

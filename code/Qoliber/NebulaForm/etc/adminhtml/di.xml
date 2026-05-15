@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Customer\Controller\Adminhtml\Group\NewAction">
+        <plugin name="nebula_remove_customer_group_edit_block"
+                type="Qoliber\NebulaForm\Plugin\RemoveCustomerGroupEditBlock"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Catalog\Controller\Adminhtml\Product\Attribute\Edit">
+        <plugin name="nebula_fix_attribute_edit_controller"
+                type="Qoliber\NebulaForm\Plugin\FixAttributeEditController"
+                sortOrder="10"/>
+    </type>
+    <!--
+        Plugin is declared on the concrete Merge class, not on
+        Magento\Framework\View\Layout\ProcessorInterface. The interface is never
+        instantiated directly: its `preference` is Merge, so Magento generates a
+        Merge\Interceptor. The interceptor code generator only weaves methods for
+        plugins registered against the type it is generating (Merge) — a plugin
+        declared solely on the interface is resolved by the runtime PluginList
+        but produces no intercepted method, so afterLoad() never fires.
+    -->
+    <type name="Magento\Framework\View\Model\Layout\Merge">
+        <plugin name="nebula_inject_form_layout"
+                type="Qoliber\NebulaForm\Plugin\InjectFormLayout"
+                sortOrder="10"/>
+    </type>
+</config>

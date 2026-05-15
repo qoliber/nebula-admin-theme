@@ -1,0 +1,264 @@
+/*
+ * Per-report dark-mode header overrides. Each block below patches one
+ * legacy admin grid (Reports, Cache Management, Indexer, Currency Rates,
+ * etc.) where the vanilla skin baked sortable header text into a literal
+ * dark color that becomes unreadable on our dark surface. The selectors
+ * are deliberately copy-paste-style per grid id so that future per-grid
+ * tweaks stay isolated to their block — DRY-ing them out via shared
+ * selectors actually makes per-grid debugging harder.
+ */
+
+/* Reports grid: enforce AA contrast for legacy empty row text and export label text. */
+.dark .nebula-main .data-grid td.empty-text,
+.dark .nebula-main .data-grid .empty-text {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main .admin__data-grid-export .admin__control-support-text,
+.dark .nebula-main .admin__data-grid-export .admin__control-support-text span,
+.dark .nebula-main .admin__data-grid-export .admin__control-support-text * {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main .admin__data-grid-export button,
+.dark .nebula-main .admin__data-grid-export button span,
+.dark .nebula-main .admin__data-grid-export .task,
+.dark .nebula-main .admin__data-grid-export .task span {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Search Terms report: sortable header labels can resolve to black in dark mode. */
+.dark .nebula-main #searchReportGrid .data-grid-th,
+.dark .nebula-main #searchReportGrid .data-grid-th a,
+.dark .nebula-main #searchReportGrid .data-grid-th span,
+.dark .nebula-main #searchReportGrid .data-grid-th._sortable,
+.dark .nebula-main #searchReportGrid .data-grid-th._sortable._ascend,
+.dark .nebula-main #searchReportGrid .data-grid-th._sortable._descend,
+.dark .nebula-main #searchReportGrid .data-grid-th._sortable._ascend > span,
+.dark .nebula-main #searchReportGrid .data-grid-th._sortable._descend > span {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main #searchReportGrid .data-grid-th._sortable._ascend:before,
+.dark .nebula-main #searchReportGrid .data-grid-th._sortable._descend:before {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Newsletter Problems report: enforce readable header/sort text in dark mode. */
+.dark .nebula-main #problemGrid .data-grid-th,
+.dark .nebula-main #problemGrid .data-grid-th a,
+.dark .nebula-main #problemGrid .data-grid-th span,
+.dark .nebula-main #problemGrid .data-grid-th._sortable,
+.dark .nebula-main #problemGrid .data-grid-th._sortable._ascend,
+.dark .nebula-main #problemGrid .data-grid-th._sortable._descend,
+.dark .nebula-main #problemGrid .data-grid-th._sortable._ascend > span,
+.dark .nebula-main #problemGrid .data-grid-th._sortable._descend > span {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main #problemGrid .data-grid-th._sortable._ascend:before,
+.dark .nebula-main #problemGrid .data-grid-th._sortable._descend:before {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Customer Reviews report: enforce readable header text in dark mode. */
+.dark .nebula-main #customers_grid .data-grid-th,
+.dark .nebula-main #customers_grid .data-grid-th a,
+.dark .nebula-main #customers_grid .data-grid-th span,
+.dark .nebula-main #customers_grid .data-grid-th.not-sort,
+.dark .nebula-main #customers_grid .data-grid-th.not-sort > span,
+.dark .nebula-main #customers_grid .data-grid-th._sortable,
+.dark .nebula-main #customers_grid .data-grid-th._sortable._ascend,
+.dark .nebula-main #customers_grid .data-grid-th._sortable._descend,
+.dark .nebula-main #customers_grid .data-grid-th._sortable._ascend > span,
+.dark .nebula-main #customers_grid .data-grid-th._sortable._descend > span {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main #customers_grid .data-grid-th._sortable._ascend:before,
+.dark .nebula-main #customers_grid .data-grid-th._sortable._descend:before {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Product Reviews report: enforce readable header text in dark mode. */
+.dark .nebula-main #gridProducts .data-grid-th,
+.dark .nebula-main #gridProducts .data-grid-th a,
+.dark .nebula-main #gridProducts .data-grid-th span,
+.dark .nebula-main #gridProducts .data-grid-th.not-sort,
+.dark .nebula-main #gridProducts .data-grid-th.not-sort > span,
+.dark .nebula-main #gridProducts .data-grid-th._sortable,
+.dark .nebula-main #gridProducts .data-grid-th._sortable._ascend,
+.dark .nebula-main #gridProducts .data-grid-th._sortable._descend,
+.dark .nebula-main #gridProducts .data-grid-th._sortable._ascend > span,
+.dark .nebula-main #gridProducts .data-grid-th._sortable._descend > span {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main #gridProducts .data-grid-th._sortable._ascend:before,
+.dark .nebula-main #gridProducts .data-grid-th._sortable._descend:before {
+  color: var(--color-nebula-100) !important;
+}
+
+/* PayPal Settlement report: enforce readable legacy header labels in dark mode. */
+.dark .nebula-main #settlementGrid th,
+.dark .nebula-main #settlementGrid th a,
+.dark .nebula-main #settlementGrid th span,
+.dark .nebula-main #settlementGrid .col-date,
+.dark .nebula-main #settlementGrid .col-date > span,
+.dark .nebula-main #settlementGrid .col-merchant,
+.dark .nebula-main #settlementGrid .col-merchant > span,
+.dark .nebula-main #settlementGrid .col-transaction,
+.dark .nebula-main #settlementGrid .col-transaction > span,
+.dark .nebula-main #settlementGrid .col-invoice,
+.dark .nebula-main #settlementGrid .col-invoice > span,
+.dark .nebula-main #settlementGrid .col-reference,
+.dark .nebula-main #settlementGrid .col-reference > span,
+.dark .nebula-main #settlementGrid .ol-event,
+.dark .nebula-main #settlementGrid .ol-event > span,
+.dark .nebula-main #settlementGrid .col-initiation,
+.dark .nebula-main #settlementGrid .col-initiation > span,
+.dark .nebula-main #settlementGrid .col-completion,
+.dark .nebula-main #settlementGrid .col-completion > span,
+.dark .nebula-main #settlementGrid .col-amount,
+.dark .nebula-main #settlementGrid .col-amount > span,
+.dark .nebula-main #settlementGrid .col-fee-amount,
+.dark .nebula-main #settlementGrid .col-fee-amount > span {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Low Stock report: enforce readable legacy header labels in dark mode. */
+.dark .nebula-main #gridLowstock th,
+.dark .nebula-main #gridLowstock th a,
+.dark .nebula-main #gridLowstock th span,
+.dark .nebula-main #gridLowstock .col-product,
+.dark .nebula-main #gridLowstock .col-product > span,
+.dark .nebula-main #gridLowstock .col-sku,
+.dark .nebula-main #gridLowstock .col-sku > span,
+.dark .nebula-main #gridLowstock .col-qty,
+.dark .nebula-main #gridLowstock .col-qty > span,
+.dark .nebula-main #gridLowstock .col-source-code,
+.dark .nebula-main #gridLowstock .col-source-code > span {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Cache Management: enforce readable legacy header labels in dark mode. */
+.dark .nebula-main #cache_grid th,
+.dark .nebula-main #cache_grid th a,
+.dark .nebula-main #cache_grid th span,
+.dark .nebula-main #cache_grid .col-cache_type,
+.dark .nebula-main #cache_grid .col-cache_type > span,
+.dark .nebula-main #cache_grid .col-description,
+.dark .nebula-main #cache_grid .col-description > span,
+.dark .nebula-main #cache_grid .col-tags,
+.dark .nebula-main #cache_grid .col-tags > span,
+.dark .nebula-main #cache_grid .col-status,
+.dark .nebula-main #cache_grid .col-status > span {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Index Management: enforce readable legacy header labels in dark mode. */
+.dark .nebula-main #gridIndexer th,
+.dark .nebula-main #gridIndexer th a,
+.dark .nebula-main #gridIndexer th span,
+.dark .nebula-main #gridIndexer .col-indexer_title,
+.dark .nebula-main #gridIndexer .col-indexer_title > span,
+.dark .nebula-main #gridIndexer .col-indexer_description,
+.dark .nebula-main #gridIndexer .col-indexer_description > span,
+.dark .nebula-main #gridIndexer .col-indexer_mode,
+.dark .nebula-main #gridIndexer .col-indexer_mode > span,
+.dark .nebula-main #gridIndexer .col-indexer_status,
+.dark .nebula-main #gridIndexer .col-indexer_status > span,
+.dark .nebula-main #gridIndexer .col-indexer_schedule_status,
+.dark .nebula-main #gridIndexer .col-indexer_schedule_status > span,
+.dark .nebula-main #gridIndexer .col-indexer_updated,
+.dark .nebula-main #gridIndexer .col-indexer_updated > span,
+.dark .nebula-main #gridIndexer .indexer-title,
+.dark .nebula-main #gridIndexer .indexer-description,
+.dark .nebula-main #gridIndexer .indexer-mode,
+.dark .nebula-main #gridIndexer .indexer-status,
+.dark .nebula-main #gridIndexer .indexer-schedule-status,
+.dark .nebula-main #gridIndexer .col-date,
+.dark .nebula-main #gridIndexer .col-date > span {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Refresh Statistics report: enforce readable legacy header labels in dark mode. */
+.dark .nebula-main #gridRefreshStatistics th,
+.dark .nebula-main #gridRefreshStatistics th a,
+.dark .nebula-main #gridRefreshStatistics th span,
+.dark .nebula-main #gridRefreshStatistics .col-report,
+.dark .nebula-main #gridRefreshStatistics .col-report > span,
+.dark .nebula-main #gridRefreshStatistics .col-description,
+.dark .nebula-main #gridRefreshStatistics .col-description > span,
+.dark .nebula-main #gridRefreshStatistics .col-updated,
+.dark .nebula-main #gridRefreshStatistics .col-updated > span {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Orders report filters: enforce readable form label/help text in dark mode. */
+.dark .nebula-main label[for^="sales_report_"] span,
+.dark .nebula-main .admin__field-label[for^="sales_report_"] span,
+.dark .nebula-main #sales_report_report_type,
+.dark .nebula-main #sales_report_period_type,
+.dark .nebula-main #sales_report_show_order_statuses,
+.dark .nebula-main #sales_report_order_statuses,
+.dark .nebula-main #sales_report_show_empty_rows,
+.dark .nebula-main #sales_report_show_actual_columns,
+.dark .nebula-main #sales_report_show_actual_values,
+.dark .nebula-main #sales_report_show_subtotals,
+.dark .nebula-main #sales_report_show_percentages {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main #sales_report_order_statuses option {
+  color: #111827 !important;
+}
+
+/* Currency Rates page: enforce readable labels and matrix headers in dark mode. */
+.dark .nebula-main .currency-rates-service-field .admin__field-label span,
+.dark .nebula-main #rate_services,
+.dark .nebula-main .currency-rates-matrix th,
+.dark .nebula-main .currency-rates-matrix th span,
+.dark .nebula-main .currency-rates-matrix .admin__control-support-text {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main .import-service .action-add,
+.dark .nebula-main .import-service .action-add span,
+.dark .nebula-main .import-service .add,
+.dark .nebula-main .import-service .add span {
+  color: var(--color-nebula-100) !important;
+}
+
+/* Currency Symbols page: ensure 'Use Standard' checkbox labels are readable in dark mode. */
+.dark
+  .nebula-main
+  #currency-symbols-form
+  .admin__field-option
+  .admin__field-label
+  span {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-main [id^="sales_report_"] + .admin__field-note,
+.dark .nebula-main .admin__field-note,
+.dark .nebula-main .admin__field-note span {
+  color: var(--color-nebula-200) !important;
+}
+
+/* Reports toolbar actions: ensure Reset Filter/Search button labels are readable in dark mode. */
+.dark .nebula-main .admin__filter-actions .action-reset,
+.dark .nebula-main .admin__filter-actions .action-reset span,
+.dark .nebula-main .admin__filter-actions .action-tertiary,
+.dark .nebula-main .admin__filter-actions .action-tertiary span,
+.dark .nebula-main .admin__filter-actions .action-secondary,
+.dark .nebula-main .admin__filter-actions .action-secondary span,
+.dark .nebula-main .admin__filter-actions .task,
+.dark .nebula-main .admin__filter-actions .task span {
+  color: var(--color-nebula-100) !important;
+}
+
+.dark .nebula-footer,
+.dark .nebula-footer .copyright {
+  color: var(--nebula-text-tertiary) !important;
+}

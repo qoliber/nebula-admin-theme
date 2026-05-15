@@ -1,0 +1,17 @@
+<!-- Hidden inputs that produce Magento's expected payload shape:
+     widget_instance[N][page_group] + widget_instance[N][<page_group>][...].
+     Magento's Save controller reads from POST['widget_instance'] (NOT
+     'page_groups'), then in-instance beforeSave() resolves layout_handle
+     for non-pages/page_layouts groups. layout_handle is emitted
+     unconditionally — Magento ignores it for the other groups. -->
+<template x-if="row.page_group">
+    <div style="display:none">
+        <input type="hidden" :name="'widget_instance[' + idx + '][page_group]'" :value="row.page_group"/>
+        <input type="hidden" :name="'widget_instance[' + idx + '][' + row.page_group + '][page_id]'" :value="row.page_id || '0'"/>
+        <input type="hidden" :name="'widget_instance[' + idx + '][' + row.page_group + '][for]'" :value="row.for"/>
+        <input type="hidden" :name="'widget_instance[' + idx + '][' + row.page_group + '][block]'" :value="row.block"/>
+        <input type="hidden" :name="'widget_instance[' + idx + '][' + row.page_group + '][template]'" :value="row.template"/>
+        <input type="hidden" :name="'widget_instance[' + idx + '][' + row.page_group + '][entities]'" :value="row.entities"/>
+        <input type="hidden" :name="'widget_instance[' + idx + '][' + row.page_group + '][layout_handle]'" :value="row.layout_handle"/>
+    </div>
+</template>

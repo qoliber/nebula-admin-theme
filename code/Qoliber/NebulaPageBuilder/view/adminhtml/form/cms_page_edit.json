@@ -1,0 +1,11 @@
+{
+  "fieldsets": {
+    "content": {
+      "fields": {
+        "content": {
+          "type": "pagebuilder"
+        }
+      }
+    }
+  }
+}

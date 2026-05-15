@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
+    <referenceContainer name="content">
+        <referenceBlock name="product_form" remove="true"/>
+        <block class="Qoliber\NebulaForm\Block\EavForm"
+               name="nebula.catalog_product_edit"
+               after="-">
+            <arguments>
+                <argument name="form_id" xsi:type="string">catalog_product_edit</argument>
+            </arguments>
+        </block>
+    </referenceContainer>
+    <referenceContainer name="before.body.end">
+        <block class="Magento\Framework\View\Element\Template"
+               name="nebula.catalog.product.catalog.bundle"
+               template="Qoliber_NebulaTheme::scripts/catalog-product.phtml"
+               before="nebula.catalog.product.scripts"/>
+        <block class="Magento\Framework\View\Element\Template"
+               name="nebula.catalog.product.scripts"
+               template="Qoliber_NebulaTheme::scripts/custom-options.phtml"/>
+        <block class="Magento\Framework\View\Element\Template"
+               name="nebula.bundle.product.scripts"
+               template="Qoliber_NebulaTheme::scripts/bundle-options.phtml"/>
+    </referenceContainer>
+</layout>

@@ -1,0 +1,8 @@
+{
+  "id": "status_badge",
+  "template": "Qoliber_NebulaComponent::snippet/status_badge.phtml",
+  "options": {
+    "1": {"label": "Enabled", "class": "success"},
+    "0": {"label": "Disabled", "class": "error"}
+  }
+}

@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * EavForm template — unified runtime (Phase 1).
+ *
+ * Pure composition: header + form chrome via form-shell.phtml, body via
+ * LayoutTreeRenderer service. Field rendering lives in EavFieldRenderer.
+ * Zero hidden business-data inputs — every field registers with the Alpine
+ * `nebulaModels` store and serializes on submit.
+ *
+ * @var \Qoliber\NebulaForm\Block\EavForm $block
+ */
+
+$definition = $block->getDefinition();
+$entityId = $block->getEntityId();
+$isNew = $block->isNewEntity();
+
+$formKey = $block->getFormKey();
+$saveUrl = $block->getSaveUrl();
+$backUrl = $block->getBackUrl();
+$deleteUrl = $block->getDeleteUrl();
+
+$entityType = (string) ($definition['entity'] ?? '');
+$headerTitle = (string) ($definition['settings']['title'] ?? 'Edit');
+
+// Entity-specific header adornments. Kept light; module-specific form
+// templates can wrap this (see NebulaCatalog::eav/form-with-sidebar.phtml).
+if ($entityType === 'catalog_product') {
+    $title = (string) ($block->getFieldValue('name') ?? (string) __('New Product'));
+    $statusValue = (int) ($block->getFieldValue('status') ?? 1);
+    $statusLabel = (string) ($statusValue === 1 ? __('Enabled') : __('Disabled'));
+    $statusClass = $statusValue === 1 ? 'bg-green-100 text-green-800 ring-green-600/20' : 'bg-red-100 text-red-800 ring-red-600/20';
+    $subtitle = ucfirst((string) ($block->getFieldValue('type_id') ?? 'simple'));
+    if ($entityId) {
+        $subtitle .= ' · SKU: ' . (string) ($block->getFieldValue('sku') ?? '');
+    }
+} elseif ($entityType === 'customer') {
+    $firstName = (string) ($block->getFieldValue('firstname') ?? '');
+    $lastName = (string) ($block->getFieldValue('lastname') ?? '');
+    $title = trim($firstName . ' ' . $lastName) ?: (string) __('New Customer');
+    $statusLabel = null;
+    $statusClass = '';
+    $subtitle = (string) ($block->getFieldValue('email') ?? $headerTitle);
+} elseif ($entityType === 'catalog_category') {
+    $title = (string) ($block->getFieldValue('name') ?? (string) __('New Category'));
+    $statusValue = (int) ($block->getFieldValue('is_active') ?? 1);
+    $statusLabel = (string) ($statusValue === 1 ? __('Active') : __('Inactive'));
+    $statusClass = $statusValue === 1 ? 'bg-green-100 text-green-800 ring-green-600/20' : 'bg-red-100 text-red-800 ring-red-600/20';
+    $subtitle = $headerTitle;
+} else {
+    $title = (string) ($block->getFieldValue('name')
+        ?? $block->getFieldValue('title')
+        ?? ($isNew ? __('New %1', $headerTitle) : __('Edit %1', $headerTitle)));
+    $statusLabel = null;
+    $statusClass = '';
+    $subtitle = $headerTitle;
+}
+
+$hasFiles = false; // EAV forms don't multipart by default; image fields POST via separate handler.
+$formRef = 'nebulaEavForm';
+$routeFields = $block->getHiddenInputs();
+
+include $block->getTemplateFile('Qoliber_NebulaForm::form-shell.phtml');
+?>
+
+        <?= /* @noEscape */ $block->getLayoutTreeRenderer()->render($block, $block->getLayoutTree(), $block->getLayout()) ?>
+
+        <?php $remainingGroups = $block->getRemainingAttributeGroups(); ?>
+        <?php if (!empty($remainingGroups)) : ?>
+        <div x-data="{ activeAttrTab: 0 }" class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex gap-1 overflow-x-auto" aria-label="Additional Attribute Groups">
+                    <?php foreach (array_values($remainingGroups) as $i => $group) : ?>
+                    <button type="button" @click="activeAttrTab = <?= (int) $i ?>"
+                            :class="activeAttrTab === <?= (int) $i ?>
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                            class="whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition">
+                        <?= $escaper->escapeHtml($block->translate((string) $group['label'])) ?>
+                    </button>
+                    <?php endforeach; ?>
+                </nav>
+            </div>
+            <div class="mt-4">
+                <?php foreach (array_values($remainingGroups) as $i => $group) : ?>
+                <div x-show="activeAttrTab === <?= (int) $i ?>">
+                    <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+                        <div class="px-6 py-4 divide-y divide-gray-100">
+                            <?php foreach ($group['attributes'] as $attribute) : ?>
+                                <?= /* @noEscape */ $block->getFieldRenderer()->render($block, (string) $attribute->getAttributeCode(), $block->getLayout()) ?>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+<?php include $block->getTemplateFile('Qoliber_NebulaForm::form-shell-close.phtml'); ?>

@@ -1,0 +1,4 @@
+{
+  "id": "widget_chooser_catalog_product",
+  "template": "Qoliber_NebulaTheme::widget/chooser/catalog_product.phtml"
+}

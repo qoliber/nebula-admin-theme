@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Snippet: product_selector
+ *
+ * Available variables:
+ * @var \Magento\Framework\View\Element\Template $block
+ * $block->getData('field_name')        - hidden input name (e.g., 'links[related][]')
+ * $block->getData('selected_products') - array of [{id, sku, name, price, thumbnail}]
+ * $block->getData('search_url')        - URL for AJAX product search
+ * $block->getData('form_key')          - form key for AJAX requests
+ * $block->getData('label')             - section label (e.g., "Related Products")
+ * $block->getData('max_results')       - max search results (default 20)
+ */
+
+$fieldName = $block->getData('field_name') ?? 'product_ids[]';
+$fieldFormat = $block->getData('field_format') ?? 'flat'; // 'flat' or 'links'
+$selectedProducts = $block->getData('selected_products') ?? [];
+$searchUrl = $block->getData('search_url') ?? '';
+$formKey = $block->getData('form_key') ?? '';
+$label = $block->getData('label') ?? __('Products');
+$maxResults = (int) ($block->getData('max_results') ?? 20);
+$componentId = 'product_selector_' . md5($fieldName);
+
+$configJson = json_encode([
+    'fieldName' => $fieldName,
+    'fieldFormat' => $fieldFormat,
+    'selectedProducts' => array_values($selectedProducts),
+    'searchUrl' => $searchUrl,
+    'formKey' => $formKey,
+    'maxResults' => $maxResults,
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+?>
+
+<div id="<?= $escaper->escapeHtmlAttr($componentId) ?>"
+     x-data="nebulaProductSelector(<?= $escaper->escapeHtmlAttr($configJson) ?>)">
+
+    <!-- Header -->
+    <div class="mb-3 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-gray-700">
+            <?= $escaper->escapeHtml($label) ?>
+            <span x-show="selectedProducts.length > 0"
+                  class="ml-2 inline-flex items-center justify-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-medium text-white"
+                  x-text="selectedProducts.length"></span>
+        </h3>
+        <button type="button"
+                @click="searchOpen = true; $nextTick(() => $refs.searchInput.focus())"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 transition-colors cursor-pointer">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            <?= $escaper->escapeHtml(__('Add Products')) ?>
+        </button>
+    </div>
+
+    <!-- Selected products table -->
+    <div x-show="selectedProducts.length > 0" class="overflow-hidden rounded-lg border border-gray-200">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <tr>
+                    <th class="px-3 py-2 w-12">
+                        <span class="sr-only"><?= $escaper->escapeHtml(__('Thumbnail')) ?></span>
+                    </th>
+                    <th class="px-3 py-2"><?= $escaper->escapeHtml(__('Name')) ?></th>
+                    <th class="px-3 py-2"><?= $escaper->escapeHtml(__('SKU')) ?></th>
+                    <th class="px-3 py-2 text-right"><?= $escaper->escapeHtml(__('Price')) ?></th>
+                    <th class="px-3 py-2 w-10">
+                        <span class="sr-only"><?= $escaper->escapeHtml(__('Actions')) ?></span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <template x-for="(product, index) in selectedProducts" :key="product.id">
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-3 py-2">
+                            <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                                <img x-show="product.thumbnail" :src="product.thumbnail" :alt="product.name"
+                                     class="h-full w-full object-cover">
+                                <div x-show="!product.thumbnail"
+                                     class="flex h-full w-full items-center justify-center text-gray-400">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-3 py-2 font-medium text-gray-900" x-text="product.name"></td>
+                        <td class="px-3 py-2 font-mono text-xs text-gray-500" x-text="product.sku"></td>
+                        <td class="px-3 py-2 text-right text-gray-700"
+                            x-text="product.price != null ? '$' + Number(product.price).toFixed(2) : '—'"></td>
+                        <td class="px-3 py-2 text-center">
+                            <button type="button" @click="removeProduct(index)"
+                                    class="text-gray-400 hover:text-red-600 transition-colors cursor-pointer">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Empty state -->
+    <div x-show="selectedProducts.length === 0"
+         class="rounded-lg border-2 border-dashed border-gray-200 px-6 py-8 text-center">
+        <svg class="mx-auto h-8 w-8 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/>
+        </svg>
+        <p class="mt-2 text-sm text-gray-500"><?= $escaper->escapeHtml(__('No products selected.')) ?></p>
+    </div>
+
+    <!-- Hidden inputs for form submission -->
+    <template x-for="(product, idx) in selectedProducts" :key="'input_' + product.id">
+        <div>
+            <template x-if="fieldFormat === 'links'">
+                <div>
+                    <input type="hidden" :name="fieldName + '[' + idx + '][id]'" :value="product.id">
+                    <input type="hidden" :name="fieldName + '[' + idx + '][position]'" :value="idx">
+                </div>
+            </template>
+            <template x-if="fieldFormat !== 'links'">
+                <input type="hidden" :name="fieldName" :value="product.id">
+            </template>
+        </div>
+    </template>
+
+    <?php include $block->getTemplateFile('Qoliber_NebulaComponent::snippet/product_selector/search-modal.phtml'); ?>
+</div>
+

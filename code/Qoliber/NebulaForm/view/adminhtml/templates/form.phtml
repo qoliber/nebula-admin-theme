@@ -1,0 +1,415 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * SimpleForm template — unified runtime (Phase 1).
+ *
+ * Every field is an Alpine `nebulaField_<type>` component. No hidden
+ * business-data inputs. Only form_key, nebula_form_id, and opt-in route
+ * markers (settings.hiddenFields) ship as hidden inputs.
+ *
+ * @var \Qoliber\NebulaForm\Block\Form $block
+ */
+
+$definition = $block->getDefinition();
+$fieldsets = $block->getRenderableNodes();
+$layoutTree = $block->getLayoutTree();
+$allFields = [];
+foreach ($block->getFieldsets() as $fieldsetDefinition) {
+    foreach ($fieldsetDefinition['fields'] ?? [] as $fieldKey => $fieldConfig) {
+        $allFields[(string) $fieldKey] = $fieldConfig;
+    }
+}
+$isNew = $block->isNewEntity();
+
+// Shell vars
+$formKey = $block->getFormKey();
+$saveUrl = $block->getSaveUrl();
+$backUrl = $block->getBackUrl();
+$deleteUrl = $block->getDeleteUrl();
+// Header title: prefer the entity's own name (e.g. CMS page title, rule name)
+// over the static type label so users can see what they're editing. The
+// static label drops to the subtitle for context. Falls back to "New <Type>"
+// when creating, or to just the static label if no name field is found.
+$staticLabel = (string) $block->translate((string) ($definition['settings']['title'] ?? 'Edit'));
+$entityName = '';
+if (!$isNew) {
+    $titleField = (string) ($definition['settings']['titleField'] ?? '');
+    $candidates = $titleField !== ''
+        ? [$titleField]
+        : ['title', 'name', 'identifier', 'code', 'subject', 'rule_name', 'page_title'];
+    foreach ($candidates as $candidate) {
+        $value = $block->getFieldValue($candidate);
+        if ($value !== null && $value !== '' && (is_string($value) || is_numeric($value))) {
+            $entityName = trim((string) $value);
+            if ($entityName !== '') {
+                break;
+            }
+        }
+    }
+}
+if ($isNew) {
+    $title = (string) __('New %1', $staticLabel);
+    $subtitle = null;
+} elseif ($entityName !== '') {
+    $title = $entityName;
+    $subtitle = $staticLabel;
+} else {
+    $title = $staticLabel;
+    $subtitle = null;
+}
+$statusLabel = null;
+$statusClass = '';
+$formRef = 'nebulaForm';
+$routeFields = $block->getHiddenRouteFields();
+
+$hasFiles = false;
+foreach ($allFields as $fieldConfig) {
+    if (is_array($fieldConfig)) {
+        $ft = $fieldConfig['type'] ?? 'text';
+        if ($ft === 'file' || $ft === 'image') {
+            $hasFiles = true;
+            break;
+        }
+    }
+}
+
+$widthToClass = static function (?string $width): string {
+    return match ($width ?? 'full') {
+        '3/4' => 'w-3/4',
+        '1/4' => 'w-1/4',
+        '2/3' => 'w-2/3',
+        '1/3' => 'w-1/3',
+        '1/2' => 'w-1/2',
+        default => 'w-full',
+    };
+};
+
+$resolveSection = static function (array $sectionNode) use ($allFields): array {
+    $fieldKeys = [];
+    $renderers = [];
+
+    if (!empty($sectionNode['renderer'])) {
+        $renderers[] = (string) $sectionNode['renderer'];
+    }
+
+    if (!empty($sectionNode['fields']) && is_array($sectionNode['fields'])) {
+        foreach ($sectionNode['fields'] as $fieldKey) {
+            if (is_string($fieldKey)) {
+                $fieldKeys[] = $fieldKey;
+            }
+        }
+    }
+
+    if (!empty($sectionNode['children']) && is_array($sectionNode['children'])) {
+        foreach ($sectionNode['children'] as $childNode) {
+            if (!is_array($childNode)) {
+                continue;
+            }
+
+            $childType = (string) ($childNode['type'] ?? '');
+            if ($childType === 'fields' && !empty($childNode['fields']) && is_array($childNode['fields'])) {
+                foreach ($childNode['fields'] as $fieldKey) {
+                    if (is_string($fieldKey)) {
+                        $fieldKeys[] = $fieldKey;
+                    }
+                }
+            } elseif ($childType === 'snippet' && !empty($childNode['renderer'])) {
+                $renderers[] = (string) $childNode['renderer'];
+            }
+        }
+    }
+
+    $fields = [];
+    foreach ($fieldKeys as $fieldKey) {
+        if (isset($allFields[$fieldKey])) {
+            $fields[$fieldKey] = $allFields[$fieldKey];
+        }
+    }
+
+    uasort($fields, static function (array $a, array $b): int {
+        return ($a['position'] ?? 0) <=> ($b['position'] ?? 0);
+    });
+
+    $sectionNode['fields'] = $fields;
+    $sectionNode['renderers'] = $renderers;
+
+    return $sectionNode;
+};
+
+$renderField = static function (string $fieldKey, array $field) use ($block, $isNew, $escaper): string {
+    ob_start();
+
+    $fKey = $fieldKey;
+    $fieldType = (string) ($field['type'] ?? 'text');
+    $partial = __DIR__ . '/field/' . ($field['type'] ?? 'text') . '.phtml';
+    if (!file_exists($partial)) {
+        $partial = __DIR__ . '/field/text.phtml';
+    }
+
+    $fieldName = $field['submitName'] ?? $block->getFieldNamer()->name($fieldKey, $block->getFieldPrefix());
+    $fieldId = $block->getFieldNamer()->domId($fieldKey);
+    $fieldValue = $block->getFieldValue($fieldKey);
+    $isRequired = !empty($field['required']);
+    $isDisabled = !empty($field['disabled']) || (!empty($field['disableOnEdit']) && !$isNew);
+    $isReadonly = !empty($field['readonly']);
+
+    include $partial;
+
+    return (string) ob_get_clean();
+};
+
+$renderLayoutNodes = null;
+$renderLayoutNode = null;
+
+$renderLayoutNode = static function (array $node, string $nodeKey = '') use (
+    &$renderLayoutNode,
+    &$renderLayoutNodes,
+    $block,
+    $escaper,
+    $widthToClass,
+    $resolveSection,
+    $renderField
+): string {
+    $type = (string) ($node['type'] ?? '');
+
+    if ($type === 'row') {
+        $html = '<div class="flex w-full gap-6 mb-6">';
+        $children = is_array($node['children'] ?? null) ? $node['children'] : [];
+
+        if ($children === []) {
+            $html .= '</div>';
+            return $html;
+        }
+
+        foreach ($children as $columnIndex => $columnNode) {
+            if (!is_array($columnNode)) {
+                continue;
+            }
+
+            $html .= '<div class="' . $widthToClass((string) ($columnNode['width'] ?? '1/2')) . '">';
+            $html .= $renderLayoutNode($columnNode, $nodeKey . '-col-' . (string) $columnIndex);
+            $html .= '</div>';
+        }
+
+        $html .= '</div>';
+
+        return $html;
+    }
+
+    if ($type === 'column') {
+        return $renderLayoutNodes(
+            is_array($node['children'] ?? null) ? $node['children'] : [],
+            $nodeKey . '-child'
+        );
+    }
+
+    if ($type === 'tabs') {
+        $children = array_values(array_filter(
+            is_array($node['children'] ?? null) ? $node['children'] : [],
+            'is_array'
+        ));
+
+        if ($children === []) {
+            return '';
+        }
+
+        $nav = '';
+        $panels = '';
+        $tabsId = (string) ($node['id'] ?? ($nodeKey !== '' ? $nodeKey : 'tabs'));
+
+        foreach ($children as $tabIndex => $tabNode) {
+            $tabId = $tabsId . '-tab-' . (string) $tabIndex;
+            $tabLabel = (string) ($tabNode['label'] ?? ('Tab ' . ($tabIndex + 1)));
+            $nav .= '<button type="button"'
+                . ' id="' . $escaper->escapeHtmlAttr($tabId . '-button') . '"'
+                . ' data-nebula-tab-button="' . $escaper->escapeHtmlAttr((string) $tabIndex) . '"'
+                . ' @click="activeTab = ' . (int) $tabIndex . '"'
+                . ' :aria-selected="activeTab === ' . (int) $tabIndex . ' ? \'true\' : \'false\'"'
+                . ' aria-controls="' . $escaper->escapeHtmlAttr($tabId . '-panel') . '"'
+                . ' :class="activeTab === ' . (int) $tabIndex
+                . ' ? \'border-indigo-500 text-indigo-600\' : \'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700\'"'
+                . ' class="whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition">'
+                . $escaper->escapeHtml($block->translate($tabLabel))
+                . '</button>';
+
+            $panels .= '<div'
+                . ' id="' . $escaper->escapeHtmlAttr($tabId . '-panel') . '"'
+                . ' data-nebula-tab-panel="' . $escaper->escapeHtmlAttr((string) $tabIndex) . '"'
+                . ' x-show="activeTab === ' . (int) $tabIndex . '"'
+                . ' x-cloak>'
+                . $renderLayoutNodes(
+                    is_array($tabNode['children'] ?? null) ? $tabNode['children'] : [],
+                    $tabId
+                )
+                . '</div>';
+        }
+
+        return '<div x-data="{ activeTab: 0 }" class="mb-6">'
+            . '<div class="border-b border-gray-200"><nav class="flex gap-1 overflow-x-auto" aria-label="Section Tabs">'
+            . $nav
+            . '</nav></div>'
+            . '<div class="mt-4">'
+            . $panels
+            . '</div></div>';
+    }
+
+    if ($type !== 'section') {
+        return '';
+    }
+
+    $section = $resolveSection($node);
+    $fields = $section['fields'] ?? [];
+    $hasLabel = !empty($section['label']);
+    $isSnippetOnly = (!empty($section['renderers']) || !empty($section['renderer'])) && empty($fields);
+    $html = '';
+
+    if ($isSnippetOnly && !$hasLabel) {
+        return $block->renderSection($section);
+    }
+
+    $isOpen = array_key_exists('open', $section) ? (bool) $section['open'] : true;
+    $html .= '<div class="nebula-form-section mb-6 rounded-lg border border-gray-200 bg-white shadow-sm"'
+        . ' x-data="{ open: ' . ($isOpen ? 'true' : 'false') . ' }">';
+
+    if ($hasLabel) {
+        $html .= '<div class="flex cursor-pointer items-center justify-between border-b border-gray-200 px-6 py-4"'
+            . ' @click="open = !open" :class="{ \'border-b-0\': !open }">'
+            . '<h2 class="text-base font-semibold text-gray-900">'
+            . $escaper->escapeHtml($block->translate((string) $section['label']))
+            . '</h2>'
+            . '<svg class="h-5 w-5 text-gray-400 transition-transform" :class="{ \'rotate-180\': open }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>'
+            . '</div>';
+    }
+
+    $html .= '<div' . ($hasLabel ? ' x-show="open" x-collapse' : '') . ' class="divide-y divide-gray-100 px-6 py-4">';
+
+    if (!empty($section['renderers']) || !empty($section['renderer'])) {
+        $html .= $block->renderSection($section);
+    }
+
+    foreach ($fields as $fieldKey => $field) {
+        if (!is_array($field)) {
+            continue;
+        }
+
+        if (!empty($field['renderer']) || !empty($field['renderers'])) {
+            $html .= $block->renderSection($field + ['__field_key' => $fieldKey]);
+            continue;
+        }
+
+        $html .= $renderField((string) $fieldKey, $field);
+    }
+
+    $html .= '</div></div>';
+
+    return $html;
+};
+
+$renderLayoutNodes = static function (array $nodes, string $prefix = 'node') use (&$renderLayoutNode): string {
+    $html = '';
+
+    foreach ($nodes as $index => $node) {
+        if (!is_array($node)) {
+            continue;
+        }
+
+        $html .= $renderLayoutNode($node, $prefix . '-' . (string) $index);
+    }
+
+    return $html;
+};
+
+include $block->getTemplateFile('Qoliber_NebulaForm::form-shell.phtml');
+?>
+
+<?php if ($layoutTree !== []) : ?>
+    <?= /* @noEscape */ $renderLayoutNodes($layoutTree, 'layout') ?>
+<?php else : ?>
+<?php foreach ($fieldsets as $fsKey => $fieldset) : ?>
+    <?php if (isset($fieldset['__marker'])) : ?>
+        <?php
+        // __width is a tailwind fraction supplied by FieldsetLayoutBuilder
+        // (markers carry per-column width so a row can mix asymmetric splits
+        // like 3/4 + 1/4). Class strings must be literal here so Tailwind's
+        // source scanner picks them up — dynamic concatenation gets pruned.
+        $width = (string) ($fieldset['__width'] ?? '1/2');
+        $colClass = match ($width) {
+            '3/4'    => 'w-3/4',
+            '1/4'    => 'w-1/4',
+            '2/3'    => 'w-2/3',
+            '1/3'    => 'w-1/3',
+            '1/2'    => 'w-1/2',
+            default  => 'w-full',
+        };
+        if ($fieldset['__marker'] === 'row_start') {
+            ?><div class="flex w-full gap-6 mb-6"><div class="<?= /* @noEscape */ $colClass ?>"><?php
+        } elseif ($fieldset['__marker'] === 'col_break') {
+            ?></div><div class="<?= /* @noEscape */ $colClass ?>"><?php
+        } elseif ($fieldset['__marker'] === 'row_end') {
+            ?></div></div><?php
+        }
+    continue;
+    ?>
+    <?php endif; ?>
+
+    <?php
+    $fields = $block->getSortedFields($fieldset);
+    $isOpen = $fieldset['open'] ?? true;
+    $hasLabel = !empty($fieldset['label']);
+    $isSnippetOnly = (!empty($fieldset['renderers']) || !empty($fieldset['renderer'])) && empty($fields);
+    ?>
+
+    <?php if ($isSnippetOnly && !$hasLabel) : ?>
+        <?= /* @noEscape */ $block->renderSection($fieldset) ?>
+    <?php else : ?>
+    <div class="nebula-form-section mb-6 rounded-lg border border-gray-200 bg-white shadow-sm"
+         data-nebula-fieldset="<?= $escaper->escapeHtmlAttr((string) ($fieldset['name'] ?? $fsKey)) ?>"
+         x-data="{ open: <?= $isOpen ? 'true' : 'false' ?> }">
+        <?php if ($hasLabel) : ?>
+        <div class="flex cursor-pointer items-center justify-between border-b border-gray-200 px-6 py-4"
+             @click="open = !open" :class="{ 'border-b-0': !open }">
+            <h2 class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml($block->translate($fieldset['label'])) ?></h2>
+            <svg class="h-5 w-5 text-gray-400 transition-transform" :class="{ 'rotate-180': open }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+        </div>
+        <?php endif; ?>
+
+        <div <?= $hasLabel ? 'x-show="open" x-collapse' : '' ?> class="divide-y divide-gray-100 px-6 py-4">
+            <?php if (!empty($fieldset['renderers']) || !empty($fieldset['renderer'])) : ?>
+                <?= /* @noEscape */ $block->renderSection($fieldset) ?>
+            <?php endif; ?>
+            <?php foreach ($fields as $fKey => $field) : ?>
+                <?php if (!empty($field['renderer']) || !empty($field['renderers'])) : ?>
+                    <?php
+                    // Field-level snippet — delegate to the section renderer
+                    // so a field can pull in something complex (store picker,
+                    // SEO preview, rule editor, …) without giving up the row
+                    // context. The snippet decides how to render its label.
+                    echo $block->renderSection($field + ['__field_key' => $fKey]);
+                    ?>
+                <?php else : ?>
+                    <?php
+                    $partial = __DIR__ . '/field/' . ($field['type'] ?? 'text') . '.phtml';
+                    if (!file_exists($partial)) {
+                        $partial = __DIR__ . '/field/text.phtml';
+                    }
+                    $fieldType = $field['type'] ?? 'text';
+                    $fieldName = $field['submitName'] ?? $block->getFieldNamer()->name($fKey, $block->getFieldPrefix());
+                    $fieldId = $block->getFieldNamer()->domId($fKey);
+                    $fieldValue = $block->getFieldValue($fKey);
+                    $isRequired = !empty($field['required']);
+                    $isDisabled = !empty($field['disabled']) || (!empty($field['disableOnEdit']) && !$isNew);
+                    $isReadonly = !empty($field['readonly']);
+                    include $partial;
+                    ?>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+<?php endforeach; ?>
+<?php endif; ?>
+
+<?php include $block->getTemplateFile('Qoliber_NebulaForm::form-shell-close.phtml'); ?>

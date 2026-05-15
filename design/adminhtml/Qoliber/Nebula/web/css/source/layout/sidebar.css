@@ -1,0 +1,126 @@
+/* --- Sidebar Layout (default) --- */
+.nebula-admin-layout {
+  @apply grid min-h-screen;
+  grid-template-columns: var(--nebula-sidebar-width) 1fr;
+  transition: grid-template-columns var(--nebula-transition-speed) ease;
+}
+body.sidebar-collapsed .nebula-admin-layout {
+  grid-template-columns: var(--nebula-sidebar-collapsed-width) 1fr;
+}
+.nebula-sidebar {
+  @apply flex flex-col sticky top-0 h-screen overflow-y-auto;
+  border-right: 1px solid var(--nebula-sidebar-border);
+  background: linear-gradient(
+    to bottom,
+    var(--nebula-sidebar-from),
+    var(--nebula-sidebar-via),
+    var(--nebula-sidebar-to)
+  );
+  transition: width var(--nebula-transition-speed) ease;
+}
+.nebula-sidebar-logo {
+  @apply flex items-center px-4 py-5;
+  border-bottom: 1px solid var(--nebula-sidebar-border);
+}
+
+/* Sidebar menu item colors — skinnable */
+.nebula-sidebar .nebula-menu-item {
+  color: var(--nebula-sidebar-text);
+  transition: all var(--nebula-transition-speed) ease;
+}
+.nebula-sidebar .nebula-menu-item:hover {
+  color: var(--nebula-sidebar-text-active);
+  background: var(--nebula-sidebar-hover-bg);
+}
+.nebula-sidebar .nebula-menu-item-active {
+  color: var(--nebula-sidebar-text-active);
+  background: var(--nebula-sidebar-active-bg);
+}
+.nebula-sidebar .nebula-menu-item-muted {
+  color: var(--nebula-sidebar-text-muted);
+}
+.nebula-sidebar .nebula-menu-item-muted:hover {
+  color: var(--nebula-sidebar-text-active);
+  background: var(--nebula-sidebar-hover-bg);
+}
+.nebula-sidebar-nav {
+  @apply flex-1;
+}
+
+/* --- Sidebar Collapsed State --- */
+body.sidebar-collapsed .nebula-sidebar-logo {
+  @apply justify-center px-2;
+}
+body.sidebar-collapsed .nebula-sidebar-nav {
+  @apply px-1;
+}
+body.sidebar-collapsed .nebula-menu-text,
+body.sidebar-collapsed .nebula-sidebar-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+body.sidebar-collapsed #nebula-pinned-list,
+body.sidebar-collapsed .nebula-pinned-section {
+  @apply hidden;
+}
+body.sidebar-collapsed .nebula-sidebar div:has(> #nebula-pinned-list) {
+  @apply px-0 pt-3 pb-2;
+}
+body.sidebar-collapsed
+  .nebula-sidebar
+  div:has(> #nebula-pinned-list)
+  > p.text-nebula-500 {
+  @apply flex items-center justify-center px-0 mb-0;
+  font-size: 0;
+  line-height: 1;
+}
+body.sidebar-collapsed
+  .nebula-sidebar
+  div:has(> #nebula-pinned-list)
+  > p.text-nebula-500
+  i {
+  margin-right: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+body.sidebar-collapsed
+  .nebula-sidebar
+  div:has(> #nebula-pinned-list)
+  + .mx-5.border-t.border-nebula-800 {
+  display: none;
+}
+/* Hide all submenus and chevrons when collapsed */
+body.sidebar-collapsed .nebula-sidebar-nav ul ul,
+body.sidebar-collapsed .nebula-sidebar-nav li > button svg,
+body.sidebar-collapsed .nebula-sidebar-nav li > button span,
+body.sidebar-collapsed .nebula-sidebar-nav li > a span {
+  @apply hidden;
+}
+/* Center the icons */
+body.sidebar-collapsed .nebula-sidebar-nav li > button,
+body.sidebar-collapsed .nebula-sidebar-nav li > a {
+  @apply justify-center px-0 py-2;
+}
+/* Hide pin buttons */
+body.sidebar-collapsed .nebula-sidebar-nav li > button[title="Pin"],
+body.sidebar-collapsed .nebula-sidebar-nav li > button[title="Unpin"] {
+  @apply hidden;
+}
+/* Footer */
+body.sidebar-collapsed .nebula-sidebar .nebula-sidebar-footer-text {
+  @apply hidden;
+}
+/* Center footer icons */
+body.sidebar-collapsed .nebula-sidebar-footer {
+  @apply px-1;
+}
+body.sidebar-collapsed .nebula-sidebar-footer a {
+  @apply justify-center px-0;
+}

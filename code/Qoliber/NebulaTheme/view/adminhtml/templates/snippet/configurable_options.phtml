@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\ConfigurableOptions $viewModel */
+$viewModel = $block->getData('view_model');
+
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\ConfigurableOptions) {
+    // nebula:allow-object-manager dynamic-snippet-view-model
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\ConfigurableOptions::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+if (!$entity || $entity->getTypeId() !== 'configurable') {
+    return;
+}
+
+$attributeSetId = (int) $entity->getAttributeSetId();
+$availableAttributes = $viewModel->getAvailableAttributes($attributeSetId);
+$variationsData = $viewModel->resolveVariations($entity);
+
+$formKey = $formBlock->getFormKey();
+$getAttributesUrl = $formBlock->getUrl('catalog/product_attribute/getAttributes');
+
+$wizardConfig = json_encode([
+    'availableAttributes' => $availableAttributes,
+    'existingVariations' => $variationsData['existingVariations'],
+    'usedAttributeCodes' => $variationsData['usedAttributeCodes'],
+    'usedAttributeIds' => $variationsData['usedAttributeIds'],
+    'getAttributesUrl' => $getAttributesUrl,
+    'formKey' => $formKey,
+], JSON_HEX_APOS | JSON_HEX_QUOT);
+?>
+
+<div x-data="nebulaConfigWizard(<?= $escaper->escapeHtmlAttr($wizardConfig) ?>)">
+    <?php include $block->getTemplateFile('Qoliber_NebulaTheme::snippet/configurable_options/variations-table.phtml'); ?>
+    <?php include $block->getTemplateFile('Qoliber_NebulaTheme::snippet/configurable_options/empty-state.phtml'); ?>
+    <?php include $block->getTemplateFile('Qoliber_NebulaTheme::snippet/configurable_options/wizard-modal.phtml'); ?>
+</div>

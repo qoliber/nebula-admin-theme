@@ -1,0 +1,25 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */ ?>
+
+<div x-show="currentStep === 0">
+    <p class="text-sm text-gray-600 mb-4">Select which attributes define your product variations:</p>
+    <div class="space-y-2" x-show="availableAttributes.length > 0">
+        <template x-for="attr in availableAttributes" :key="attr.id">
+            <label class="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-150"
+                   :class="selectedAttributeIds.includes(attr.id) ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+                <input type="checkbox" :value="attr.id" x-model="selectedAttributeIds"
+                       class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                <div class="flex-1">
+                    <span class="text-sm font-medium text-gray-900" x-text="attr.label"></span>
+                    <span class="ml-2 text-xs text-gray-500" x-text="'(' + attr.options.length + ' options)'"></span>
+                </div>
+                <span class="text-xs font-mono text-gray-400" x-text="attr.code"></span>
+            </label>
+        </template>
+    </div>
+    <div x-show="availableAttributes.length === 0" class="text-center py-8">
+        <p class="text-sm text-gray-500">No configurable-eligible attributes found in this attribute set.</p>
+        <p class="text-xs text-gray-400 mt-1">Attributes must be global scope, select type, and user-defined.</p>
+    </div>
+</div>

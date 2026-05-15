@@ -1,0 +1,4 @@
+{
+    "id": "customer_reviews_lazy",
+    "template": "Qoliber_NebulaTheme::customer/snippet/reviews_lazy.phtml"
+}

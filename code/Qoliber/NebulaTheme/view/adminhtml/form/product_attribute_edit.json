@@ -1,0 +1,160 @@
+{
+  "id": "product_attribute_edit",
+  "acl": "Magento_Catalog::attributes_attributes",
+  "route": ["catalog_product_attribute_edit", "catalog_product_attribute_new"],
+  "replaces": ["attribute_edit_tabs", "attribute_edit_content", "attribute_edit_js"],
+  "dataSource": {
+    "provider": "attribute.form",
+    "config": {
+      "identifierParam": "attribute_id"
+    }
+  },
+  "settings": {
+    "title": "Product Attribute",
+    "saveUrl": "catalog/product_attribute/save",
+    "backUrl": "catalog/product_attribute/index",
+    "deleteUrl": "catalog/product_attribute/delete",
+    "identifierField": "attribute_id",
+    "identifierParam": "attribute_id",
+    "layout": "two-column"
+  },
+  "fieldsets": {
+    "properties": {
+      "label": "Properties",
+      "position": 10,
+      "open": true,
+      "column": "left",
+      "fields": {
+        "frontend_label[0]": {
+          "label": "Default Label",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "attribute_code": {
+          "label": "Attribute Code",
+          "type": "text",
+          "required": true,
+          "position": 20,
+          "disableOnEdit": true,
+          "note": "Max 30 characters. Use only letters (a-z), numbers (0-9) or underscore (_)"
+        },
+        "frontend_input": {
+          "label": "Catalog Input Type",
+          "type": "select",
+          "required": true,
+          "optionsSource": "Magento\\Catalog\\Model\\Product\\Attribute\\Source\\Inputtype",
+          "position": 30,
+          "disableOnEdit": true
+        },
+        "is_required": {
+          "label": "Values Required",
+          "type": "toggle",
+          "position": 40
+        },
+        "is_global": {
+          "label": "Scope",
+          "type": "select",
+          "position": 50,
+          "options": [
+            {"value": "1", "label": "Global"},
+            {"value": "2", "label": "Website"},
+            {"value": "0", "label": "Store View"}
+          ]
+        },
+        "is_unique": {
+          "label": "Unique Value",
+          "type": "toggle",
+          "position": 60
+        },
+        "frontend_class": {
+          "label": "Input Validation",
+          "type": "select",
+          "position": 70,
+          "options": [
+            {"value": "", "label": "None"},
+            {"value": "validate-number", "label": "Decimal Number"},
+            {"value": "validate-digits", "label": "Integer Number"},
+            {"value": "validate-email", "label": "Email"},
+            {"value": "validate-url", "label": "URL"},
+            {"value": "validate-alpha", "label": "Letters"},
+            {"value": "validate-alphanum", "label": "Letters and Numbers"}
+          ]
+        }
+      }
+    },
+    "labels": {
+      "label": "",
+      "position": 15,
+      "column": "right",
+      "renderer": "snippet.attribute_labels",
+      "fields": {}
+    },
+    "storefront": {
+      "label": "Storefront Properties",
+      "position": 20,
+      "column": "third",
+      "fields": {
+        "is_searchable": {
+          "label": "Use in Search",
+          "type": "toggle",
+          "position": 10
+        },
+        "is_visible_in_advanced_search": {
+          "label": "Visible in Advanced Search",
+          "type": "toggle",
+          "position": 20
+        },
+        "is_comparable": {
+          "label": "Comparable on Storefront",
+          "type": "toggle",
+          "position": 30
+        },
+        "is_used_for_promo_rules": {
+          "label": "Use for Promo Rule Conditions",
+          "type": "toggle",
+          "position": 40
+        },
+        "is_html_allowed_on_front": {
+          "label": "Allow HTML Tags on Storefront",
+          "type": "toggle",
+          "position": 50
+        },
+        "is_visible_on_front": {
+          "label": "Visible on Catalog Pages",
+          "type": "toggle",
+          "position": 60
+        },
+        "used_in_product_listing": {
+          "label": "Used in Product Listing",
+          "type": "toggle",
+          "position": 70
+        },
+        "used_for_sort_by": {
+          "label": "Used for Sorting in Listing",
+          "type": "toggle",
+          "position": 80
+        },
+        "is_used_in_grid": {
+          "label": "Add to Column Options",
+          "type": "toggle",
+          "default": true,
+          "position": 90
+        },
+        "is_filterable_in_grid": {
+          "label": "Use in Filter Options",
+          "type": "toggle",
+          "default": true,
+          "position": 100
+        }
+      }
+    },
+    "options": {
+      "label": "",
+      "position": 30,
+      "column": "full",
+      "renderer": "snippet.attribute_options",
+      "fields": {}
+    }
+  }
+}

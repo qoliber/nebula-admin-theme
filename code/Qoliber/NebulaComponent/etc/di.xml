@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Qoliber\NebulaComponent\Api\DefinitionResolverInterface"
+                type="Qoliber\NebulaComponent\Model\Definition\Resolver"/>
+    <preference for="Qoliber\NebulaComponent\Api\SnippetResolverInterface"
+                type="Qoliber\NebulaComponent\Model\Definition\SnippetResolver"/>
+    <preference for="Qoliber\NebulaComponent\Api\DataProviderRegistryInterface"
+                type="Qoliber\NebulaComponent\Model\Registry\DataProviderRegistry"/>
+    <preference for="Qoliber\NebulaComponent\Api\SaveHandlerRegistryInterface"
+                type="Qoliber\NebulaComponent\Model\Registry\SaveHandlerRegistry"/>
+    <preference for="Qoliber\NebulaComponent\Api\OptionSourceRegistryInterface"
+                type="Qoliber\NebulaComponent\Model\Registry\OptionSourceRegistry"/>
+    <preference for="Qoliber\NebulaComponent\Api\FilterOptionSourceRegistryInterface"
+                type="Qoliber\NebulaComponent\Model\Registry\FilterOptionSourceRegistry"/>
+
+    <type name="Qoliber\NebulaComponent\Api\SnippetResolverInterface">
+        <plugin name="nebula_conditional_branches"
+                type="Qoliber\NebulaComponent\Plugin\Definition\ConditionalBranchResolver"
+                sortOrder="10"/>
+    </type>
+
+    <type name="Qoliber\NebulaComponent\Api\DefinitionResolverInterface">
+        <plugin name="nebula_lifecycle_events"
+                type="Qoliber\NebulaComponent\Plugin\Definition\LifecycleEventDispatcher"
+                sortOrder="10"/>
+    </type>
+
+    <!--
+        Filter-option-source aliases shared across the Nebula stack (grid column
+        filters). Magento ships these sources; we publish them under short,
+        stable aliases so JSON stays FQCN-free.
+    -->
+    <type name="Qoliber\NebulaComponent\Model\Registry\FilterOptionSourceRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="magento.store.system" xsi:type="string">Magento\Store\Model\System\Store</item>
+                <item name="magento.config.yesno" xsi:type="string">Magento\Config\Model\Config\Source\Yesno</item>
+                <item name="magento.catalog.attribute.inputtype" xsi:type="string">Magento\Catalog\Model\Product\Attribute\Source\Inputtype</item>
+                <item name="magento.catalog.attribute.scopes" xsi:type="string">Magento\Catalog\Model\Attribute\Source\Scopes</item>
+                <item name="magento.sales.order.status" xsi:type="string">Magento\Sales\Model\Config\Source\Order\Status</item>
+                <item name="magento.customer.group.source" xsi:type="string">Magento\Customer\Model\Customer\Attribute\Source\Group</item>
+                <item name="magento.directory.country" xsi:type="string">Magento\Directory\Model\Config\Source\Country</item>
+                <item name="magento.theme.scope.website" xsi:type="string">Magento\Theme\Model\Scope\WebsiteSource</item>
+                <item name="magento.theme.scope.group" xsi:type="string">Magento\Theme\Model\Scope\GroupSource</item>
+                <item name="magento.theme.scope.store" xsi:type="string">Magento\Theme\Model\Scope\StoreSource</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Option-source aliases for form field options. Stock Magento sources
+        referenced by multiple Nebula modules live here; module-specific sources
+        live in each module's own etc/di.xml.
+    -->
+    <type name="Qoliber\NebulaComponent\Model\Registry\OptionSourceRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="magento.store.system" xsi:type="string">Magento\Store\Model\System\Store</item>
+                <item name="magento.tax.class.customer" xsi:type="string">Magento\Tax\Model\TaxClass\Source\Customer</item>
+                <item name="magento.tax.class.product" xsi:type="string">Magento\Tax\Model\TaxClass\Source\Product</item>
+                <item name="magento.tax.rate" xsi:type="string">Magento\Tax\Model\Rate\Source</item>
+                <item name="magento.catalog.attribute.inputtype" xsi:type="string">Magento\Catalog\Model\Product\Attribute\Source\Inputtype</item>
+                <item name="magento.catalog.category.page" xsi:type="string">Magento\Catalog\Model\Category\Attribute\Source\Page</item>
+                <item name="magento.cms.options" xsi:type="string">Magento\Cms\Ui\Component\Listing\Column\Cms\Options</item>
+                <item name="magento.cms.page.layout" xsi:type="string">Magento\Cms\Model\Page\Source\PageLayout</item>
+                <item name="magento.customer.group" xsi:type="string">Magento\Customer\Model\ResourceModel\Group\Collection</item>
+                <item name="magento.urlrewrite.option" xsi:type="string">Magento\UrlRewrite\Model\OptionProvider</item>
+                <item name="magento.locale" xsi:type="string">Magento\Config\Model\Config\Source\Locale</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="nebula_generate_grid" xsi:type="object">Qoliber\NebulaComponent\Console\Command\GenerateGridCommand</item>
+                <item name="nebula_generate_form" xsi:type="object">Qoliber\NebulaComponent\Console\Command\GenerateFormCommand</item>
+                <item name="nebula_lint" xsi:type="object">Qoliber\NebulaComponent\Console\Command\LintCommand</item>
+                <item name="nebula_generate_schema_docs" xsi:type="object">Qoliber\NebulaComponent\Console\Command\GenerateSchemaDocsCommand</item>
+                <item name="nebula_doctor" xsi:type="object">Qoliber\NebulaComponent\Console\Command\DoctorCommand</item>
+                <item name="nebula_compile" xsi:type="object">Qoliber\NebulaComponent\Console\Command\CompileCommand</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Qoliber\NebulaComponent\Model\RendererPool">
+        <arguments>
+            <argument name="fieldRenderers" xsi:type="array"/>
+            <argument name="columnRenderers" xsi:type="array"/>
+        </arguments>
+    </type>
+
+    <!--
+        DoctorCommand only reflects over RendererPool's arrays to report
+        counts, but the column renderers transitively depend on
+        Magento\Framework\View\LayoutInterface, which on CLI resolves the
+        admin theme and crashes with "Area code is not set" during command
+        registration. A Proxy defers construction until execute() runs and
+        the area code has been set by Symfony, so bin/magento list / find /
+        setup:upgrade stop breaking on our command enumeration.
+    -->
+    <type name="Qoliber\NebulaComponent\Console\Command\DoctorCommand">
+        <arguments>
+            <argument name="rendererPool" xsi:type="object">Qoliber\NebulaComponent\Model\RendererPool\Proxy</argument>
+            <argument name="allowedCollectionNamespaces" xsi:type="array">
+                <item name="magento" xsi:type="string">Magento\</item>
+                <item name="qoliber" xsi:type="string">Qoliber\</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Setup\Console\Command\DiCompileCommand">
+        <plugin name="nebula_compile_after_di_compile"
+                type="Qoliber\NebulaComponent\Plugin\SetupDiCompile"
+                sortOrder="10"/>
+    </type>
+</config>

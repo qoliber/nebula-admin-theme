@@ -1,0 +1,42 @@
+/* Dark mode specifics that can't be pure variables */
+.dark .nebula-fieldset-open {
+  border-left: 0;
+}
+.dark .nebula-fieldset-open .nebula-fieldset-header {
+  background: var(--nebula-bg-tertiary);
+}
+.dark .nebula-fieldset-toggle {
+  color: var(--nebula-text-primary);
+}
+.dark .nebula-fieldset-toggle:hover {
+  color: var(--color-nebula-300);
+}
+.dark .nebula-fieldset-title {
+  color: var(--nebula-text-primary);
+}
+.dark .nebula-config-label [data-config-scope] {
+  color: var(--nebula-text-primary);
+}
+.dark .nebula-config-label [data-config-scope]::after {
+  color: var(--nebula-text-muted);
+}
+.dark .nebula-config-note {
+  color: var(--nebula-text-secondary);
+}
+.dark .nebula-config-note small,
+.dark .nebula-config-note code,
+.dark .addafter,
+.dark .addafter small,
+.dark .addafter code {
+  color: var(--nebula-text-secondary);
+}
+.dark .nebula-inherit-label {
+  color: var(--nebula-text-primary) !important;
+}
+.dark .nebula-config-value small,
+.dark .nebula-config-value small code,
+.dark .nebula-config-value .addafter,
+.dark .nebula-config-value .addafter small,
+.dark .nebula-config-value .addafter code {
+  color: var(--nebula-text-secondary) !important;
+}

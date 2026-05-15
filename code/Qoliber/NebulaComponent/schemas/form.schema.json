@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nebula.qoliber.dev/schemas/form.v1.json",
+  "title": "Nebula Form Definition",
+  "description": "Declarative schema for a Nebula admin form (non-EAV). Files live at view/adminhtml/form/<id>.json. EAV forms (`type: eav`) use form-eav.schema.json instead. A file MAY be a `base` (contains `id`) or an `overlay` fragment merged onto the base.",
+  "type": "object",
+  "additionalProperties": false,
+  "allOf": [
+    {"$ref": "#/$defs/baseOrOverlay"}
+  ],
+  "properties": {
+    "id": {
+      "title": "Form identifier",
+      "description": "Unique snake_case identifier. Base files MUST set this and it MUST match the file name (without .json). Overlay files MUST omit it.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "acl": {
+      "title": "ACL resource",
+      "description": "Magento ACL resource required to access the form.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_]+::[A-Za-z0-9_:-]+$"
+    },
+    "dataSource": {
+      "title": "Data source",
+      "description": "Form data provider.",
+      "$ref": "#/$defs/dataSource"
+    },
+    "settings": {
+      "title": "Form settings",
+      "$ref": "#/$defs/formSettings"
+    },
+    "fieldsets": {
+      "title": "Fieldsets",
+      "description": "Map of fieldset_id -> fieldset definition. Use for classic column-based forms. Mutually exclusive with `layout`.",
+      "$ref": "#/$defs/fieldsets"
+    },
+    "layout": {
+      "title": "Layout tree",
+      "description": "Tree of layout nodes (row/column/section/tabs). Use for complex multi-row layouts. Mutually exclusive with `fieldsets`.",
+      "$ref": "#/$defs/layout"
+    },
+    "hiddenFields": {
+      "title": "Hidden fields",
+      "description": "Map of name -> static value rendered as <input type=\"hidden\"> alongside the form.",
+      "type": "object",
+      "additionalProperties": {"type": ["string", "number", "boolean"]}
+    },
+    "route": {
+      "title": "Admin route",
+      "description": "Admin action name(s) this form mounts on. May be one route or several (e.g. both the edit and new actions).",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+    "replaces": {
+      "title": "Legacy block name(s)",
+      "description": "Legacy layout block name(s) this form supersedes and removes. May be one block, or several (e.g. a tabs block plus its JS block). Block names vary in convention — dots, dashes and underscores all occur (e.g. adminhtml.user.edit.tabs, tax-rate-form).",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "baseOrOverlay": {
+      "oneOf": [
+        {
+          "title": "Base form",
+          "description": "A standalone form definition.",
+          "type": "object",
+          "required": ["id"]
+        },
+        {
+          "title": "Overlay fragment",
+          "description": "An overlay from another module. Must NOT set `id`.",
+          "type": "object",
+          "not": {"required": ["id"]},
+          "anyOf": [
+            {"required": ["fieldsets"]},
+            {"required": ["layout"]},
+            {"required": ["settings"]},
+            {"required": ["dataSource"]},
+            {"required": ["acl"]},
+            {"required": ["hiddenFields"]}
+          ]
+        }
+      ]
+    },
+    "dataSource": {
+      "title": "Form data source",
+      "description": "A data provider alias plus provider-specific config (typically an identifier request param).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider"],
+      "properties": {
+        "provider": {
+          "title": "Form provider alias",
+          "description": "Alias registered in DataProviderRegistry (e.g. catalog.product.form). FQCNs are rejected — register an alias in etc/di.xml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)*$"
+        },
+        "config": {
+          "title": "Provider config",
+          "description": "Free-form map forwarded to the provider. Well-known: identifierParam.",
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "identifierParam": {
+              "title": "Identifier request param",
+              "description": "Request param carrying the entity id, e.g. `id`.",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "formSettings": {
+      "title": "Form settings",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "title": "Page title",
+          "description": "Displayed in the admin header above the form.",
+          "type": "string"
+        },
+        "saveUrl": {
+          "title": "Save URL",
+          "description": "Admin route the form POSTs to.",
+          "type": "string"
+        },
+        "backUrl": {
+          "title": "Back URL",
+          "description": "Admin route the Back button navigates to.",
+          "type": "string"
+        },
+        "deleteUrl": {
+          "title": "Delete URL",
+          "description": "Admin route the Delete button navigates to.",
+          "type": "string"
+        },
+        "identifierField": {
+          "title": "Identifier field",
+          "description": "Name of the DB-level identifier (e.g. entity_id, rule_id) used for load/save.",
+          "type": "string"
+        },
+        "identifierParam": {
+          "title": "Identifier request param",
+          "description": "DEPRECATED. The identifier param is now derived automatically from dataSource.config.identifierParam and must not be set manually in settings. This property is retained in the schema for backward compatibility with forms outside this repository.",
+          "deprecated": true,
+          "type": "string"
+        },
+        "fieldPrefix": {
+          "title": "Field name prefix",
+          "description": "Submit-time namespace for field names. Used by entities whose controllers expect `product[name]` instead of `name`.",
+          "type": "string"
+        },
+        "hiddenParams": {
+          "title": "Hidden request params",
+          "description": "Request params that are captured on page open and re-submitted as hidden inputs.",
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "layout": {
+          "title": "Columnar layout hint",
+          "description": "Used by non-`layout`-tree forms to hint at a two- or three-column fieldset arrangement.",
+          "type": "string",
+          "enum": ["one-column", "two-column", "three-column"]
+        },
+        "template": {
+          "title": "Template override",
+          "description": "Override the phtml that renders the form shell, e.g. `Qoliber_NebulaCatalog::eav/form-with-sidebar.phtml`.",
+          "type": "string"
+        },
+        "sidebarRenderer": {
+          "title": "Sidebar renderer",
+          "description": "Snippet id rendered in the sidebar when the template supports one.",
+          "type": "string",
+          "pattern": "^snippet\\.[a-z][a-z0-9_]*$"
+        }
+      }
+    },
+    "fieldsets": {
+      "title": "Fieldsets map",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_-]*$"},
+      "additionalProperties": {"$ref": "#/$defs/fieldset"}
+    },
+    "fieldset": {
+      "title": "Fieldset",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "title": "Fieldset label",
+          "description": "Header text shown above the fieldset. Empty string allowed for snippet-rendered fieldsets.",
+          "type": "string"
+        },
+        "position": {
+          "title": "Position",
+          "description": "Integer ordering within the form.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "open": {
+          "title": "Initially open",
+          "description": "Whether the collapsible fieldset starts expanded.",
+          "type": "boolean"
+        },
+        "column": {
+          "title": "Column slot",
+          "description": "For columnar layouts: which column to render this fieldset into.",
+          "type": "string",
+          "enum": ["left", "right", "third", "full"]
+        },
+        "columns": {
+          "title": "Internal column count",
+          "description": "How many columns the fields inside this fieldset flow into.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "renderer": {
+          "title": "Snippet renderer",
+          "description": "Render the entire fieldset body via a snippet. Used when `fields` is absent or empty.",
+          "type": "string",
+          "pattern": "^snippet\\.[a-z][a-z0-9_]*$"
+        },
+        "rule_type": {
+          "title": "Rule editor type",
+          "description": "For rule-condition fieldsets rendered by snippet.rule_conditions: which rule engine to bind to. `sales_actions` renders the sales-rule \"Apply To\" tree (Product\\Combine root, binds to actions_serialized, POSTs as rule[actions][...]).",
+          "type": "string",
+          "enum": ["catalog", "cart", "sales", "sales_actions"]
+        },
+        "fields": {
+          "title": "Fields map",
+          "description": "Map of field_name -> field definition.",
+          "type": "object",
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+          "additionalProperties": {"$ref": "#/$defs/field"}
+        }
+      }
+    },
+    "field": {
+      "title": "Field",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "title": "Field label",
+          "description": "Label shown next to the input.",
+          "type": "string"
+        },
+        "type": {
+          "title": "Field type",
+          "description": "Built-in input type. Mutually exclusive with `renderer`.",
+          "type": "string",
+          "enum": ["text", "textarea", "select", "multiselect", "toggle", "date", "password", "hidden", "wysiwyg", "pagebuilder"]
+        },
+        "renderer": {
+          "title": "Snippet renderer",
+          "description": "Render the field body via a snippet. Mutually exclusive with `type`.",
+          "type": "string",
+          "pattern": "^snippet\\.[a-z][a-z0-9_]*$"
+        },
+        "required": {
+          "title": "Required",
+          "description": "Whether the value must be non-empty.",
+          "type": "boolean"
+        },
+        "position": {
+          "title": "Position",
+          "description": "Integer ordering within the fieldset.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "note": {
+          "title": "Helper note",
+          "description": "Muted text rendered below the input.",
+          "type": "string"
+        },
+        "default": {
+          "title": "Default value",
+          "description": "Initial value when the field is not populated from the data source.",
+          "type": ["string", "number", "boolean", "null"]
+        },
+        "disableOnEdit": {
+          "title": "Disable on edit",
+          "description": "If true, the field is read-only when editing an existing entity.",
+          "type": "boolean"
+        },
+        "colspan": {
+          "title": "Column span",
+          "description": "How many columns this field spans in a multi-column fieldset.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "optionsSource": {
+          "title": "Options source alias",
+          "description": "For select/multiselect: alias registered in OptionSourceRegistry (e.g. magento.store.system). FQCNs are rejected — register an alias in etc/di.xml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)*$"
+        },
+        "optionsMethod": {
+          "title": "Options source method",
+          "description": "Method to invoke on the options source (defaults to toOptionArray).",
+          "type": "string"
+        },
+        "options": {
+          "title": "Inline options",
+          "description": "Inline option list for select/multiselect as [{value, label}, ...].",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "label"],
+            "properties": {
+              "value": {"title": "Option value", "type": ["string", "number", "boolean"]},
+              "label": {"title": "Option label", "type": "string"}
+            }
+          }
+        },
+        "submitName": {
+          "title": "Submit name override",
+          "description": "POST key used when the wire format differs from the JSON field key (e.g. frontend_label[0]). Field key must match [a-z][a-z0-9_]* — use this for bracket-notation overrides.",
+          "type": "string"
+        },
+        "$remove": {
+          "title": "Remove flag",
+          "description": "Overlay-only: removes this field from the merged definition.",
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "layout": {
+      "title": "Layout tree",
+      "description": "Tree of nodes (row/column/section/tabs/fields/snippet).",
+      "type": "array",
+      "items": {"$ref": "#/$defs/layoutNode"}
+    },
+    "layoutNode": {
+      "title": "Layout node",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Node id",
+          "description": "Stable id used for overlay merging. Required on base rows, optional on leaf nodes.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "type": {
+          "title": "Node type",
+          "description": "Node kind. Optional on overlay fragments that identify a base node by `id` only.",
+          "type": "string",
+          "enum": ["row", "column", "section", "tabs", "tab", "fields", "snippet"]
+        },
+        "label": {
+          "title": "Node label",
+          "description": "Displayed as section/tab header.",
+          "type": "string"
+        },
+        "width": {
+          "title": "Column width",
+          "description": "For type=column: fractional width, e.g. 1/2, 1/3, 2/3.",
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\/[1-9][0-9]*$"
+        },
+        "position": {
+          "title": "Position",
+          "description": "Ordering among siblings.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "fields": {
+          "title": "Fields list",
+          "description": "For type=section or type=fields: list of field names to render in order.",
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "groups": {
+          "title": "Attribute groups",
+          "description": "For EAV sections/tabs: list of attribute group codes to pull fields from.",
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "renderer": {
+          "title": "Snippet renderer",
+          "description": "Render this node body via a snippet.",
+          "type": "string",
+          "pattern": "^snippet\\.[a-z][a-z0-9_]*$"
+        },
+        "condition": {
+          "title": "Conditional rendering",
+          "description": "Map of field -> expected value(s). The node is only rendered when the entity satisfies every condition.",
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {"type": ["string", "number", "boolean", "null"]},
+              {"type": "array", "items": {"type": ["string", "number", "boolean", "null"]}}
+            ]
+          }
+        },
+        "children": {
+          "title": "Child nodes",
+          "type": "array",
+          "items": {"$ref": "#/$defs/layoutNode"}
+        }
+      },
+      "anyOf": [
+        {"required": ["type"]},
+        {"required": ["id"]}
+      ]
+    }
+  }
+}

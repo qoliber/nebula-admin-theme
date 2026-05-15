@@ -1,0 +1,74 @@
+{
+  "id": "url_rewrite_listing",
+  "acl": "Magento_UrlRewrite::urlrewrite",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "url_rewrite.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "url_rewrite_id",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "url_rewrite_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "request_path": {
+      "label": "Request Path",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "target_path": {
+      "label": "Target Path",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "redirect_type": {
+      "label": "Redirect Type",
+      "type": "badge",
+      "sortable": true,
+      "filter": "select",
+      "options": {
+        "0": "No",
+        "301": "Permanent (301)",
+        "302": "Temporary (302)"
+      },
+      "position": 40
+    },
+    "store_id": {
+      "label": "Store",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/url_rewrite/edit/id/{{url_rewrite_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

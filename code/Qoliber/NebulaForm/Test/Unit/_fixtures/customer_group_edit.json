@@ -1,0 +1,62 @@
+{
+  "id": "customer_group_edit",
+  "dataSource": {
+    "provider": "customer.group.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "saveUrl": "customer/group/save",
+    "backUrl": "customer/group/index",
+    "deleteUrl": "customer/group/delete",
+    "layout": "two-column"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General Information",
+      "column": "left",
+      "position": 10,
+      "fields": {
+        "customer_group_code": {
+          "label": "Group Name",
+          "type": "text",
+          "required": true,
+          "default": "",
+          "position": 10
+        },
+        "tax_class_id": {
+          "label": "Tax Class",
+          "type": "select",
+          "optionsSource": "magento.tax.class.customer",
+          "position": 20
+        }
+      }
+    },
+    "meta": {
+      "label": "Meta",
+      "column": "right",
+      "position": 20,
+      "fields": {
+        "created_at": {
+          "label": "Created",
+          "type": "text",
+          "readonly": true,
+          "position": 10
+        }
+      }
+    },
+    "notes": {
+      "label": "Internal Notes",
+      "column": "full",
+      "position": 30,
+      "fields": {
+        "notes": {
+          "label": "Notes",
+          "type": "textarea",
+          "position": 10
+        }
+      }
+    }
+  }
+}

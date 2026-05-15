@@ -1,0 +1,99 @@
+<!-- ROW 3 — Layout Updates (full-width row).
+     Each layout-update row's structure is split across 4 small includes:
+       - _layout_row_pages.phtml          : CMS Page picker (for `pages` group)
+       - _layout_row_page_layouts.phtml   : page-layout select (for `page_layouts`)
+       - _layout_row_entities.phtml       : All/Specific radio + entity picker
+                                            (for category/product groups)
+       - _layout_row_hidden_inputs.phtml  : POST shape Magento's Save reads
+
+     Each include guards itself with `x-if="rowEntityKind(row) === 'X'"` so
+     only the matching kind renders. Adding a new kind = drop in another
+     include + extend rowEntityKind() in wizard.ts. -->
+<section class="mt-6 rounded-2xl bg-white p-6 shadow-sm border border-gray-200 space-y-5 transition-opacity"
+         :class="paramsEnabled() ? '' : 'opacity-50 pointer-events-none select-none'">
+    <header class="border-b border-gray-100 pb-3 flex items-center justify-between">
+        <div>
+            <h2 class="text-sm font-bold uppercase tracking-wide text-indigo-700">4. Layout Updates</h2>
+            <p class="mt-1 text-xs text-gray-500">Choose where this widget appears on the storefront. Without at least one layout update, the widget renders nowhere.</p>
+        </div>
+        <button type="button" @click="addPageGroup()"
+                class="rounded-lg bg-nebula-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-nebula-500">
+            + Add Layout Update
+        </button>
+    </header>
+
+    <template x-if="!state.page_groups.length">
+        <p class="text-sm text-gray-400 italic">No layout updates yet. Click <strong>Add Layout Update</strong> to start.</p>
+    </template>
+
+    <template x-for="(row, idx) in state.page_groups" :key="idx">
+        <div class="rounded-lg border bg-gray-50 p-4 space-y-3"
+             :class="row.page_group && !isPageGroupRowValid(row) ? 'border-amber-300 ring-1 ring-amber-200' : 'border-gray-200'">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <!-- Display On.
+                     `x-init="$nextTick(() => $el.value = row.page_group)"` is a
+                     workaround for an Alpine x-model/x-for timing race: the
+                     nested `<template x-for="opt in pageGroupOptions">` inserts
+                     its <option> nodes on the next microtask, but x-model has
+                     already evaluated row.page_group and tried to match it
+                     against the (then-only) empty placeholder <option>. With
+                     no match, the select silently snaps to the placeholder.
+                     $nextTick re-applies the value after x-for has populated
+                     the options. Same pattern on Container and Template. -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Display On <span class="text-red-500">*</span></label>
+                    <select x-model="row.page_group" @change="onPageGroupChanged(row)"
+                            x-init="$nextTick(() => { $el.value = row.page_group })"
+                            class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+                        <option value="">&mdash; Please Select &mdash;</option>
+                        <template x-for="opt in pageGroupOptions" :key="opt.value">
+                            <option :value="opt.value" x-text="opt.label"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Container (loaded from Magento's Blocks endpoint per the picked page-group's layout handle).
+                     `row.loading === true` is intentional strict-equality: DB-loaded rows
+                     don't carry a `loading` field, so it's `undefined`, and Alpine's
+                     attribute binding has corner cases around undefined-vs-false. -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Container <span class="text-red-500">*</span></label>
+                    <select x-model="row.block" :disabled="!row.page_group || row.loading === true"
+                            x-init="$nextTick(() => { $el.value = row.block })"
+                            class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
+                        <option value="" x-text="!row.page_group ? 'Pick Display On first' : (row.loading === true ? 'Loading…' : '— Select —')"></option>
+                        <template x-for="container in containersForRow(row)" :key="container">
+                            <option :value="container" x-text="container"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Template (cascaded from Container) -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Template <span class="text-red-500">*</span></label>
+                    <select x-model="row.template" :disabled="!row.block"
+                            x-init="$nextTick(() => { $el.value = row.template })"
+                            class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
+                        <option value="" x-text="row.block ? '— Select —' : 'Please Select Container First'"></option>
+                        <template x-for="tpl in templatesForContainer(row.block)" :key="tpl.value">
+                            <option :value="tpl.value" x-text="tpl.label"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Remove button -->
+                <div class="flex items-end">
+                    <button type="button" @click="removePageGroup(idx)"
+                            class="rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50">
+                        Remove
+                    </button>
+                </div>
+            </div>
+
+            <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_layout_row_pages.phtml'); ?>
+            <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_layout_row_page_layouts.phtml'); ?>
+            <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_layout_row_entities.phtml'); ?>
+            <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_layout_row_hidden_inputs.phtml'); ?>
+        </div>
+    </template>
+</section>

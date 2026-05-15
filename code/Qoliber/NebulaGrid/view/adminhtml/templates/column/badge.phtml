@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$hasOption = (bool) $block->getData('has_option');
+$value = $block->getData('value');
+
+if (!$hasOption) {
+    echo $escaper->escapeHtml((string) ($value ?? ''));
+    return;
+}
+
+$twClass = (string) $block->getData('tw_class');
+$label = (string) $block->getData('label');
+?>
+<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <?= $escaper->escapeHtmlAttr($twClass) ?>"><?= $escaper->escapeHtml((string) __($label)) ?></span>

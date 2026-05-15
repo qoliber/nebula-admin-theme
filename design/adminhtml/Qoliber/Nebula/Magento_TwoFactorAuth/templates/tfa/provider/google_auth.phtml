@@ -1,0 +1,121 @@
+<?php
+/**
+ * Qoliber Nebula — Google Authenticator Verify
+ * Replaces KnockoutJS UI Component with Alpine.js
+ *
+ * @var \Magento\TwoFactorAuth\Block\Provider\Google\Auth $block
+ */
+
+$jsLayout = json_decode($block->getJsLayout(), true);
+$config = $jsLayout['components']['tfa-auth'] ?? [];
+$postUrl = $config['postUrl'] ?? '';
+$successUrl = $config['successUrl'] ?? '';
+?>
+<div class="flex min-h-full flex-col justify-center px-8 py-12 lg:px-16"
+     x-data="googleAuth()">
+
+    <?= $block->getChildHtml('messages') ?>
+
+    <div class="w-full max-w-sm mx-auto">
+        <div class="text-center mb-8">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-nebula-100">
+                <svg class="h-8 w-8 text-nebula-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/>
+                </svg>
+            </div>
+
+            <h2 class="text-2xl font-bold tracking-tight text-gray-900">
+                <?= $block->escapeHtml(__('Two-Factor Authentication')) ?>
+            </h2>
+            <p class="mt-2 text-sm text-gray-500">
+                <?= $block->escapeHtml(__('Enter the code from your authenticator app')) ?>
+            </p>
+        </div>
+
+        <form @submit.prevent="verify()" class="space-y-5">
+            <div>
+                <label for="tfa-code" class="block text-sm font-medium text-gray-700">
+                    <?= $block->escapeHtml(__('Verification Code')) ?>
+                </label>
+                <input id="tfa-code"
+                       type="text"
+                       inputmode="numeric"
+                       pattern="[0-9]*"
+                       maxlength="6"
+                       required
+                       autofocus
+                       x-model="code"
+                       placeholder="000000"
+                       class="mt-1.5 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-center text-lg font-mono tracking-widest text-gray-900 shadow-sm placeholder:text-gray-300 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none transition sm:text-sm"/>
+            </div>
+
+            <p class="text-red-600 text-sm text-center" x-show="error" x-cloak x-text="error"></p>
+
+            <button type="submit"
+                    :disabled="loading"
+                    class="flex w-full justify-center items-center rounded-lg bg-nebula-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-nebula-500 focus:outline-none focus:ring-2 focus:ring-nebula-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg x-show="loading" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span x-text="loading ? '<?= $block->escapeJs(__('Verifying...')) ?>' : '<?= $block->escapeJs(__('Verify & Sign In')) ?>'"></span>
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="<?= $block->escapeUrl($block->getUrl('adminhtml/auth/logout')) ?>"
+               class="text-sm text-gray-400 hover:text-gray-600 transition">
+                <?= $block->escapeHtml(__('Sign in with a different account')) ?>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function googleAuth() {
+        return {
+            code: '',
+            loading: false,
+            error: '',
+
+            async verify() {
+                if (this.code.length < 6) {
+                    this.error = '<?= $block->escapeJs(__('Please enter a 6-digit code')) ?>';
+                    return;
+                }
+
+                this.loading = true;
+                this.error = '';
+
+                try {
+                    const formKey = document.querySelector('input[name="form_key"]')?.value
+                        || '<?= $block->escapeJs($block->getFormKey()) ?>';
+
+                    const response = await fetch('<?= $block->escapeJs($postUrl) ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams({
+                            'form_key': formKey,
+                            'tfa_code': this.code
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        window.location.href = '<?= $block->escapeJs($successUrl) ?>';
+                    } else {
+                        this.error = data.message || '<?= $block->escapeJs(__('Invalid verification code. Please try again.')) ?>';
+                        this.loading = false;
+                    }
+                } catch (e) {
+                    this.error = '<?= $block->escapeJs(__('An error occurred. Please try again.')) ?>';
+                    this.loading = false;
+                }
+            }
+        }
+    }
+</script>

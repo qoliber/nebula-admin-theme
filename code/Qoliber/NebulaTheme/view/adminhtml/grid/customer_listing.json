@@ -1,0 +1,101 @@
+{
+  "id": "customer_listing",
+  "acl": "Magento_Customer::customer",
+  "dataSource": {
+    "provider": "customer.grid"
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "entity_id",
+      "direction": "desc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add New Customer",
+      "url": "customer/index/new"
+    }
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "email": {
+      "label": "Email",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "group_id": {
+      "label": "Group",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Customer\\Model\\Customer\\Attribute\\Source\\Group",
+      "position": 40
+    },
+    "billing_telephone": {
+      "label": "Phone",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 50
+    },
+    "billing_postcode": {
+      "label": "Zip",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 60
+    },
+    "billing_country_id": {
+      "label": "Country",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Directory\\Model\\Config\\Source\\Country",
+      "position": 70
+    },
+    "website_id": {
+      "label": "Website",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Store\\Model\\System\\Store",
+      "position": 80
+    },
+    "created_at": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 90
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "customer/index/edit/id/{{entity_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

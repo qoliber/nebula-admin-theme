@@ -1,0 +1,23 @@
+import { registerAttributeOptions } from '../components/catalog/attribute-options';
+import { registerAttributeSetEditor } from '../components/catalog/attribute-set-editor';
+import { registerBundleSettings } from '../components/catalog/bundle-settings';
+import { registerCategoryNavTree } from '../components/catalog/category-nav-tree';
+import { registerCategoryProducts } from '../components/catalog/category-products';
+import { registerCategoryTreeModal } from '../components/catalog/category-tree-modal';
+import { registerConfigWizard } from '../components/catalog/config-wizard';
+import { registerMediaGallery } from '../components/catalog/media-gallery';
+import { registerSeoPreview } from '../components/catalog/seo-preview';
+import { registerStockFields } from '../components/catalog/stock-fields';
+import { registerTierPrices } from '../components/catalog/tier-prices';
+
+registerAttributeOptions();
+registerAttributeSetEditor();
+registerBundleSettings();
+registerCategoryNavTree();
+registerCategoryProducts();
+registerCategoryTreeModal();
+registerConfigWizard();
+registerMediaGallery();
+registerSeoPreview();
+registerStockFields();
+registerTierPrices();

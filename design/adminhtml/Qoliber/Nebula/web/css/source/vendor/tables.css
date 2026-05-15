@@ -1,0 +1,26 @@
+/* --- Tables / Grids (rendered by Magento grid blocks) --- */
+.admin__table-primary,
+.data-grid table,
+table.data-grid {
+  @apply w-full border-collapse text-sm;
+}
+.admin__table-primary th,
+.data-grid th {
+  @apply text-left font-semibold text-xs uppercase tracking-wider text-gray-500 bg-gray-50 border-b;
+  border-color: var(--nebula-border-default);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-lg);
+}
+.admin__table-primary td,
+.data-grid td {
+  @apply border-b border-gray-100 text-gray-700;
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-lg);
+}
+.admin__table-primary tr:hover td,
+.data-grid tr:hover td {
+  @apply bg-gray-50;
+}
+
+/* --- Hide legacy UI cruft --- */
+.admin__field-tooltip.tooltip {
+  @apply hidden;
+}

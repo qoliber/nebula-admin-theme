@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$value = (bool) $block->getData('value');
+$successClass = \Qoliber\NebulaGrid\Renderer\Column\BadgeRenderer::BADGE_CLASS_MAP['success'];
+$errorClass = \Qoliber\NebulaGrid\Renderer\Column\BadgeRenderer::BADGE_CLASS_MAP['error'];
+?>
+<?php if ($value) : ?>
+<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <?= /* @noEscape */ $successClass ?>"><?= $escaper->escapeHtml((string) __('Yes')) ?></span>
+<?php else : ?>
+<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <?= /* @noEscape */ $errorClass ?>"><?= $escaper->escapeHtml((string) __('No')) ?></span>
+<?php endif; ?>

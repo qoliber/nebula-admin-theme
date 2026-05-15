@@ -1,0 +1,29 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\WebsiteCheckboxes $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\WebsiteCheckboxes) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\WebsiteCheckboxes::class);
+}
+
+$formBlock = $block->getData('form_block');
+$entity = $block->getData('entity');
+
+$websites = $viewModel->getWebsites();
+$assignedIds = $entity ? $entity->getWebsiteIds() : [];
+?>
+<div class="space-y-2">
+  <?php foreach ($websites as $website) : ?>
+  <label class="flex items-center gap-3">
+    <input type="checkbox" name="product[website_ids][]"
+           value="<?= $escaper->escapeHtmlAttr((string) $website->getId()) ?>"
+           <?= in_array($website->getId(), $assignedIds) ? 'checked' : '' ?>
+           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+    <span class="text-sm text-gray-700"><?= $escaper->escapeHtml($website->getName()) ?></span>
+  </label>
+  <?php endforeach; ?>
+</div>

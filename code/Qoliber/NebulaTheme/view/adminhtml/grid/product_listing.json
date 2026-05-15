@@ -1,0 +1,124 @@
+{
+  "id": "product_listing",
+  "acl": "Magento_Catalog::products",
+  "dataSource": {
+    "provider": "product.grid",
+    "config": {
+      "attributes": ["name", "sku", "price", "status", "visibility", "type_id", "thumbnail"]
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "entity_id",
+      "direction": "desc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add Product",
+      "options": [
+        { "label": "Simple Product", "url": "catalog/product/new/set/4/type/simple" },
+        { "label": "Configurable Product", "url": "catalog/product/new/set/4/type/configurable" },
+        { "label": "Virtual Product", "url": "catalog/product/new/set/4/type/virtual" },
+        { "label": "Grouped Product", "url": "catalog/product/new/set/4/type/grouped" },
+        { "label": "Bundle Product", "url": "catalog/product/new/set/4/type/bundle" },
+        { "label": "Downloadable Product", "url": "catalog/product/new/set/4/type/downloadable" }
+      ]
+    }
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "thumbnail": {
+      "label": "Image",
+      "type": "thumbnail",
+      "position": 20
+    },
+    "name": {
+      "label": "Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "type_id": {
+      "label": "Type",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "simple": "Simple",
+        "configurable": "Configurable",
+        "grouped": "Grouped",
+        "bundle": "Bundle",
+        "virtual": "Virtual",
+        "downloadable": "Downloadable"
+      },
+      "position": 40
+    },
+    "sku": {
+      "label": "SKU",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 50
+    },
+    "price": {
+      "label": "Price",
+      "type": "price",
+      "sortable": true,
+      "filter": "range",
+      "position": 60
+    },
+    "qty": {
+      "label": "Quantity",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 70
+    },
+    "status": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "1": "Enabled",
+        "2": "Disabled"
+      },
+      "position": 80
+    },
+    "visibility": {
+      "label": "Visibility",
+      "renderer": "snippet.visibility_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "1": "Not Visible Individually",
+        "2": "Catalog",
+        "3": "Search",
+        "4": "Catalog, Search"
+      },
+      "position": 90
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "catalog/product/edit/id/{{entity_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

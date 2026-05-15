@@ -1,0 +1,180 @@
+<?php
+/**
+ * Runtime bootstrap — Alpine store + admin grid accessibility patch.
+ * Extracted from root.phtml to keep the root template under 200 lines.
+ * Pure JS, no PHP variables consumed; safe to host as a static .js file
+ * once the Phase 5 templator pass lands and inline scripts can be retired.
+ */
+?>
+<script>
+    function nebulaSyncRootClasses(darkMode, sidebarCollapsed) {
+        document.documentElement.classList.toggle('dark', darkMode);
+        document.documentElement.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+
+        if (document.body) {
+            document.body.classList.toggle('dark', darkMode);
+            document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+        }
+    }
+
+    // Nebula global state — persisted in localStorage
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('nebula', {
+            sidebarCollapsed: localStorage.getItem('nebula_sidebar') === 'collapsed',
+            darkMode: localStorage.getItem('nebula_dark') === 'true'
+                || (!localStorage.getItem('nebula_dark') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+
+            init() {
+                nebulaSyncRootClasses(this.darkMode, this.sidebarCollapsed);
+            },
+
+            toggleSidebar() {
+                this.sidebarCollapsed = !this.sidebarCollapsed;
+                localStorage.setItem('nebula_sidebar', this.sidebarCollapsed ? 'collapsed' : 'expanded');
+                nebulaSyncRootClasses(this.darkMode, this.sidebarCollapsed);
+            },
+
+            toggleDark() {
+                this.darkMode = !this.darkMode;
+                localStorage.setItem('nebula_dark', this.darkMode ? 'true' : 'false');
+                nebulaSyncRootClasses(this.darkMode, this.sidebarCollapsed);
+            }
+        });
+    });
+
+    // Accessibility patch for legacy admin grids:
+    // ensure filter controls always have an accessible label/title.
+    document.addEventListener('DOMContentLoaded', function () {
+        var patched = false;
+
+        function normalizeText(value) {
+            return (value || '').replace(/\s+/g, ' ').trim();
+        }
+
+        function patchGridFilters() {
+            var rows = document.querySelectorAll('tr.data-grid-filters');
+            if (!rows.length) {
+                return;
+            }
+
+            rows.forEach(function (row) {
+                var table = row.closest('table');
+                if (!table) {
+                    return;
+                }
+
+                var headerCells = table.querySelectorAll('thead tr:first-child th');
+                var filterCells = row.querySelectorAll('td');
+
+                filterCells.forEach(function (cell, index) {
+                    var headerText = normalizeText(headerCells[index] ? headerCells[index].textContent : '');
+                    if (!headerText || headerText.toLowerCase() === 'actions') {
+                        headerText = 'Filter';
+                    }
+
+                    var label = 'Filter by ' + headerText;
+                    var fields = cell.querySelectorAll('input, select, textarea');
+
+                    fields.forEach(function (field) {
+                        var aria = normalizeText(field.getAttribute('aria-label'));
+                        var title = normalizeText(field.getAttribute('title'));
+
+                        if (!aria) {
+                            field.setAttribute('aria-label', label);
+                        }
+
+                        if (!title) {
+                            field.setAttribute('title', label);
+                        }
+                    });
+                });
+            });
+
+            patched = true;
+        }
+
+        function formatLabelFromId(id) {
+            var value = normalizeText((id || '').replace(/^sales_report_/, '').replace(/_/g, ' '));
+            if (!value) {
+                return '';
+            }
+
+            return value.replace(/\b\w/g, function (char) {
+                return char.toUpperCase();
+            });
+        }
+
+        function patchReportFilterFields() {
+            var controls = document.querySelectorAll('.nebula-main [id^="sales_report_"]');
+            if (!controls.length) {
+                return;
+            }
+
+            controls.forEach(function (control) {
+                if (!control.matches('input, select, textarea')) {
+                    return;
+                }
+
+                var label = document.querySelector('label[for="' + control.id + '"]');
+                var labelText = '';
+
+                if (label) {
+                    labelText = normalizeText(label.textContent);
+                }
+
+                if (!labelText) {
+                    labelText = formatLabelFromId(control.id);
+                }
+
+                if (!labelText) {
+                    labelText = 'Report Filter';
+                }
+
+                var aria = normalizeText(control.getAttribute('aria-label'));
+                var title = normalizeText(control.getAttribute('title'));
+
+                if (!aria) {
+                    control.setAttribute('aria-label', labelText);
+                }
+
+                if (!title) {
+                    control.setAttribute('title', labelText);
+                }
+
+                if (label && !normalizeText(label.textContent)) {
+                    var hiddenText = label.querySelector('.visually-hidden');
+                    if (!hiddenText) {
+                        hiddenText = document.createElement('span');
+                        hiddenText.className = 'visually-hidden';
+                        hiddenText.textContent = labelText;
+                        label.appendChild(hiddenText);
+                    }
+                }
+            });
+        }
+
+        patchGridFilters();
+        patchReportFilterFields();
+
+        // Some report grids render or rerender after initial load.
+        // Use MutationObserver to watch for DOM additions instead of fixed timeouts.
+        var targetElement = document.querySelector('.nebula-main') || document.body;
+        var observer = new MutationObserver(function (mutations) {
+            patchGridFilters();
+            patchReportFilterFields();
+            if (patched) {
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(targetElement, {
+            childList: true,
+            subtree: true
+        });
+
+        // Safety timeout to prevent observer leak if no DOM changes occur
+        setTimeout(function () {
+            observer.disconnect();
+        }, 5000);
+    });
+</script>

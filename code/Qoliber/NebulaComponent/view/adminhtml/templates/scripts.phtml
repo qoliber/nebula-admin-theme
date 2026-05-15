@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Loads the compiled Nebula core bundle. The bundle ships Alpine.js + its
+ * collapse plugin, the validator, toast, modal mixin, model store, every
+ * field component (text/select/toggle/…), column renderers, layout helper
+ * and the rule-editor — all in a single IIFE produced by esbuild from
+ * `app/design/adminhtml/Qoliber/Nebula/web/ts/nebula-core.ts`.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ */
+$coreJs = $block->getViewFileUrl('js/dist/nebula-core.js');
+?>
+<script src="<?= /* @noEscape */ $coreJs ?>"></script>

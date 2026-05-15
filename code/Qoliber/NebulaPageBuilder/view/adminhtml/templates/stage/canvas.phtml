@@ -1,0 +1,327 @@
+<?php
+
+/**
+ * Canvas partial — compact view + full-screen editor with stage area.
+ * Included from stage.phtml; shares $block, $menuSections, $sectionMap.
+ */
+
+?>
+<!-- Compact view -->
+<div x-show="!editorOpen" class="rounded-lg border border-gray-300 bg-white">
+    <div class="flex items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+            <i class="fa-solid fa-layer-group text-indigo-500"></i>
+            <span x-text="tree.length === 0 ? '<?= $escaper->escapeJs((string) __('No content')) ?>' : tree.length + ' root element(s)'"></span>
+        </div>
+        <button type="button" @click="editorOpen = true"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <?= $escaper->escapeHtml((string) __('Edit with PageBuilder')) ?>
+        </button>
+    </div>
+    <template x-if="tree.length > 0">
+        <div class="border-t border-gray-200 px-4 py-2 text-xs text-gray-500 max-h-24 overflow-hidden">
+            <template x-for="n in tree" :key="n.id">
+                <div class="flex items-center gap-1.5 py-0.5">
+                    <i :class="getContentType(n.type)?.icon || 'fa-solid fa-cube'" class="text-gray-400 w-3"></i>
+                    <span x-text="getContentType(n.type)?.label || n.type"></span>
+                    <span class="text-gray-300" x-show="n.children?.length" x-text="'(' + n.children.length + ')'"></span>
+                </div>
+            </template>
+        </div>
+    </template>
+</div>
+
+<!-- Full-screen editor -->
+<div x-show="editorOpen"
+     x-transition.opacity.duration.200ms
+     @keydown.escape.window="if(editorOpen) closeEditor()"
+    x-cloak
+    class="fixed inset-0 z-[9999] flex flex-col bg-gray-100">
+
+    <!-- Top bar -->
+    <div class="flex items-center justify-between bg-white border-b border-gray-200 px-5 py-3 shadow-sm flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-layer-group text-indigo-600 text-lg"></i>
+            <h2 class="text-base font-bold text-gray-900"><?= $escaper->escapeHtml((string) __('PageBuilder')) ?></h2>
+            <span class="text-xs text-gray-400 ml-1" x-text="tree.length + ' element(s)'"></span>
+        </div>
+        <button type="button" @click="closeEditor()"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
+            <i class="fa-solid fa-check"></i> <?= $escaper->escapeHtml((string) __('Done')) ?>
+        </button>
+    </div>
+
+    <div class="flex flex-1 overflow-hidden">
+
+        <?php include __DIR__ . '/panel.phtml'; ?>
+
+        <!-- Stage -->
+        <div class="flex-1 p-6 overflow-y-auto bg-gray-50">
+
+            <!-- Empty -->
+            <template x-if="tree.length === 0">
+                <div class="flex flex-col items-center justify-center h-full rounded-xl p-12 transition-all"
+                     :class="isDropTarget('stage','') ? 'pb-drop-active' : 'border-2 border-dashed border-gray-300 text-gray-400'"
+                     @dragover.prevent.stop="zoneOver($event)"
+                     @dragenter.prevent.stop="zoneEnter($event,'stage','')"
+                     @dragleave="zoneLeave($event,'stage','')"
+                     @drop.prevent.stop="zoneDrop($event,'stage','')">
+                    <i class="fa-solid fa-plus-circle text-5xl mb-4 text-gray-300"></i>
+                    <p class="text-sm font-medium"><?= $escaper->escapeHtml((string) __('Drag a Row from the panel, or double-click it')) ?></p>
+                </div>
+            </template>
+
+            <!-- With content -->
+            <template x-if="tree.length > 0">
+                <div class="min-h-[200px] space-y-3 rounded-xl p-2 transition-all"
+                     :class="isDropTarget('stage','') ? 'pb-drop-active' : ''"
+                     @dragover.prevent.stop="zoneOver($event)"
+                     @dragenter.prevent.stop="zoneEnter($event,'stage','')"
+                     @dragleave="zoneLeave($event,'stage','')"
+                     @drop.prevent.stop="zoneDrop($event,'stage','')">
+
+                    <template x-for="node in tree" :key="node.id">
+                        <div class="pb-node-wrap relative group"
+                             :class="{'pb-selected': editingNodeId===node.id}"
+                             draggable="true"
+                             @dragstart.stop="nodeDragStart($event, node.id)"
+                             @dragend.stop="nodeDragEnd($event)"
+                             @click.stop="editNode(node.id)">
+                            <div class="pb-type-label" x-text="getContentType(node.type)?.label||node.type"></div>
+
+                            <!-- Toolbar -->
+                            <div class="absolute -top-9 left-1/2 -translate-x-1/2 z-20 hidden group-hover:flex items-center gap-0.5 rounded-lg bg-gray-900/95 px-2 py-1 shadow-xl backdrop-blur-sm">
+                                <span class="cursor-grab p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-grip-vertical text-xs"></i></span>
+                                <template x-if="getContentType(node.type)?.form">
+                                    <button type="button" @click.stop="editNode(node.id)" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button>
+                                </template>
+                                <button type="button" @click.stop="duplicateNode(node.id)" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-copy text-xs"></i></button>
+                                <div class="w-px h-4 bg-gray-700 mx-0.5"></div>
+                                <button type="button" @click.stop="deleteNode(node.id)" class="p-1 text-red-400 hover:text-red-300"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </div>
+
+                            <!-- ROW -->
+                            <template x-if="node.type === 'row'">
+                                <div class="bg-white rounded-xl border-2 transition-all min-h-[80px] p-4 shadow-sm"
+                                     :class="editingNodeId===node.id ? 'border-indigo-500 ring-2 ring-indigo-500/20' : isDropTarget('row',node.id) ? 'pb-drop-active' : 'border-gray-200 group-hover:border-indigo-400'"
+                                     :style="getNodePreviewStyles(node)"
+                                     @dragover.prevent.stop="zoneOver($event)"
+                                     @dragenter.prevent.stop="zoneEnter($event,'row',node.id)"
+                                     @dragleave="zoneLeave($event,'row',node.id)"
+                                     @drop.prevent.stop="zoneDrop($event,'row',node.id)">
+
+                                    <div class="text-[10px] font-bold uppercase tracking-widest text-gray-300 mb-2 select-none">
+                                        Row · <span x-text="node.data?.appearance||'contained'"></span>
+                                    </div>
+
+                                    <template x-if="!node.children || node.children.length === 0">
+                                        <div class="flex items-center justify-center min-h-[50px] text-gray-300 text-xs border-2 border-dashed border-gray-200 rounded-lg select-none">
+                                            <?= $escaper->escapeHtml((string) __('Drop content here')) ?>
+                                        </div>
+                                    </template>
+
+                                    <div class="space-y-2">
+                                    <template x-for="child in (node.children||[])" :key="child.id">
+                                        <div class="pb-node-wrap relative group/c"
+                                             :class="{'pb-selected': editingNodeId===child.id}"
+                                             draggable="true"
+                                             @dragstart.stop="nodeDragStart($event, child.id)"
+                                             @dragend.stop="nodeDragEnd($event)"
+                                             @click.stop="editNode(child.id)">
+                                            <div class="pb-type-label" x-text="getContentType(child.type)?.label||child.type"></div>
+
+                                            <!-- Child toolbar -->
+                                            <div class="absolute -top-9 left-1/2 -translate-x-1/2 z-20 hidden group-hover/c:flex items-center gap-0.5 rounded-lg bg-gray-900/95 px-2 py-1 shadow-xl backdrop-blur-sm">
+                                                <span class="cursor-grab p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-grip-vertical text-xs"></i></span>
+                                                <template x-if="getContentType(child.type)?.form">
+                                                    <button type="button" @click.stop="editNode(child.id)" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button>
+                                                </template>
+                                                <button type="button" @click.stop="duplicateNode(child.id)" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-copy text-xs"></i></button>
+                                                <div class="w-px h-4 bg-gray-700 mx-0.5"></div>
+                                                <button type="button" @click.stop="deleteNode(child.id)" class="p-1 text-red-400 hover:text-red-300"><i class="fa-solid fa-trash text-xs"></i></button>
+                                            </div>
+
+                                            <!-- COLUMN GROUP -->
+                                            <template x-if="child.type==='column-group'">
+                                                <div class="rounded-lg border-2 border-transparent group-hover/c:border-indigo-300 transition-all">
+                                                    <template x-for="cl in (child.children||[])" :key="cl.id">
+                                                        <div class="flex gap-3">
+                                                            <template x-for="col in (cl.children||[])" :key="col.id">
+                                                                <div class="rounded-lg border-2 border-dashed border-gray-200 hover:border-indigo-300 p-3 min-h-[80px] relative group/col bg-white transition-all"
+                                                                     :class="isDropTarget('column',col.id) ? 'pb-drop-active' : ''"
+                                                                     :style="'width:'+(col.data?.width||'50%')+';'+getNodePreviewStyles(col)"
+                                                                     @dragover.prevent.stop="zoneOver($event)"
+                                                                     @dragenter.prevent.stop="zoneEnter($event,'column',col.id)"
+                                                                     @dragleave="zoneLeave($event,'column',col.id)"
+                                                                     @drop.prevent.stop="zoneDrop($event,'column',col.id)">
+
+                                                                    <div class="text-[10px] font-bold uppercase tracking-widest text-gray-300 mb-1 select-none" x-text="col.data?.width||'50%'"></div>
+
+                                                                    <template x-if="!col.children||col.children.length===0">
+                                                                        <div class="flex items-center justify-center min-h-[40px] text-gray-300 text-[10px] border border-dashed border-gray-200 rounded select-none">
+                                                                            <?= $escaper->escapeHtml((string) __('Drop here')) ?>
+                                                                        </div>
+                                                                    </template>
+
+                                                                    <div class="space-y-1">
+                                                                    <template x-for="leaf in (col.children||[])" :key="leaf.id">
+                                                                        <div class="pb-node-wrap relative group/l"
+                                                                             :class="{'pb-selected': editingNodeId===leaf.id}"
+                                                                             draggable="true"
+                                                                             @dragstart.stop="nodeDragStart($event,leaf.id)"
+                                                                             @dragend.stop="nodeDragEnd($event)"
+                                                                             @click.stop="editNode(leaf.id)">
+                                                                            <div class="pb-type-label" x-text="getContentType(leaf.type)?.label||leaf.type"></div>
+                                                                            <div class="absolute -top-9 left-1/2 -translate-x-1/2 z-20 hidden group-hover/l:flex items-center gap-0.5 rounded-lg bg-gray-900/95 px-2 py-1 shadow-xl backdrop-blur-sm">
+                                                                                <span class="cursor-grab p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-grip-vertical text-xs"></i></span>
+                                                                                <template x-if="getContentType(leaf.type)?.form">
+                                                                                    <button type="button" @click.stop="editNode(leaf.id)" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button>
+                                                                                </template>
+                                                                                <button type="button" @click.stop="duplicateNode(leaf.id)" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-copy text-xs"></i></button>
+                                                                                <div class="w-px h-4 bg-gray-700 mx-0.5"></div>
+                                                                                <button type="button" @click.stop="deleteNode(leaf.id)" class="p-1 text-red-400 hover:text-red-300"><i class="fa-solid fa-trash text-xs"></i></button>
+                                                                            </div>
+                                                                            <!-- Heading -->
+                                                                            <template x-if="leaf.type==='heading'">
+                                                                                <div class="px-2 py-1.5 rounded-lg" :style="getNodePreviewStyles(leaf)">
+                                                                                    <div :class="getHeadingClass(leaf.data?.heading_type||'h2')" x-text="leaf.data?.heading_text||'Heading'" class="text-gray-700"></div>
+                                                                                </div>
+                                                                            </template>
+                                                                            <!-- Text -->
+                                                                            <template x-if="leaf.type==='text'">
+                                                                                <div class="px-2 py-1.5 text-sm text-gray-700 prose prose-sm max-w-none" :style="getNodePreviewStyles(leaf)" x-html="leaf.data?.content||'<p class=text-gray-300>Text</p>'"></div>
+                                                                            </template>
+                                                                            <!-- HTML -->
+                                                                            <template x-if="leaf.type==='html'">
+                                                                                <div class="px-2 py-1.5 bg-gray-900 text-green-400 font-mono text-[10px] rounded overflow-x-auto"><pre class="whitespace-pre-wrap" x-text="leaf.data?.html||'<!-- HTML -->'"></pre></div>
+                                                                            </template>
+                                                                            <!-- Divider -->
+                                                                            <template x-if="leaf.type==='divider'">
+                                                                                <div class="px-2 py-2"><hr :style="'border-color:'+(leaf.data?.line_color||'#cecece')+';border-width:'+(leaf.data?.line_width||'1px')+';width:'+(leaf.data?.line_length||'100%')"></div>
+                                                                            </template>
+                                                                            <!-- Image -->
+                                                                            <template x-if="leaf.type==='image'">
+                                                                                <div class="px-2 py-1.5" :style="getNodePreviewStyles(leaf)">
+                                                                                    <template x-if="leaf.data?.image_url"><img :src="leaf.data.image_url" :alt="leaf.data?.alt_text||''" class="max-w-full rounded"></template>
+                                                                                    <template x-if="!leaf.data?.image_url"><div class="flex items-center justify-center py-4 text-gray-300 border border-dashed border-gray-200 rounded text-[10px]"><i class="fa-solid fa-image mr-1"></i> Image</div></template>
+                                                                                </div>
+                                                                            </template>
+                                                                            <!-- Buttons -->
+                                                                            <template x-if="leaf.type==='buttons'">
+                                                                                <div class="px-2 py-1.5 flex flex-wrap gap-1.5">
+                                                                                    <template x-for="btn in (leaf.children||[])" :key="btn.id">
+                                                                                        <a class="inline-flex items-center px-3 py-1.5 rounded text-xs font-semibold cursor-pointer"
+                                                                                           :class="btn.data?.button_type==='secondary'?'bg-white border border-gray-300 text-gray-700':'bg-indigo-600 text-white'"
+                                                                                           x-text="btn.data?.button_text||'Button'" @click.stop="editNode(btn.id)"></a>
+                                                                                    </template>
+                                                                                </div>
+                                                                            </template>
+                                                                            <!-- Generic -->
+                                                                            <template x-if="['heading','text','html','divider','image','buttons'].indexOf(leaf.type)===-1">
+                                                                                <div class="px-2 py-2 rounded-lg bg-gray-50 text-xs text-gray-500 flex items-center gap-2">
+                                                                                    <i :class="getContentType(leaf.type)?.icon||'fa-solid fa-cube'" class="text-gray-400"></i>
+                                                                                    <span x-text="getContentType(leaf.type)?.label||leaf.type"></span>
+                                                                                </div>
+                                                                            </template>
+                                                                        </div>
+                                                                    </template>
+                                                                    </div>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+
+                                            <!-- HEADING -->
+                                            <template x-if="child.type==='heading'">
+                                                <div class="px-3 py-2 rounded-lg" :style="getNodePreviewStyles(child)" @click.stop="editNode(child.id)">
+                                                    <div :class="getHeadingClass(child.data?.heading_type||'h2')" x-text="child.data?.heading_text||'Heading'" class="text-gray-700"></div>
+                                                </div>
+                                            </template>
+                                            <!-- TEXT -->
+                                            <template x-if="child.type==='text'">
+                                                <div class="px-3 py-2 rounded-lg text-sm text-gray-700 prose prose-sm max-w-none" :style="getNodePreviewStyles(child)" @click.stop="editNode(child.id)" x-html="child.data?.content||'<p class=\'text-gray-300\'>Enter text here...</p>'"></div>
+                                            </template>
+                                            <!-- HTML -->
+                                            <template x-if="child.type==='html'">
+                                                <div class="px-3 py-2 rounded-lg bg-gray-900 text-green-400 font-mono text-xs overflow-x-auto" @click.stop="editNode(child.id)">
+                                                    <pre class="whitespace-pre-wrap" x-text="child.data?.html||'<!-- HTML Code -->'"></pre>
+                                                </div>
+                                            </template>
+                                            <!-- DIVIDER -->
+                                            <template x-if="child.type==='divider'">
+                                                <div class="px-3 py-3" @click.stop="editNode(child.id)">
+                                                    <hr :style="'border-color:'+(child.data?.line_color||'#cecece')+';border-width:'+(child.data?.line_width||'1px')+';width:'+(child.data?.line_length||'100%')">
+                                                </div>
+                                            </template>
+                                            <!-- IMAGE -->
+                                            <template x-if="child.type==='image'">
+                                                <div class="px-3 py-2 rounded-lg" :style="getNodePreviewStyles(child)" @click.stop="editNode(child.id)">
+                                                    <template x-if="child.data?.image_url">
+                                                        <img :src="child.data.image_url" :alt="child.data?.alt_text||''" class="max-w-full rounded" :style="child.data?.max_width ? 'max-width:'+child.data.max_width : ''">
+                                                    </template>
+                                                    <template x-if="!child.data?.image_url">
+                                                        <div class="flex flex-col items-center justify-center py-8 text-gray-300 border-2 border-dashed border-gray-200 rounded-lg">
+                                                            <i class="fa-solid fa-image text-3xl mb-2"></i>
+                                                            <span class="text-xs"><?= $escaper->escapeHtml((string) __('Click to add image')) ?></span>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <!-- BUTTONS -->
+                                            <template x-if="child.type==='buttons'">
+                                                <div class="px-3 py-2 rounded-lg" :style="getNodePreviewStyles(child)"
+                                                     :class="child.data?.appearance==='stacked' ? 'flex flex-col gap-2' : 'flex flex-wrap gap-2'"
+                                                     @dragover.prevent.stop="zoneOver($event)"
+                                                     @dragenter.prevent.stop="zoneEnter($event,'buttons',child.id)"
+                                                     @dragleave="zoneLeave($event,'buttons',child.id)"
+                                                     @drop.prevent.stop="zoneDrop($event,'buttons',child.id)">
+                                                    <template x-for="btn in (child.children||[])" :key="btn.id">
+                                                        <div class="pb-node-wrap relative group/btn inline-flex"
+                                                             :class="{'pb-selected': editingNodeId===btn.id}"
+                                                             @click.stop="editNode(btn.id)">
+                                                            <div class="pb-type-label">Button</div>
+                                                            <a class="inline-flex items-center px-4 py-2 rounded text-sm font-semibold cursor-pointer transition-colors"
+                                                               :class="btn.data?.button_type==='secondary' ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' : btn.data?.button_type==='link' ? 'text-indigo-600 underline' : 'bg-indigo-600 text-white hover:bg-indigo-500'"
+                                                               :style="(btn.data?.button_color ? 'background-color:'+btn.data.button_color+';' : '')+(btn.data?.border_radius ? 'border-radius:'+btn.data.border_radius+';' : '')"
+                                                               x-text="btn.data?.button_text||'Button'"></a>
+                                                        </div>
+                                                    </template>
+                                                    <button type="button" @click.stop="addNodeToParent('button-item',findNode(child.id))"
+                                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded border-2 border-dashed border-gray-300 text-xs text-gray-400 hover:border-indigo-300 hover:text-indigo-500 transition">
+                                                        <i class="fa-solid fa-plus"></i> Add Button
+                                                    </button>
+                                                </div>
+                                            </template>
+                                            <!-- GENERIC fallback -->
+                                            <template x-if="['column-group','heading','text','html','divider','image','buttons'].indexOf(child.type)===-1">
+                                                <div class="px-3 py-3 rounded-lg bg-gray-50 text-xs text-gray-500 flex items-center gap-2">
+                                                    <i :class="getContentType(child.type)?.icon||'fa-solid fa-cube'" class="text-gray-400"></i>
+                                                    <span x-text="getContentType(child.type)?.label||child.type"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Non-row top-level -->
+                            <template x-if="node.type!=='row'">
+                                <div class="px-3 py-3 rounded-xl bg-white border-2 border-gray-200 group-hover:border-indigo-400 shadow-sm text-xs text-gray-500 flex items-center gap-2 transition-all">
+                                    <i :class="getContentType(node.type)?.icon||'fa-solid fa-cube'" class="text-gray-400"></i>
+                                    <span x-text="getContentType(node.type)?.label||node.type"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+
+        <?php include __DIR__ . '/inspector.phtml'; ?>
+
+    </div>
+</div>

@@ -1,0 +1,102 @@
+<?php
+/**
+ * Qoliber Nebula — Grid mass action toolbar (Alpine.js)
+ * No RequireJS grid JS
+ *
+ * @var \Magento\Backend\Block\Widget\Grid\Massaction\AbstractMassaction $block
+ */
+?>
+<div class="flex items-center gap-3 py-3 px-4 bg-gray-50 border-b border-gray-200 rounded-t-xl"
+     x-data="nebulaMassAction_<?= preg_replace('/[^a-zA-Z0-9]/', '_', $block->getHtmlId()) ?>()">
+
+    <?php if ($block->getHideFormElement() !== true): ?>
+    <form action="" id="<?= $block->getHtmlId() ?>-form" method="post" class="flex items-center gap-3 flex-1">
+    <?php endif; ?>
+        <?= $block->getBlockHtml('formkey') ?>
+
+        <select id="<?= $block->getHtmlId() ?>-select"
+                x-model="action"
+                class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none transition">
+            <option value=""><?= $block->escapeHtml(__('Actions')) ?></option>
+            <?php foreach ($block->getItems() as $item): ?>
+                <option value="<?= $block->escapeHtmlAttr($item->getId()) ?>">
+                    <?= $block->escapeHtml($item->getLabel()) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <span id="<?= $block->getHtmlId() ?>-form-hiddens"></span>
+
+        <button type="button"
+                @click="submitAction()"
+                :disabled="!action"
+                class="inline-flex items-center rounded-lg bg-nebula-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-nebula-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <?= $block->escapeHtml(__('Submit')) ?>
+        </button>
+
+        <span class="text-xs text-gray-400" x-show="selectedCount > 0" x-text="selectedCount + ' selected'"></span>
+
+    <?php if ($block->getHideFormElement() !== true): ?>
+    </form>
+    <?php endif; ?>
+
+    <div class="ml-auto">
+        <select @change="massSelect($event.target.value); $event.target.value = ''"
+                class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-500 focus:outline-none">
+            <option value="" disabled selected><?= $block->escapeHtml(__('Select...')) ?></option>
+            <?php if ($block->getUseSelectAll()): ?>
+                <option value="selectAll"><?= $block->escapeHtml(__('Select All')) ?></option>
+                <option value="unselectAll"><?= $block->escapeHtml(__('Unselect All')) ?></option>
+            <?php endif; ?>
+            <option value="selectVisible"><?= $block->escapeHtml(__('Select Visible')) ?></option>
+            <option value="unselectVisible"><?= $block->escapeHtml(__('Unselect Visible')) ?></option>
+        </select>
+    </div>
+</div>
+
+<script>
+    function nebulaMassAction_<?= preg_replace('/[^a-zA-Z0-9]/', '_', $block->getHtmlId()) ?>() {
+        return {
+            action: '',
+            selectedCount: 0,
+
+            massSelect(type) {
+                const grid = this.$el.closest('[data-grid-id]') || document;
+                const checkboxes = grid.querySelectorAll('input[type="checkbox"][name="massaction[]"], input[type="checkbox"].massaction-checkbox, td.data-grid-checkbox-cell input[type="checkbox"]');
+                const check = (type === 'selectAll' || type === 'selectVisible');
+
+                checkboxes.forEach(function(cb) { cb.checked = check; });
+                this.selectedCount = check ? checkboxes.length : 0;
+            },
+
+            submitAction() {
+                if (!this.action) return;
+                const form = document.getElementById('<?= $block->escapeJs($block->getHtmlId()) ?>-form');
+                if (form) {
+                    const selected = [];
+                    const grid = this.$el.closest('[data-grid-id]') || document;
+                    grid.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb) {
+                        if (cb.value) selected.push(cb.value);
+                    });
+
+                    <?php foreach ($block->getItems() as $item): ?>
+                    if (this.action === '<?= $block->escapeJs($item->getId()) ?>') {
+                        const url = '<?= $block->escapeJs($item->getUrl()) ?>';
+                        const hiddens = document.getElementById('<?= $block->escapeJs($block->getHtmlId()) ?>-form-hiddens');
+                        hiddens.innerHTML = '';
+                        selected.forEach(function(id) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'cache_types';
+                            input.value = id;
+                            hiddens.appendChild(input);
+                        });
+                        form.action = url;
+                        form.submit();
+                    }
+                    <?php endforeach; ?>
+                }
+            }
+        }
+    }
+</script>

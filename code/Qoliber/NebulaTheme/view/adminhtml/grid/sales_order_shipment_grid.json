@@ -1,0 +1,77 @@
+{
+  "id": "sales_order_shipment_grid",
+  "acl": "Magento_Sales::shipment",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "sales_order_shipment.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "entity_id",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "increment_id": {
+      "label": "Shipment #",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "created_at": {
+      "label": "Ship Date",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 30
+    },
+    "order_increment_id": {
+      "label": "Order #",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 40
+    },
+    "shipping_name": {
+      "label": "Ship-to Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 50
+    },
+    "total_qty": {
+      "label": "Total Qty",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "View",
+          "url": "sales/shipment/view/shipment_id/{{entity_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

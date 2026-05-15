@@ -1,0 +1,92 @@
+<?php /** @var \Qoliber\NebulaGrid\Block\Grid $block */ ?>
+<?php
+
+$columns = $block->getColumns();
+$hasMassActions = $block->hasMassActions();
+$activeFilters = $block->getActiveFilters();
+?>
+<tr class="border-t border-nebula-600 bg-nebula-700">
+    <?php if ($hasMassActions) : ?>
+        <th aria-label="<?= $escaper->escapeHtmlAttr((string) __('Mass action filter column')) ?>" class="px-4 py-2"></th>
+    <?php endif; ?>
+
+    <?php foreach ($columns as $key => $col) :
+        $filterColumnLabel = trim((string) ($col['label'] ?? ''));
+        if ($filterColumnLabel === '') {
+            $filterColumnLabel = ucwords(str_replace('_', ' ', (string) $key));
+        }
+        $filterType = $col['filter'] ?? false;
+        $filterValue = $activeFilters[$key] ?? '';
+        $filterFromValue = $activeFilters[$key . '_from'] ?? '';
+        $filterToValue = $activeFilters[$key . '_to'] ?? '';
+        ?>
+        <th class="px-4 py-2"
+            aria-label="<?= $escaper->escapeHtmlAttr((string) __('Filters for %1', $filterColumnLabel)) ?>"
+            title="<?= $escaper->escapeHtmlAttr((string) __('Filters for %1', $filterColumnLabel)) ?>">
+            <?php if ($filterType === 'text') : ?>
+                <input type="text"
+                       value="<?= $escaper->escapeHtmlAttr((string) $filterValue) ?>"
+                       x-model="pendingFilters['<?= $escaper->escapeJs($key) ?>']"
+                       @keydown.enter="applyAllFilters()"
+                       placeholder="<?= $escaper->escapeHtmlAttr((string) __('Filter...')) ?>"
+                       class="block w-full rounded-md py-1.5 px-2.5 text-xs text-gray-900 bg-gray-50 border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+            <?php elseif ($filterType === 'select') :
+                $selectFilterLabel = (string) ($col['label'] ?? $key); ?>
+                <select x-model="pendingFilters['<?= $escaper->escapeJs($key) ?>']"
+                        aria-label="<?= $escaper->escapeHtmlAttr((string) __('Filter by %1', $selectFilterLabel)) ?>"
+                        title="<?= $escaper->escapeHtmlAttr((string) __('Filter by %1', $selectFilterLabel)) ?>"
+                        class="block w-full rounded-md py-1.5 px-2.5 text-xs text-gray-900 bg-gray-50 border border-gray-300 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+                    <option value=""><?= $escaper->escapeHtml((string) __('All')) ?></option>
+                    <?php foreach ($col['filterOptions'] ?? [] as $optValue => $optLabel) : ?>
+                        <option value="<?= $escaper->escapeHtmlAttr((string) $optValue) ?>"
+                            <?= (string) $filterValue === (string) $optValue ? 'selected' : '' ?>>
+                            <?= $escaper->escapeHtml((string) __($optLabel)) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            <?php elseif ($filterType === 'range') : ?>
+                <div class="flex gap-1">
+                    <input type="number"
+                           value="<?= $escaper->escapeHtmlAttr((string) $filterFromValue) ?>"
+                           x-model="pendingFilters['<?= $escaper->escapeJs($key) ?>_from']"
+                           @keydown.enter="applyAllFilters()"
+                           placeholder="<?= $escaper->escapeHtmlAttr((string) __('From')) ?>"
+                           class="block w-full rounded-md py-1.5 px-2.5 text-xs text-gray-900 bg-gray-50 border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+                    <input type="number"
+                           value="<?= $escaper->escapeHtmlAttr((string) $filterToValue) ?>"
+                           x-model="pendingFilters['<?= $escaper->escapeJs($key) ?>_to']"
+                           @keydown.enter="applyAllFilters()"
+                           placeholder="<?= $escaper->escapeHtmlAttr((string) __('To')) ?>"
+                           class="block w-full rounded-md py-1.5 px-2.5 text-xs text-gray-900 bg-gray-50 border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+                </div>
+            <?php elseif ($filterType === 'date') :
+                $dateFilterLabel = (string) ($col['label'] ?? $key); ?>
+                <div class="flex gap-1">
+                    <input type="date"
+                           value="<?= $escaper->escapeHtmlAttr((string) $filterFromValue) ?>"
+                           x-model="pendingFilters['<?= $escaper->escapeJs($key) ?>_from']"
+                           aria-label="<?= $escaper->escapeHtmlAttr((string) __('From %1', $dateFilterLabel)) ?>"
+                           title="<?= $escaper->escapeHtmlAttr((string) __('From %1', $dateFilterLabel)) ?>"
+                           class="block w-full rounded-md border border-gray-300 bg-gray-50 py-1 px-1 text-xs text-gray-900 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:[color-scheme:dark]">
+                    <input type="date"
+                           value="<?= $escaper->escapeHtmlAttr((string) $filterToValue) ?>"
+                           x-model="pendingFilters['<?= $escaper->escapeJs($key) ?>_to']"
+                           aria-label="<?= $escaper->escapeHtmlAttr((string) __('To %1', $dateFilterLabel)) ?>"
+                           title="<?= $escaper->escapeHtmlAttr((string) __('To %1', $dateFilterLabel)) ?>"
+                           class="block w-full rounded-md border border-gray-300 bg-gray-50 py-1 px-1 text-xs text-gray-900 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:[color-scheme:dark]">
+                </div>
+            <?php elseif (($col['type'] ?? '') === 'actions') : ?>
+                <button type="button"
+                        @click="applyAllFilters()"
+                        class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                    <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                    <?= $escaper->escapeHtml((string) __('Search')) ?>
+                </button>
+            <?php else : ?>
+                <span class="sr-only">
+                    <?= $escaper->escapeHtml((string) __('No filter for %1', $filterColumnLabel)) ?>
+                </span>
+            <?php endif; ?>
+        </th>
+    <?php endforeach; ?>
+</tr>

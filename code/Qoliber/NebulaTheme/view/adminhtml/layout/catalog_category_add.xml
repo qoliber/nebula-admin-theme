@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="category.tree" remove="true"/>
+        <referenceBlock name="category_form" remove="true"/>
+        <referenceBlock name="category.edit" remove="true"/>
+        <referenceBlock name="store_switcher" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Qoliber\NebulaForm\Block\EavForm"
+                   name="nebula.catalog_category_new"
+                   after="-">
+                <arguments>
+                    <argument name="form_id" xsi:type="string">catalog_category_edit</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="nebula.catalog.category.new.scripts"
+                   template="Qoliber_NebulaTheme::scripts/catalog-product.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

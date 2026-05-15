@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$href = (string) $block->getData('href');
+$value = $block->getData('value');
+?>
+<a href="<?= $escaper->escapeUrl($href) ?>" class="text-indigo-600 hover:text-indigo-900 font-medium"><?= $escaper->escapeHtml((string) ($value ?? '')) ?></a>

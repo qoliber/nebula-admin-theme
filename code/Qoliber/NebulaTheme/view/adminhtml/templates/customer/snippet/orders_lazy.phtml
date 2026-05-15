@@ -1,0 +1,79 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\CustomerOrdersLazy $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\CustomerOrdersLazy) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\CustomerOrdersLazy::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+if (!$entity || !$formBlock) {
+    return;
+}
+
+$entityId = (int) $entity->getId();
+$stats = $formBlock->getFieldValue('_stats') ?? [];
+$totalOrders = (int) ($stats['total_orders'] ?? 0);
+
+$lifetimeRevenue = $viewModel->formatCurrency((float) ($stats['lifetime_revenue'] ?? 0));
+$avgOrderValue = $viewModel->formatCurrency((float) ($stats['avg_order_value'] ?? 0));
+
+$gridUrl = $escaper->escapeUrl($formBlock->getUrl('nebula/grid/data'));
+?>
+
+<div x-data="{ loaded: false, loading: false, html: '' }"
+     x-intersect.once="
+        if (!loaded && !loading) {
+            loading = true;
+            fetch('<?= /* @noEscape */ $gridUrl ?>?id=customer_orders_grid&customer_id=<?= /* @noEscape */ $entityId ?>')
+                .then(r => r.text())
+                .then(data => { html = data; loaded = true; loading = false; })
+                .catch(() => { loading = false; });
+        }
+     ">
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-3 gap-4 mb-5">
+        <div class="text-center p-3 rounded-lg bg-gray-50">
+            <div class="text-lg font-bold text-gray-900"><?= $escaper->escapeHtml((string) $totalOrders) ?></div>
+            <div class="text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Total Orders')) ?></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-gray-50">
+            <div class="text-lg font-bold text-gray-900"><?= $escaper->escapeHtml($lifetimeRevenue) ?></div>
+            <div class="text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Lifetime Revenue')) ?></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-gray-50">
+            <div class="text-lg font-bold text-gray-900"><?= $escaper->escapeHtml($avgOrderValue) ?></div>
+            <div class="text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Avg Order Value')) ?></div>
+        </div>
+    </div>
+
+    <!-- Loading state -->
+    <template x-if="loading">
+        <div class="flex items-center justify-center py-12">
+            <i class="fa-solid fa-spinner fa-spin text-indigo-500 text-xl mr-3"></i>
+            <span class="text-sm text-gray-500"><?= $escaper->escapeHtml((string) __('Loading orders...')) ?></span>
+        </div>
+    </template>
+
+    <!-- Loaded content -->
+    <template x-if="loaded">
+        <div x-html="html"></div>
+    </template>
+
+    <!-- Initial empty state (before intersection) -->
+    <template x-if="!loaded && !loading">
+        <div class="text-center py-8 text-sm text-gray-400">
+            <i class="fa-solid fa-arrow-down mr-1"></i>
+            <?= $escaper->escapeHtml((string) __('Scroll to load orders')) ?>
+        </div>
+    </template>
+</div>

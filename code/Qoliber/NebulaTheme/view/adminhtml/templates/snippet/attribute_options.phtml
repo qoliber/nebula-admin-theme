@@ -1,0 +1,210 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Qoliber\NebulaTheme\ViewModel\AttributeOptions $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\AttributeOptions) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\AttributeOptions::class);
+}
+
+$formBlock = $block->getData('form_block');
+$entityData = $formBlock ? $formBlock->getEntityData() : [];
+$attributeId = $entityData['attribute_id'] ?? null;
+$frontendInput = $entityData['frontend_input'] ?? 'text';
+$isSelectType = in_array($frontendInput, ['select', 'multiselect']);
+
+if (!$isSelectType) {
+    return;
+}
+
+$existingOptions = $viewModel->getExistingOptions($attributeId !== null ? (int) $attributeId : null);
+$storesData = $viewModel->getStoresData();
+
+$configJson = $escaper->escapeHtmlAttr(json_encode([
+    'options' => $existingOptions,
+    'inputType' => $frontendInput,
+    'stores' => $storesData,
+]));
+
+$inputClass = 'w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm'
+    . ' focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none';
+?>
+
+<script>
+(function() {
+    if (window._nebulaAttributeOptionsRegistered) return;
+    window._nebulaAttributeOptionsRegistered = true;
+
+    var register = function() {
+        Alpine.data('nebulaAttributeOptions', function(config) {
+            return {
+                options: config.options || [],
+                inputType: config.inputType || 'select',
+                stores: config.stores || [],
+                nextId: 0,
+
+                addOption: function() {
+                    this.options.push({
+                        id: 'option_' + this.nextId++,
+                        label: '',
+                        sort_order: this.options.length + 1,
+                        is_default: false,
+                        store_labels: {},
+                        is_new: true,
+                        is_delete: false
+                    });
+                },
+
+                removeOption: function(index) {
+                    if (this.options[index].is_new) {
+                        this.options.splice(index, 1);
+                    } else {
+                        this.options[index].is_delete = true;
+                    }
+                },
+
+                setDefault: function(index) {
+                    if (this.inputType === 'select') {
+                        for (var i = 0; i < this.options.length; i++) {
+                            this.options[i].is_default = (i === index);
+                        }
+                    } else {
+                        this.options[index].is_default = !this.options[index].is_default;
+                    }
+                },
+
+                get visibleOptions() {
+                    return this.options.filter(function(o) { return !o.is_delete; });
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) { register(); }
+    else { document.addEventListener('alpine:init', register); }
+})();
+</script>
+
+<div class="rounded-lg border border-gray-200 bg-white shadow-sm mb-6"
+     x-data="nebulaAttributeOptions(<?= /* @noEscape */ $configJson ?>)">
+    <div class="border-b border-gray-200 px-6 py-4">
+        <h2 class="text-base font-semibold text-gray-900">
+            <?= $escaper->escapeHtml((string)__('Manage Options')) ?>
+        </h2>
+    </div>
+    <div class="px-6 py-4">
+        <!-- Table -->
+        <div x-show="visibleOptions.length > 0" class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 w-16">
+                            <?= $escaper->escapeHtml((string)__('Default')) ?>
+                        </th>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            <?= $escaper->escapeHtml((string)__('Admin')) ?>
+                        </th>
+                        <?php foreach ($storesData as $store) : ?>
+                            <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                <?= $escaper->escapeHtml($store['name']) ?>
+                            </th>
+                        <?php endforeach; ?>
+                        <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 w-20">
+                            <?= $escaper->escapeHtml((string)__('Position')) ?>
+                        </th>
+                        <th class="px-3 py-2.5 w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <template x-for="(option, index) in options" :key="option.id">
+                        <tr x-show="!option.is_delete" class="hover:bg-gray-50 transition">
+                            <!-- Default radio/checkbox -->
+                            <td class="px-3 py-2.5 text-center">
+                                <template x-if="inputType === 'select'">
+                                    <input type="radio"
+                                           name="default[]"
+                                           :value="option.id"
+                                           :checked="option.is_default"
+                                           @click="setDefault(index)"
+                                           class="h-4 w-4 border-gray-300 text-nebula-600 focus:ring-nebula-500">
+                                </template>
+                                <template x-if="inputType === 'multiselect'">
+                                    <input type="checkbox"
+                                           name="default[]"
+                                           :value="option.id"
+                                           :checked="option.is_default"
+                                           @click="setDefault(index)"
+                                           class="h-4 w-4 rounded border-gray-300 text-nebula-600 focus:ring-nebula-500">
+                                </template>
+                            </td>
+
+                            <!-- Admin label (store 0) -->
+                            <td class="px-3 py-2.5">
+                                <input type="text"
+                                       :name="'option[value][' + option.id + '][0]'"
+                                       x-model="option.label"
+                                       class="<?= /* @noEscape */ $inputClass ?>"
+                                       placeholder="<?= $escaper->escapeHtmlAttr((string)__('Admin label')) ?>">
+                            </td>
+
+                            <!-- Per-store labels -->
+                            <?php foreach ($storesData as $store) : ?>
+                                <td class="px-3 py-2.5">
+                                    <input type="text"
+                                           :name="'option[value][' + option.id + '][<?= (int)$store['id'] ?>]'"
+                                           :value="option.store_labels[<?= (int)$store['id'] ?>] || ''"
+                                           @input="option.store_labels[<?= (int)$store['id'] ?>] = $event.target.value"
+                                           class="<?= /* @noEscape */ $inputClass ?>"
+                                           placeholder="<?= $escaper->escapeHtmlAttr($store['name']) ?>">
+                                </td>
+                            <?php endforeach; ?>
+
+                            <!-- Sort order -->
+                            <td class="px-3 py-2.5">
+                                <input type="number"
+                                       :name="'option[order][' + option.id + ']'"
+                                       x-model="option.sort_order"
+                                       min="0" step="1"
+                                       class="<?= /* @noEscape */ $inputClass ?> w-20">
+                            </td>
+
+                            <!-- Delete -->
+                            <td class="px-3 py-2.5 text-center">
+                                <input type="hidden"
+                                       :name="'option[delete][' + option.id + ']'"
+                                       :value="option.is_delete ? '1' : ''">
+                                <button @click="removeOption(index)" type="button"
+                                        class="cursor-pointer inline-flex items-center justify-center h-8 w-8 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition"
+                                        title="<?= $escaper->escapeHtmlAttr((string)__('Remove')) ?>">
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty state -->
+        <div x-show="visibleOptions.length === 0" class="text-center py-4 text-sm text-gray-400">
+            <?= $escaper->escapeHtml((string)__('No options defined. Click "Add Option" to create one.')) ?>
+        </div>
+
+        <!-- Add button -->
+        <button @click="addOption()" type="button"
+                class="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            <?= $escaper->escapeHtml((string)__('Add Option')) ?>
+        </button>
+    </div>
+</div>

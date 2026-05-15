@@ -1,0 +1,38 @@
+/* --- Field notes & warnings --- */
+.nebula-config-note {
+  @apply mt-1.5 text-xs text-gray-500 leading-relaxed;
+  color: var(--nebula-text-tertiary);
+}
+.nebula-config-note small,
+.nebula-config-note code,
+.addafter,
+.addafter small,
+.addafter code {
+  color: inherit;
+}
+.nebula-config-note .colorRed,
+.nebula-config-note strong {
+  @apply text-amber-600 font-semibold;
+}
+.nebula-config-note a,
+.nebula-fieldset-comment a,
+.nebula-config-value a {
+  color: var(--color-nebula-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.nebula-config-note a:hover,
+.nebula-fieldset-comment a:hover,
+.nebula-config-value a:hover {
+  color: var(--color-nebula-700);
+}
+.dark .nebula-config-note a,
+.dark .nebula-fieldset-comment a,
+.dark .nebula-config-value a {
+  color: var(--color-nebula-400);
+}
+.dark .nebula-config-note a:hover,
+.dark .nebula-fieldset-comment a:hover,
+.dark .nebula-config-value a:hover {
+  color: var(--color-nebula-300);
+}

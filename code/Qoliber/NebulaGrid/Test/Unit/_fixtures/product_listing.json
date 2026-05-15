@@ -1,0 +1,68 @@
+{
+  "id": "product_listing",
+  "acl": "Magento_Catalog::products",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "Magento\\Catalog\\Model\\ResourceModel\\Product\\Collection"
+    }
+  },
+  "settings": {
+    "pageSize": 25,
+    "pageSizes": [10, 25, 50, 100],
+    "defaultSort": {
+      "field": "entity_id",
+      "direction": "desc"
+    },
+    "massActions": [
+      { "id": "delete", "label": "Delete", "url": "catalog/product/massDelete" }
+    ]
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "sku": {
+      "label": "SKU",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 30
+    },
+    "price": {
+      "label": "Price",
+      "type": "price",
+      "sortable": true,
+      "position": 40
+    },
+    "status": {
+      "label": "Status",
+      "type": "badge",
+      "options": {
+        "1": {"label": "Enabled", "class": "success"},
+        "2": {"label": "Disabled", "class": "error"}
+      },
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {"label": "Edit", "url": "catalog/product/edit/id/{{entity_id}}"}
+      ],
+      "position": 999
+    }
+  }
+}

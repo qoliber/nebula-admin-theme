@@ -1,0 +1,4 @@
+{
+  "id": "coupon_generator",
+  "template": "Qoliber_NebulaTheme::snippet/coupon_generator.phtml"
+}

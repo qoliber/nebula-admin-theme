@@ -1,0 +1,55 @@
+{
+  "id": "attribute_set_listing",
+  "acl": "Magento_Catalog::sets",
+  "dataSource": {
+    "provider": "attribute_set.grid"
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [20, 50, 100],
+    "defaultSort": {
+      "field": "attribute_set_name",
+      "direction": "asc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add Attribute Set",
+      "url": "catalog/product_set/add"
+    }
+  },
+  "columns": {
+    "attribute_set_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "attribute_set_name": {
+      "label": "Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "sort_order": {
+      "label": "Sort Order",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 30
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "catalog/product_set/edit/id/{{attribute_set_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

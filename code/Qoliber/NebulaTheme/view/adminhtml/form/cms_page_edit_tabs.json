@@ -1,0 +1,211 @@
+{
+  "id": "cms_page_edit_tabs",
+  "acl": "Magento_Cms::save",
+  "dataSource": {
+    "provider": "cms_page.form",
+    "config": {
+      "identifierParam": "page_id"
+    }
+  },
+  "settings": {
+    "title": "CMS Page",
+    "identifierField": "page_id",
+    "backUrl": "cms/page/index",
+    "deleteUrl": "cms/page/delete",
+    "saveUrl": "cms/page/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "fields": {
+        "title": {
+          "label": "Page Title",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "identifier": {
+          "label": "URL Key",
+          "type": "text",
+          "required": true,
+          "position": 20,
+          "note": "Relative URL of the page, e.g. 'about-us'"
+        },
+        "is_active": {
+          "label": "Enable Page",
+          "type": "toggle",
+          "position": 30
+        },
+        "store_id": {
+          "type": "multiselect",
+          "label": "Store View",
+          "optionsSource": "nebula.store.view",
+          "field_name": "store_id",
+          "required": true,
+          "position": 40
+        },
+        "page_layout": {
+          "label": "Layout",
+          "type": "select",
+          "optionsSource": "Magento\\Cms\\Model\\Page\\Source\\PageLayout",
+          "position": 50
+        }
+      }
+    },
+    "content": {
+      "label": "Content",
+      "position": 20,
+      "fields": {
+        "content_heading": {
+          "label": "Content Heading",
+          "type": "text",
+          "position": 10
+        },
+        "content": {
+          "label": "Content",
+          "type": "wysiwyg",
+          "position": 20,
+          "full_width": true
+        }
+      }
+    },
+    "seo": {
+      "label": "Search Engine Optimization",
+      "position": 30,
+      "fields": {
+        "meta_title": {
+          "label": "Meta Title",
+          "type": "text",
+          "position": 10
+        },
+        "meta_keywords": {
+          "label": "Meta Keywords",
+          "type": "textarea",
+          "position": 20
+        },
+        "meta_description": {
+          "label": "Meta Description",
+          "type": "textarea",
+          "position": 30
+        }
+      }
+    }
+  },
+  "layout": [
+    {
+      "id": "cms_page_edit_tabs",
+      "type": "tabs",
+      "children": [
+        {
+          "id": "general_tab",
+          "label": "General",
+          "children": [
+            {
+              "id": "general_main_row",
+              "type": "row",
+              "children": [
+                {
+                  "id": "general_left_column",
+                  "type": "column",
+                  "width": "3/4",
+                  "children": [
+                    {
+                      "id": "general_section",
+                      "type": "section",
+                      "label": "General",
+                      "fields": [
+                        "title",
+                        "identifier",
+                        "is_active",
+                        "store_id"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "general_right_column",
+                  "type": "column",
+                  "width": "1/4",
+                  "children": [
+                    {
+                      "id": "design_section",
+                      "type": "section",
+                      "label": "Design",
+                      "fields": [
+                        "page_layout"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "content_tab",
+          "label": "Content",
+          "children": [
+            {
+              "id": "content_section",
+              "type": "section",
+              "label": "Content",
+              "fields": [
+                "content_heading",
+                "content"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "seo_tab",
+          "label": "SEO",
+          "children": [
+            {
+              "id": "seo_main_row",
+              "type": "row",
+              "children": [
+                {
+                  "id": "seo_left_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "seo_fields_section",
+                      "type": "section",
+                      "label": "Search Engine Optimization",
+                      "fields": [
+                        "meta_title",
+                        "meta_keywords",
+                        "meta_description"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "seo_right_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "seo_preview_section",
+                      "type": "section",
+                      "label": "Google Preview",
+                      "renderer": "snippet.seo_preview",
+                      "entity_type": "cms_page",
+                      "title_field": "title",
+                      "url_field": "identifier",
+                      "url_placeholder": "page-url",
+                      "entity_noun": "page",
+                      "title_placeholder": "Page Title"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

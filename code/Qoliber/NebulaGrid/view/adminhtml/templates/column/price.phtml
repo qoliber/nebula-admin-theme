@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$formatted = (string) $block->getData('formatted');
+$value = $block->getData('value');
+
+if ($value === null) {
+    return;
+}
+?>
+<span class="font-medium"><?= /* @noEscape */ $formatted ?></span>

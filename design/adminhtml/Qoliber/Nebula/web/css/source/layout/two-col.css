@@ -1,0 +1,26 @@
+/* --- 2-Column Layout (config pages) --- */
+.nebula-2col-container {
+  @apply grid;
+  gap: var(--nebula-spacing-xl);
+  margin-top: var(--nebula-spacing-lg);
+  grid-template-columns: calc(15rem + 50px) 1fr;
+  min-width: 0;
+  max-width: 100%;
+}
+.nebula-2col-left {
+  @apply border h-fit sticky top-16;
+  background: var(--nebula-bg-primary);
+  padding: var(--nebula-spacing-lg);
+  border-radius: var(--nebula-radius-xl);
+  max-height: calc(100vh - 5rem);
+  overflow-y: auto;
+}
+.nebula-2col-main {
+  @apply min-w-0;
+}
+.nebula-page-container:has(.nebula-2col-left) {
+  @apply grid gap-6;
+  grid-template-columns: calc(15rem + 50px) 1fr;
+  min-width: 0;
+  max-width: 100%;
+}

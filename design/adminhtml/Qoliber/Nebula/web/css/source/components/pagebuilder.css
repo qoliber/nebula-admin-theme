@@ -1,0 +1,108 @@
+/* Nebula PageBuilder component styles extracted from template-inline blocks. */
+
+.pb-drop-active {
+    outline: 2px dashed var(--color-nebula-400);
+    outline-offset: -2px;
+    background: var(--color-nebula-50) !important;
+}
+
+.pb-panel-item {
+    transition:
+        transform 0.1s,
+        box-shadow 0.1s;
+}
+
+.pb-panel-item:active {
+    transform: scale(0.95);
+}
+
+.pb-node-wrap {
+    position: relative;
+    transition: all 0.15s ease;
+}
+
+.pb-node-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border: 2px solid transparent;
+    border-radius: 0.75rem;
+    pointer-events: none;
+    transition: border-color 0.15s ease;
+    z-index: 5;
+}
+
+.pb-node-wrap:hover::before {
+    border-color: var(--color-nebula-300);
+}
+
+.pb-node-wrap.pb-selected::before {
+    border-color: var(--color-nebula-500);
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+}
+
+.pb-type-label {
+    position: absolute;
+    top: -1px;
+    left: 8px;
+    background: var(--color-nebula-500);
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1px 8px;
+    border-radius: 0 0 6px 6px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 6;
+    pointer-events: none;
+}
+
+.pb-node-wrap:hover > .pb-type-label {
+    opacity: 1;
+}
+
+.pb-node-wrap.pb-selected > .pb-type-label {
+    opacity: 1;
+    background: var(--color-nebula-600);
+}
+
+body.dark .nebula-pb-inspector,
+.dark .nebula-pb-inspector {
+    background-color: #242933 !important;
+    border-color: #4b5563 !important;
+}
+
+body.dark .nebula-pb-inspector .text-gray-900,
+.dark .nebula-pb-inspector .text-gray-900 {
+    color: #eceff4 !important;
+}
+
+body.dark .nebula-pb-inspector .text-gray-700,
+body.dark .nebula-pb-inspector .text-gray-500,
+body.dark .nebula-pb-inspector .text-gray-400,
+.dark .nebula-pb-inspector .text-gray-700,
+.dark .nebula-pb-inspector .text-gray-500,
+.dark .nebula-pb-inspector .text-gray-400 {
+    color: #cbd5e1 !important;
+}
+
+body.dark .nebula-pb-inspector input[type="text"],
+body.dark .nebula-pb-inspector select,
+body.dark .nebula-pb-inspector textarea,
+.dark .nebula-pb-inspector input[type="text"],
+.dark .nebula-pb-inspector select,
+.dark .nebula-pb-inspector textarea {
+    background-color: #1f2937 !important;
+    border-color: #4b5563 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark .nebula-pb-inspector input[type="text"]::placeholder,
+body.dark .nebula-pb-inspector textarea::placeholder,
+.dark .nebula-pb-inspector input[type="text"]::placeholder,
+.dark .nebula-pb-inspector textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
+}

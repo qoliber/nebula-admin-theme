@@ -1,0 +1,573 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\BundleOptions $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\BundleOptions) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\BundleOptions::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+if (!$entity || $entity->getTypeId() !== 'bundle') {
+    return;
+}
+
+$existingOptions = $viewModel->getExistingOptions($entity);
+
+$searchUrl = $formBlock->getUrl('nebula/grid/productSearch');
+$formKey = $formBlock->getFormKey();
+
+$bundleConfig = json_encode([
+    'existingOptions' => $existingOptions,
+    'searchUrl' => $searchUrl,
+    'formKey' => $formKey,
+], JSON_HEX_APOS | JSON_HEX_QUOT);
+?>
+<div x-data="nebulaBundleOptions(<?= $escaper->escapeHtmlAttr($bundleConfig) ?>)">
+
+    <!-- Existing Options Cards -->
+    <div x-show="visibleOptions.length > 0" class="space-y-4 mb-4">
+        <div class="flex items-center justify-between">
+            <p class="text-sm text-gray-500" x-text="visibleOptions.length + ' bundle option' + (visibleOptions.length !== 1 ? 's' : '')"></p>
+            <button @click="openWizard()" type="button"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition cursor-pointer">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <?= $escaper->escapeHtml(__('Add Bundle Option')) ?>
+            </button>
+        </div>
+
+        <template x-for="(option, oi) in options" :key="oi">
+            <div x-show="option.delete !== '1'" class="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                <!-- Option Header -->
+                <div class="flex items-center justify-between bg-gray-50 px-5 py-3 border-b border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <input type="text" x-model="option.title"
+                               class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-none"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Option Title')) ?>">
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                              :class="getTypeBadgeClass(option.type)">
+                            <span x-html="getTypeIcon(option.type)"></span>
+                            <span x-text="getTypeLabel(option.type)"></span>
+                        </span>
+                        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                            <input type="checkbox" x-model="option.required"
+                                   class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                            <?= $escaper->escapeHtml(__('Required')) ?>
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="openInlineSearch(oi)"
+                                class="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition cursor-pointer">
+                            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            <?= $escaper->escapeHtml(__('Add Product')) ?>
+                        </button>
+                        <button type="button" @click="removeOption(oi)"
+                                class="rounded-md p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selections Table -->
+                <div x-show="option.selections.filter(function(s) { return s.delete !== '1'; }).length > 0">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50/50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            <tr>
+                                <th class="px-4 py-2 w-12"></th>
+                                <th class="px-4 py-2"><?= $escaper->escapeHtml(__('Product')) ?></th>
+                                <th class="px-4 py-2"><?= $escaper->escapeHtml(__('SKU')) ?></th>
+                                <th class="px-4 py-2 w-20"><?= $escaper->escapeHtml(__('Qty')) ?></th>
+                                <th class="px-4 py-2 w-28"><?= $escaper->escapeHtml(__('Price')) ?></th>
+                                <th class="px-4 py-2 w-28"><?= $escaper->escapeHtml(__('Price Type')) ?></th>
+                                <th class="px-4 py-2 w-16 text-center"><?= $escaper->escapeHtml(__('Default')) ?></th>
+                                <th class="px-4 py-2 w-16 text-center"><?= $escaper->escapeHtml(__('User Qty')) ?></th>
+                                <th class="px-4 py-2 w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <template x-for="(sel, si) in option.selections" :key="si">
+                                <tr x-show="sel.delete !== '1'" class="hover:bg-gray-50 transition">
+                                    <td class="px-4 py-2">
+                                        <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                                            <img x-show="sel.thumbnail" :src="sel.thumbnail" :alt="sel.name"
+                                                 class="h-full w-full object-cover">
+                                            <div x-show="!sel.thumbnail"
+                                                 class="flex h-full w-full items-center justify-center text-gray-400">
+                                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2 font-medium text-gray-900 text-sm" x-text="sel.name"></td>
+                                    <td class="px-4 py-2 font-mono text-xs text-gray-500" x-text="sel.sku"></td>
+                                    <td class="px-4 py-2">
+                                        <input type="number" x-model="sel.qty" min="0" step="1"
+                                               class="w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <input type="number" x-model="sel.price" min="0" step="0.01"
+                                               class="w-24 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <select x-model="sel.price_type"
+                                                class="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+                                            <option value="0"><?= $escaper->escapeHtml(__('Fixed')) ?></option>
+                                            <option value="1"><?= $escaper->escapeHtml(__('Percent')) ?></option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-2 text-center">
+                                        <input type="checkbox" :checked="sel.is_default" @change="toggleDefault(oi, si)"
+                                               class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer">
+                                    </td>
+                                    <td class="px-4 py-2 text-center">
+                                        <input type="checkbox" x-model="sel.can_change_qty"
+                                               class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer">
+                                    </td>
+                                    <td class="px-4 py-2 text-center">
+                                        <button type="button" @click="removeSelection(oi, si)"
+                                                class="text-gray-400 hover:text-red-600 transition cursor-pointer">
+                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty selections state -->
+                <div x-show="option.selections.filter(function(s) { return s.delete !== '1'; }).length === 0"
+                     class="px-5 py-6 text-center text-sm text-gray-400">
+                    <?= $escaper->escapeHtml(__('No products added to this option.')) ?>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Empty state (no options) -->
+    <div x-show="visibleOptions.length === 0" x-cloak>
+        <div class="text-center py-12 rounded-xl border-2 border-dashed border-gray-300">
+            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+            </svg>
+            <p class="mt-4 text-sm font-medium text-gray-900"><?= $escaper->escapeHtml(__('No bundle options configured')) ?></p>
+            <p class="mt-1 text-sm text-gray-500"><?= $escaper->escapeHtml(__('Add options to define how customers can customize this bundle product.')) ?></p>
+            <button @click="openWizard()" type="button"
+                    class="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition cursor-pointer">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <?= $escaper->escapeHtml(__('Add Bundle Option')) ?>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Bundle Option Wizard Modal -->
+        <div x-show="wizardOpen" x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center"
+             @keydown.escape.window="wizardOpen = false">
+
+            <div x-show="wizardOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="wizardOpen = false"></div>
+
+            <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="nebula-bundle-option-wizard-title"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 @click.stop>
+
+                <!-- Header -->
+                <div class="sticky top-0 z-10 bg-white border-b border-gray-200 px-8 py-5 rounded-t-2xl shrink-0">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 id="nebula-bundle-option-wizard-title" class="text-lg font-bold text-gray-900"><?= $escaper->escapeHtml(__('Add Bundle Option')) ?></h2>
+                        <button @click="wizardOpen = false" type="button" class="text-gray-400 hover:text-gray-600 transition cursor-pointer">
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Step indicators -->
+                    <div class="flex items-center gap-2">
+                        <template x-for="(stepName, i) in ['Configure Option', 'Select Products']" :key="i">
+                            <div class="flex items-center gap-2">
+                                <div :class="wizardStep > i ? 'bg-indigo-600 text-white' : wizardStep === i ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-600' : 'bg-gray-100 text-gray-500'"
+                                     class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200"
+                                     x-text="i + 1"></div>
+                                <span class="text-sm font-medium transition-colors duration-200"
+                                      :class="wizardStep === i ? 'text-indigo-700' : wizardStep > i ? 'text-indigo-600' : 'text-gray-500'"
+                                      x-text="stepName"></span>
+                                <template x-if="i < 1">
+                                    <div class="h-px w-8" :class="wizardStep > i ? 'bg-indigo-400' : 'bg-gray-300'"></div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Step Content -->
+                <div class="px-8 py-6 overflow-y-auto flex-1">
+
+                    <!-- Step 1: Configure Option -->
+                    <div x-show="wizardStep === 0">
+                        <p class="text-sm text-gray-600 mb-6"><?= $escaper->escapeHtml(__('Configure the bundle option settings:')) ?></p>
+                        <div class="space-y-5 max-w-lg">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1"><?= $escaper->escapeHtml(__('Option Title')) ?></label>
+                                <input type="text" x-model="wizardOption.title" placeholder="<?= $escaper->escapeHtmlAttr(__('e.g., Choose a Shirt')) ?>"
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3"><?= $escaper->escapeHtml(__('Input Type')) ?></label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button type="button" @click="wizardOption.type = 'select'"
+                                            :class="wizardOption.type === 'select' ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'"
+                                            class="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-150 text-left">
+                                        <svg class="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"/>
+                                        </svg>
+                                        <div>
+                                            <div class="text-sm font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Dropdown')) ?></div>
+                                            <div class="text-xs text-gray-500"><?= $escaper->escapeHtml(__('Select one from a list')) ?></div>
+                                        </div>
+                                    </button>
+                                    <button type="button" @click="wizardOption.type = 'radio'"
+                                            :class="wizardOption.type === 'radio' ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'"
+                                            class="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-150 text-left">
+                                        <svg class="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                                        </svg>
+                                        <div>
+                                            <div class="text-sm font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Radio Buttons')) ?></div>
+                                            <div class="text-xs text-gray-500"><?= $escaper->escapeHtml(__('Choose one option')) ?></div>
+                                        </div>
+                                    </button>
+                                    <button type="button" @click="wizardOption.type = 'checkbox'"
+                                            :class="wizardOption.type === 'checkbox' ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'"
+                                            class="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-150 text-left">
+                                        <svg class="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                        </svg>
+                                        <div>
+                                            <div class="text-sm font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Checkboxes')) ?></div>
+                                            <div class="text-xs text-gray-500"><?= $escaper->escapeHtml(__('Choose multiple options')) ?></div>
+                                        </div>
+                                    </button>
+                                    <button type="button" @click="wizardOption.type = 'multi'"
+                                            :class="wizardOption.type === 'multi' ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'"
+                                            class="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-150 text-left">
+                                        <svg class="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/>
+                                        </svg>
+                                        <div>
+                                            <div class="text-sm font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Multiple Select')) ?></div>
+                                            <div class="text-xs text-gray-500"><?= $escaper->escapeHtml(__('Select multiple from list')) ?></div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" x-model="wizardOption.required"
+                                           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                                    <span class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml(__('Required')) ?></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Products -->
+                    <div x-show="wizardStep === 1">
+                        <div class="flex items-center justify-between mb-4">
+                            <p class="text-sm text-gray-600">
+                                <?= $escaper->escapeHtml(__('Add products to this bundle option:')) ?>
+                                <span class="font-semibold text-gray-900" x-text="wizardSelections.length"></span>
+                                <?= $escaper->escapeHtml(__('selected')) ?>
+                            </p>
+                            <button type="button" @click="openWizardSearch()"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 transition cursor-pointer">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                </svg>
+                                <?= $escaper->escapeHtml(__('Search Products')) ?>
+                            </button>
+                        </div>
+
+                        <!-- Selected products table -->
+                        <div x-show="wizardSelections.length > 0" class="overflow-hidden rounded-lg border border-gray-200">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    <tr>
+                                        <th class="px-3 py-2 w-12"></th>
+                                        <th class="px-3 py-2"><?= $escaper->escapeHtml(__('Name')) ?></th>
+                                        <th class="px-3 py-2"><?= $escaper->escapeHtml(__('SKU')) ?></th>
+                                        <th class="px-3 py-2 w-20"><?= $escaper->escapeHtml(__('Qty')) ?></th>
+                                        <th class="px-3 py-2 w-10"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <template x-for="(product, pi) in wizardSelections" :key="pi">
+                                        <tr class="hover:bg-gray-50 transition">
+                                            <td class="px-3 py-2">
+                                                <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                                                    <img x-show="product.thumbnail" :src="product.thumbnail" :alt="product.name"
+                                                         class="h-full w-full object-cover">
+                                                    <div x-show="!product.thumbnail"
+                                                         class="flex h-full w-full items-center justify-center text-gray-400">
+                                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-3 py-2 font-medium text-gray-900" x-text="product.name"></td>
+                                            <td class="px-3 py-2 font-mono text-xs text-gray-500" x-text="product.sku"></td>
+                                            <td class="px-3 py-2">
+                                                <input type="number" x-model="product.qty" min="1" step="1"
+                                                       class="w-16 rounded-md border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+                                            </td>
+                                            <td class="px-3 py-2 text-center">
+                                                <button type="button" @click="wizardRemoveProduct(pi)"
+                                                        class="text-gray-400 hover:text-red-600 transition cursor-pointer">
+                                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div x-show="wizardSelections.length === 0"
+                             class="rounded-lg border-2 border-dashed border-gray-200 px-6 py-8 text-center">
+                            <p class="text-sm text-gray-500"><?= $escaper->escapeHtml(__('No products selected. Click "Search Products" to add products.')) ?></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="sticky bottom-0 bg-white border-t border-gray-200 px-8 py-4 rounded-b-2xl flex items-center justify-between shrink-0">
+                    <button type="button" @click="wizardStep > 0 ? wizardStep-- : wizardOpen = false"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition cursor-pointer">
+                        <span x-text="wizardStep === 0 ? '<?= $escaper->escapeJs(__('Cancel')) ?>' : '<?= $escaper->escapeJs(__('Back')) ?>'"></span>
+                    </button>
+                    <div class="flex gap-3">
+                        <template x-if="wizardStep < 1">
+                            <button type="button" @click="wizardNext()" :disabled="!wizardCanProceed"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
+                                <?= $escaper->escapeHtml(__('Next')) ?>
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
+                            </button>
+                        </template>
+                        <template x-if="wizardStep === 1">
+                            <button type="button" @click="wizardApply()" :disabled="!wizardCanProceed"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
+                                <?= $escaper->escapeHtml(__('Add Option')) ?>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Wizard Product Search Sub-Modal -->
+        <div x-show="wizardSearchOpen" x-cloak
+             class="fixed inset-0 z-[10000] flex items-center justify-center"
+             @keydown.escape.window.stop="wizardSearchOpen = false">
+
+            <div x-show="wizardSearchOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="wizardSearchOpen = false"></div>
+
+            <div class="relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl bg-white shadow-2xl"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="nebula-bundle-search-modal-title"
+                 @click.stop>
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                    <h2 id="nebula-bundle-search-modal-title" class="text-lg font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Search Products')) ?></h2>
+                    <button type="button" @click="wizardSearchOpen = false"
+                            class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="border-b border-gray-200 px-6 py-3">
+                    <div class="relative">
+                        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                        </svg>
+                        <input type="text" x-ref="wizardSearchInput" x-model="wizardSearchQuery"
+                               @input.debounce.350ms="wizardSearch()"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Search by name or SKU...')) ?>"
+                               class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                        <div x-show="wizardSearching" class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg class="h-4 w-4 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto px-6 py-2">
+                    <div x-show="wizardSearchQuery.length < 2 && wizardSearchResults.length === 0" class="py-12 text-center text-sm text-gray-500">
+                        <?= $escaper->escapeHtml(__('Type at least 2 characters to search.')) ?>
+                    </div>
+                    <div x-show="wizardSearchQuery.length >= 2 && !wizardSearching && wizardSearchResults.length === 0" class="py-12 text-center text-sm text-gray-500">
+                        <?= $escaper->escapeHtml(__('No products found.')) ?>
+                    </div>
+                    <template x-for="product in wizardSearchResults" :key="product.id">
+                        <div @click="wizardAddProduct(product)"
+                             class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-indigo-50 transition-colors border-b border-gray-100 last:border-0">
+                            <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                                <img x-show="product.thumbnail" :src="product.thumbnail" :alt="product.name" class="h-full w-full object-cover">
+                                <div x-show="!product.thumbnail" class="flex h-full w-full items-center justify-center text-gray-400">
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 truncate" x-text="product.name"></div>
+                                <div class="text-xs text-gray-500"><span class="font-mono" x-text="product.sku"></span></div>
+                            </div>
+                            <div class="text-sm text-gray-700 flex-shrink-0" x-text="product.price != null ? '$' + Number(product.price).toFixed(2) : ''"></div>
+                            <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700"><?= $escaper->escapeHtml(__('Add')) ?></span>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex items-center justify-end border-t border-gray-200 px-6 py-3">
+                    <button type="button" @click="wizardSearchOpen = false; wizardSearchQuery = ''; wizardSearchResults = []"
+                            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 transition cursor-pointer">
+                        <?= $escaper->escapeHtml(__('Done')) ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    <!-- Inline Product Search Modal (for existing options) -->
+        <div x-show="inlineSearchOpen" x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center"
+             @keydown.escape.window="inlineSearchOpen = false">
+
+            <div x-show="inlineSearchOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="inlineSearchOpen = false"></div>
+
+            <div class="relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl bg-white shadow-2xl"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="nebula-bundle-add-product-modal-title"
+                 @click.stop>
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                    <h2 id="nebula-bundle-add-product-modal-title" class="text-lg font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Add Product to Option')) ?></h2>
+                    <button type="button" @click="inlineSearchOpen = false"
+                            class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="border-b border-gray-200 px-6 py-3">
+                    <div class="relative">
+                        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                        </svg>
+                        <input type="text" x-ref="inlineSearchInput" x-model="inlineSearchQuery"
+                               @input.debounce.350ms="inlineSearch()"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Search by name or SKU...')) ?>"
+                               class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                        <div x-show="inlineSearching" class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg class="h-4 w-4 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto px-6 py-2">
+                    <div x-show="inlineSearchQuery.length < 2 && inlineSearchResults.length === 0" class="py-12 text-center text-sm text-gray-500">
+                        <?= $escaper->escapeHtml(__('Type at least 2 characters to search.')) ?>
+                    </div>
+                    <div x-show="inlineSearchQuery.length >= 2 && !inlineSearching && inlineSearchResults.length === 0" class="py-12 text-center text-sm text-gray-500">
+                        <?= $escaper->escapeHtml(__('No products found.')) ?>
+                    </div>
+                    <template x-for="product in inlineSearchResults" :key="product.id">
+                        <div @click="inlineAddProduct(product)"
+                             class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-indigo-50 transition-colors border-b border-gray-100 last:border-0">
+                            <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                                <img x-show="product.thumbnail" :src="product.thumbnail" :alt="product.name" class="h-full w-full object-cover">
+                                <div x-show="!product.thumbnail" class="flex h-full w-full items-center justify-center text-gray-400">
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 truncate" x-text="product.name"></div>
+                                <div class="text-xs text-gray-500"><span class="font-mono" x-text="product.sku"></span></div>
+                            </div>
+                            <div class="text-sm text-gray-700 flex-shrink-0" x-text="product.price != null ? '$' + Number(product.price).toFixed(2) : ''"></div>
+                            <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700"><?= $escaper->escapeHtml(__('Add')) ?></span>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex items-center justify-end border-t border-gray-200 px-6 py-3">
+                    <button type="button" @click="inlineSearchOpen = false; inlineSearchQuery = ''; inlineSearchResults = []"
+                            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 transition cursor-pointer">
+                        <?= $escaper->escapeHtml(__('Done')) ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+</div>

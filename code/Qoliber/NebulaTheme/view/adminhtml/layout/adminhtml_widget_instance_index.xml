@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+    Swap the vendor widget-instance grid container for a Nebula Grid block.
+    Removes the legacy Magento\Widget\Block\Adminhtml\Widget\Instance container
+    (which also pulls in the legacy grid block via the adminhtml_widget_instance_block
+    update handle) and mounts our JSON-driven grid instead.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="adminhtml.widget.instance.grid.container" remove="true"/>
+        <referenceContainer name="content" htmlTag="div">
+            <block class="Qoliber\NebulaGrid\Block\Grid"
+                   name="nebula.widget_instance_listing"
+                   after="-">
+                <arguments>
+                    <argument name="grid_id" xsi:type="string">widget_instance_listing</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

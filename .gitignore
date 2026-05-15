@@ -1,0 +1,7 @@
+/vendor/
+/node_modules/
+/design/adminhtml/Qoliber/Nebula/node_modules/
+.phpunit.result.cache
+.phpunit.cache/
+.phpcs-cache
+.php-cs-fixer.cache

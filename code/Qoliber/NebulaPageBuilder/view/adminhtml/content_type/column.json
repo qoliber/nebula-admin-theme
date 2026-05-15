@@ -1,0 +1,62 @@
+{
+  "name": "column",
+  "label": "Column",
+  "icon": "fa-solid fa-table-columns",
+  "sortOrder": 0,
+  "isContainer": true,
+  "isSystem": true,
+  "parents": {
+    "defaultPolicy": "deny",
+    "allow": ["column-line", "column"]
+  },
+  "children": {
+    "defaultPolicy": "allow",
+    "deny": ["row", "column", "column-line"]
+  },
+  "appearances": {
+    "full-height": {
+      "default": true,
+      "label": "Full Height",
+      "masterTemplate": "master/column/default.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "column",
+            "data-appearance": "full-height"
+          },
+          "styles": {
+            "background-color": {"source": "background_color"},
+            "background-image": {"source": "background_image", "converter": "backgroundImage"},
+            "background-position": {"source": "background_position"},
+            "background-size": {"source": "background_size"},
+            "background-repeat": {"source": "background_repeat"},
+            "background-attachment": {"source": "background_attachment"},
+            "text-align": {"source": "text_align"},
+            "border-style": {"source": "border_style", "converter": "borderStyle"},
+            "border-color": {"source": "border_color"},
+            "border-width": {"source": "border_width"},
+            "border-radius": {"source": "border_radius"},
+            "min-height": {"source": "min_height"},
+            "width": {"source": "width"},
+            "margin": {"source": "margins_and_padding", "converter": "margins"},
+            "padding": {"source": "margins_and_padding", "converter": "paddings"}
+          },
+          "cssClasses": ["pagebuilder-column"],
+          "cssSource": "css_classes",
+          "staticStyles": {
+            "align-self": "stretch",
+            "display": "flex",
+            "flex-direction": "column"
+          }
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "full-height",
+    "width": "50%",
+    "min_height": "",
+    "background_color": ""
+  }
+}

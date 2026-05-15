@@ -1,0 +1,87 @@
+/*
+ * Vendor Backend\Block\Widget\Button output (button.action-default) used
+ * inside system config rows — Sales > Delivery Methods > Table Rates →
+ * Export CSV, Import etc. Default vendor markup ships unstyled in nebula
+ * because we don't load the legacy admin button skin.
+ */
+.nebula-config-value button.action-default {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: var(--nebula-radius-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--nebula-bg-secondary);
+  color: var(--nebula-text-primary);
+  border: 1px solid var(--nebula-border-default);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.nebula-config-value button.action-default:hover {
+  background: var(--nebula-bg-tertiary);
+  border-color: var(--color-nebula-400);
+}
+.nebula-config-value button.action-default:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.dark .nebula-config-value button.action-default {
+  background: var(--nebula-bg-tertiary);
+  color: var(--nebula-text-primary);
+  border-color: var(--nebula-border-default);
+}
+
+/*
+ * Test Connection button (Magento_AdvancedSearch — Catalog Search engine
+ * settings + OpenSearch + Elasticsearch8). Vendor template emits a bare
+ * <button class="scalable" data-mage-init="…testConnection…">. The
+ * test-connection.ts module handles the click; these rules style the button
+ * to match nebula chrome and add success/fail state colors.
+ */
+.nebula-config-value button.scalable[data-mage-init*="testConnection"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--nebula-radius-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--nebula-bg-primary);
+  color: var(--nebula-text-primary);
+  border: 1px solid var(--nebula-border-default);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.nebula-config-value button.scalable[data-mage-init*="testConnection"]:hover:not(:disabled) {
+  background: var(--nebula-bg-secondary);
+  border-color: var(--color-nebula-400);
+}
+.nebula-config-value button.scalable[data-mage-init*="testConnection"]:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.nebula-config-value button.scalable.nebula-test-pending {
+  border-color: var(--color-nebula-400);
+  color: var(--color-nebula-600);
+}
+.nebula-config-value button.scalable.nebula-test-success {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+.nebula-config-value button.scalable.nebula-test-fail {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.dark .nebula-config-value button.scalable.nebula-test-success {
+  background: color-mix(in oklab, #10b981 18%, var(--nebula-bg-secondary));
+  color: #6ee7b7;
+  border-color: color-mix(in oklab, #10b981 35%, var(--nebula-border-default));
+}
+.dark .nebula-config-value button.scalable.nebula-test-fail {
+  background: color-mix(in oklab, #ef4444 18%, var(--nebula-bg-secondary));
+  color: #fca5a5;
+  border-color: color-mix(in oklab, #ef4444 35%, var(--nebula-border-default));
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!--
+    Nebula: Authenticated admin layout — sidebar + content area
+    ┌────────┬──────────────────────────────────┐
+    │        │  Header (user, search, notifs)   │
+    │  Side  ├──────────────────────────────────┤
+    │  bar   │  Content Area                    │
+    │  Menu  │  (breadcrumbs, title, actions,   │
+    │        │   messages, main content)        │
+    │        ├──────────────────────────────────┤
+    │        │  Footer                          │
+    └────────┴──────────────────────────────────┘
+-->
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_layout.xsd">
+    <container name="root">
+        <container name="backend.page" htmlTag="div" htmlClass="nebula-admin-layout">
+            <container name="after.body.start" as="after.body.start" label="Page Top" before="-"/>
+
+            <container name="nebula.sidebar" htmlTag="aside" htmlClass="nebula-sidebar" label="Sidebar">
+                <container name="sidebar.logo" htmlTag="div" htmlClass="nebula-sidebar-logo" label="Sidebar Logo"/>
+                <container name="page.menu" as="page.menu" htmlTag="nav" htmlClass="nebula-sidebar-nav"
+                    label="Sidebar Navigation"/>
+            </container>
+
+            <container name="nebula.main" htmlTag="div" htmlClass="nebula-main" label="Main Area">
+                <container name="header" htmlTag="header" htmlClass="nebula-header" label="Header"/>
+
+                <container name="page.content" as="page_content" htmlTag="main" htmlClass="nebula-content">
+                    <container name="notices.wrapper" before="-" htmlTag="div" htmlClass="nebula-notices">
+                        <container name="notifications" as="notifications"/>
+                        <container name="notification.window" as="notification_window" before="-"/>
+                        <container name="global.notices" as="global_notices" after="notification.window"/>
+                    </container>
+
+                    <container name="page.breadcrumbs" as="page.breadcrumbs"/>
+                    <container name="main.top" as="main-top" label="main-top"/>
+                    <container name="page.main.actions" as="page_main_actions" htmlTag="div"
+                        htmlClass="nebula-page-actions"/>
+                    <container name="page.formkey" as="page.formkey"/>
+
+                    <container name="messages.wrapper" as="messages.wrapper" htmlTag="div" htmlClass="nebula-messages">
+                        <container name="page.messages" as="page.messages"/>
+                    </container>
+
+                    <container name="page.main.container" as="page_main_container" htmlTag="div"
+                        htmlClass="nebula-page-container">
+                        <!--
+                            Keep htmlTag/htmlClass parity with vendor's stock
+                            admin-1column page layout. Several admin pages
+                            (sales_order_view, customer_index_edit,
+                             cms_block_index, etc.) referenceContainer this
+                            wrapper with htmlClass="admin__old"; if our
+                            override drops htmlTag the layout generator
+                            throws "HTML ID or class will not have effect".
+                        -->
+                        <container name="admin.scope.col.wrap" as="admin-scope-col-wrap" htmlTag="div" htmlClass="admin__old">
+                            <container name="main.col" as="main-col" htmlId="container" htmlTag="div" htmlClass="main-col">
+                                <container name="content" as="content"/>
+                            </container>
+                        </container>
+                    </container>
+                </container>
+
+                <container name="footer" htmlTag="footer" htmlClass="nebula-footer"/>
+                <container name="js" as="js" label="JavaScript"/>
+            </container>
+
+            <container name="before.body.end" as="before_body_end" label="Before Body End" after="-"/>
+        </container>
+    </container>
+</layout>

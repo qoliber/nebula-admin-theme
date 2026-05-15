@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * Panel partial — left sidebar with content type menu.
+ * Included from stage.phtml; shares $block, $menuSections, $sectionMap.
+ */
+
+?>
+<!-- Panel -->
+<div class="w-56 flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto">
+    <div class="p-3">
+        <?php foreach ($menuSections as $sKey => $sLabel) : ?>
+            <?php $types = $sectionMap[$sKey] ?? [];
+            if (empty($types)) {
+                continue;
+            } ?>
+        <div class="mb-4">
+            <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2"><?= $escaper->escapeHtml((string) __($sLabel)) ?></h2>
+            <div class="grid grid-cols-2 gap-1.5">
+                <?php foreach ($types as $tName => $tDef) : ?>
+                    <?php if (!empty($tDef['isSystem'])) {
+                        continue;
+                    } ?>
+                <div class="pb-panel-item flex flex-col items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-2.5 cursor-grab hover:bg-indigo-50 hover:border-indigo-300 text-center select-none"
+                     draggable="true"
+                     @dragstart="panelDragStart($event, '<?= $escaper->escapeJs($tName) ?>')"
+                     @dragend="panelDragEnd()"
+                     @dblclick="addToStage('<?= $escaper->escapeJs($tName) ?>')">
+                    <i class="<?= $escaper->escapeHtmlAttr($tDef['icon'] ?? 'fa-solid fa-puzzle-piece') ?> text-lg text-gray-500"></i>
+                    <span class="text-[11px] font-medium text-gray-700 leading-tight"><?= $escaper->escapeHtml((string) __($tDef['label'] ?? $tName)) ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>

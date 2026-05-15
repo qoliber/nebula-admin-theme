@@ -1,0 +1,4 @@
+{
+  "id": "widget_chooser_cms_block",
+  "template": "Qoliber_NebulaTheme::widget/chooser/cms_block.phtml"
+}

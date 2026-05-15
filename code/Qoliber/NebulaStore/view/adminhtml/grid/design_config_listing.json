@@ -1,0 +1,65 @@
+{
+  "id": "design_config_listing",
+  "acl": "Magento_Config::config_design",
+  "dataSource": {
+    "provider": "design_config.grid"
+  },
+  "settings": {
+    "pageSize": 50,
+    "pageSizes": [20, 50, 100],
+    "defaultSort": {
+      "field": "entity_id",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": false,
+      "position": 10
+    },
+    "scope": {
+      "label": "Scope",
+      "type": "text",
+      "sortable": false,
+      "position": 15
+    },
+    "store_website_id": {
+      "label": "Website",
+      "type": "text",
+      "sortable": false,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Theme\\Model\\Scope\\WebsiteSource",
+      "position": 20
+    },
+    "store_group_id": {
+      "label": "Store",
+      "type": "text",
+      "sortable": false,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Theme\\Model\\Scope\\GroupSource",
+      "position": 30
+    },
+    "store_id": {
+      "label": "Store View",
+      "type": "text",
+      "sortable": false,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Theme\\Model\\Scope\\StoreSource",
+      "position": 40
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "theme/design_config/edit/scope/{{scope}}/scope_id/{{scope_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

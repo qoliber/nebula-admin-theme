@@ -1,0 +1,55 @@
+{
+  "id": "customer_group_listing",
+  "acl": "Magento_Customer::group",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "customer_group.collection",
+      "method": "addTaxClass"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "customer_group_id",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "customer_group_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "customer_group_code": {
+      "label": "Group Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "tax_class_id": {
+      "label": "Tax Class",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 30
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "customer/group/edit/id/{{customer_group_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

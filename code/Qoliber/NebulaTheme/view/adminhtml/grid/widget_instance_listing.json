@@ -1,0 +1,73 @@
+{
+  "id": "widget_instance_listing",
+  "acl": "Magento_Widget::widget_instance",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "widget_instance.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "instance_id",
+      "direction": "desc"
+    },
+    "addButton": {
+      "label": "Add Widget",
+      "url": "adminhtml/widget_instance/new"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "instance_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "title": {
+      "label": "Widget Title",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "instance_type": {
+      "label": "Type",
+      "type": "select",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "nebula.widget.instance_type",
+      "position": 30
+    },
+    "theme_id": {
+      "label": "Design Theme",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 40
+    },
+    "sort_order": {
+      "label": "Sort Order",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/widget_instance/edit/instance_id/{{instance_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

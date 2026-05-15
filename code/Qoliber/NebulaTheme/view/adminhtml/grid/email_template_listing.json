@@ -1,0 +1,84 @@
+{
+  "id": "email_template_listing",
+  "acl": "Magento_Email::template",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "email_template.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "template_id",
+      "direction": "desc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add New Template",
+      "url": "adminhtml/email_template/new"
+    }
+  },
+  "columns": {
+    "template_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "template_code": {
+      "label": "Template Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "template_subject": {
+      "label": "Subject",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "template_type": {
+      "label": "Type",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "1": "HTML",
+        "2": "Text"
+      },
+      "position": 40
+    },
+    "added_at": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "modified_at": {
+      "label": "Updated",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/email_template/edit/id/{{template_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * EAV Form with Sticky Sidebar
+ *
+ * @var \Qoliber\NebulaForm\Block\EavForm $block
+ */
+
+declare(strict_types=1);
+
+$definition = $block->getDefinition();
+$sidebarRenderer = (string) ($definition['settings']['sidebarRenderer'] ?? '');
+
+// Render sidebar snippet via the EavForm block's resolveSnippet() helper —
+// no ObjectManager round-trip; the resolver is DI-injected on EavForm.
+$sidebarHtml = '';
+$snippet = $block->resolveSnippet($sidebarRenderer);
+if ($snippet !== null && !empty($snippet['template'])) {
+    $sidebarBlock = $block->getLayout()->createBlock(\Magento\Framework\View\Element\Template::class);
+    $block->setModuleOnBlock($sidebarBlock, $snippet['template']);
+    $sidebarBlock->setTemplate($snippet['template']);
+    $sidebarBlock->setData('entity', $block->getEntity());
+    $sidebarBlock->setData('entity_data', $block->getEntityData());
+    $sidebarBlock->setData('form_block', $block);
+    $sidebarHtml = $sidebarBlock->toHtml();
+}
+
+// Prevent recursion — set to standard template for the include
+$block->setData('_sidebar_rendered', true);
+?>
+
+<div class="flex flex-col lg:flex-row gap-6 w-full">
+    <!-- Sticky Sidebar (1/4 width) -->
+    <div class="w-full lg:w-1/4 flex-shrink-0">
+        <div class="lg:sticky lg:top-16 lg:max-h-[calc(100vh-5rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm p-4">
+            <?php if ($sidebarHtml) : ?>
+                <?= /* @noEscape */ $sidebarHtml ?>
+            <?php else : ?>
+                <div class="text-sm text-gray-500"><?= $escaper->escapeHtml((string) __('No sidebar content')) ?></div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Main Form (3/4 width) -->
+    <div class="flex-1 min-w-0">
+        <?php include $block->getTemplateFile('Qoliber_NebulaForm::eav/form.phtml'); ?>
+    </div>
+</div>

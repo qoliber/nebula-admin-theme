@@ -1,0 +1,180 @@
+/*
+ * My Account page (system/system_account/index): force section fieldsets to
+ * match Dashboard Preferences card design — borderless wrapper with a
+ * card-header band, no legend chrome, padded body. The .nebula-account-card-*
+ * classes come from our own template overrides; the fieldset chrome comes
+ * from vanilla admin form blocks. Both light and dark variants below.
+ */
+body[class*="system-account"] .nebula-page-actions,
+body[class*="system_account"] .nebula-page-actions {
+  border-bottom: 0;
+}
+
+body[class*="system-account"] .admin__fieldset,
+body[class*="system_account"] .admin__fieldset {
+  border: 0;
+  border-radius: var(--nebula-radius-xl);
+  background: var(--nebula-bg-primary);
+  padding: 0;
+  margin-bottom: var(--nebula-spacing-xl);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--nebula-border-default);
+}
+
+body[class*="system-account"] .admin__fieldset > .nebula-account-card-header,
+body[class*="system_account"] .admin__fieldset > .nebula-account-card-header {
+  margin: 0;
+  margin-bottom: var(--nebula-spacing-lg);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xl);
+  border-bottom: 1px solid var(--nebula-border-default);
+  background: transparent;
+}
+
+body[class*="system-account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title,
+body[class*="system_account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title,
+body[class*="system-account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title
+  span,
+body[class*="system_account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title
+  span {
+  display: block;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--tw-leading, var(--text-sm--line-height));
+  font-weight: var(--font-weight-semibold);
+  color: var(--nebula-text-primary);
+}
+
+body[class*="system-account"] .admin__fieldset > .admin__legend,
+body[class*="system_account"] .admin__fieldset > .admin__legend,
+body[class*="system-account"] .admin__fieldset > br,
+body[class*="system_account"] .admin__fieldset > br {
+  display: none !important;
+}
+
+body[class*="system-account"] .admin__fieldset > .messages,
+body[class*="system_account"] .admin__fieldset > .messages {
+  display: none;
+}
+
+body[class*="system-account"] .admin__fieldset > .admin__field,
+body[class*="system_account"] .admin__fieldset > .admin__field,
+body[class*="system-account"] .admin__fieldset > .fieldset,
+body[class*="system_account"] .admin__fieldset > .fieldset,
+body[class*="system-account"] .admin__fieldset > .admin__field-control,
+body[class*="system_account"] .admin__fieldset > .admin__field-control {
+  padding-inline: var(--nebula-spacing-xl);
+}
+
+body[class*="system-account"] .admin__fieldset > .admin__field-control,
+body[class*="system_account"] .admin__fieldset > .admin__field-control {
+  padding-top: var(--nebula-spacing-lg);
+}
+
+body[class*="system-account"] .admin__fieldset > .admin__field:first-of-type,
+body[class*="system_account"] .admin__fieldset > .admin__field:first-of-type,
+body[class*="system-account"] .admin__fieldset > .fieldset:first-of-type,
+body[class*="system_account"] .admin__fieldset > .fieldset:first-of-type,
+body[class*="system-account"]
+  .admin__fieldset
+  > .admin__field-control:first-of-type,
+body[class*="system_account"]
+  .admin__fieldset
+  > .admin__field-control:first-of-type {
+  padding-top: var(--nebula-spacing-lg);
+}
+
+body[class*="system-account"] .admin__fieldset > .admin__field:last-child,
+body[class*="system_account"] .admin__fieldset > .admin__field:last-child,
+body[class*="system-account"] .admin__fieldset > .fieldset:last-child,
+body[class*="system_account"] .admin__fieldset > .fieldset:last-child,
+body[class*="system-account"]
+  .admin__fieldset
+  > .admin__field-control:last-child,
+body[class*="system_account"]
+  .admin__fieldset
+  > .admin__field-control:last-child {
+  padding-bottom: var(--nebula-spacing-xl);
+}
+
+/* Normalize nested field fieldsets so labels don't render as floating mini legends. */
+body[class*="system-account"] fieldset.field,
+body[class*="system_account"] fieldset.field {
+  min-inline-size: 0;
+  margin: 0 0 var(--nebula-spacing-lg);
+  padding: 0;
+  border: 0;
+}
+
+body[class*="system-account"] fieldset.field > legend.label.admin__field-label,
+body[class*="system_account"] fieldset.field > legend.label.admin__field-label {
+  float: none;
+  width: auto;
+  margin: 0 0 var(--nebula-spacing-xs);
+  padding: 0;
+  border: 0;
+  display: block;
+}
+
+body[class*="system-account"]
+  fieldset.field
+  > legend.label.admin__field-label
+  + br,
+body[class*="system_account"]
+  fieldset.field
+  > legend.label.admin__field-label
+  + br {
+  display: none;
+}
+
+.dark body[class*="system-account"] .admin__fieldset,
+.dark body[class*="system_account"] .admin__fieldset {
+  box-shadow: inset 0 0 0 1px var(--nebula-border-strong);
+}
+
+.dark
+  body[class*="system-account"]
+  .admin__fieldset
+  > .nebula-account-card-header,
+.dark
+  body[class*="system_account"]
+  .admin__fieldset
+  > .nebula-account-card-header {
+  border-bottom-color: var(--nebula-border-strong);
+}
+
+.dark
+  body[class*="system-account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title,
+.dark
+  body[class*="system_account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title,
+.dark
+  body[class*="system-account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title
+  span,
+.dark
+  body[class*="system_account"]
+  .admin__fieldset
+  > .nebula-account-card-header
+  .nebula-account-card-title
+  span {
+  color: var(--color-nebula-100);
+}

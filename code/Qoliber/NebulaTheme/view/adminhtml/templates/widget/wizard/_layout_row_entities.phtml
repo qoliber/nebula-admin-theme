@@ -1,0 +1,31 @@
+<!-- For: All / Specific radio + comma-list entity picker.
+     Renders when row.page_group is a category or product group. -->
+<template x-if="rowEntityKind(row) === 'category' || rowEntityKind(row) === 'product'">
+    <div class="space-y-2">
+        <div class="flex items-center gap-4">
+            <label class="text-xs font-semibold text-gray-700">For:</label>
+            <label class="flex items-center gap-1 text-sm">
+                <input type="radio" :name="'pg_for_' + idx" value="all" x-model="row.for"
+                       class="h-4 w-4 text-nebula-600 focus:ring-nebula-500"/>
+                All
+            </label>
+            <label class="flex items-center gap-1 text-sm">
+                <input type="radio" :name="'pg_for_' + idx" value="specific" x-model="row.for"
+                       class="h-4 w-4 text-nebula-600 focus:ring-nebula-500"/>
+                Specific
+                <span class="text-xs text-gray-500" x-text="rowEntityKind(row) === 'category' ? 'Categories' : 'Products'"></span>
+            </label>
+        </div>
+        <div x-show="row.for === 'specific'" class="flex items-center gap-3">
+            <input type="text" x-model="row.entities" placeholder="Comma-separated ids"
+                   class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none"/>
+            <button type="button"
+                    @click="rowEntityKind(row) === 'category'
+                        ? $dispatch('open-chooser-catalog-category', {fieldName: 'pg:' + idx + ':entities'})
+                        : $dispatch('open-chooser-catalog-product',  {fieldName: 'pg:' + idx + ':entities'})"
+                    class="rounded-lg bg-nebula-600 text-white text-sm font-semibold px-4 py-2 hover:bg-nebula-500">
+                + Add
+            </button>
+        </div>
+    </div>
+</template>

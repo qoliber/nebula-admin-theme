@@ -1,0 +1,74 @@
+{
+  "id": "sitemap_listing",
+  "acl": "Magento_Sitemap::sitemap",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "sitemap.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "sitemap_id",
+      "direction": "desc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add Sitemap",
+      "url": "adminhtml/sitemap/new"
+    }
+  },
+  "columns": {
+    "sitemap_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "sitemap_filename": {
+      "label": "Filename",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "sitemap_path": {
+      "label": "Path",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "store_id": {
+      "label": "Store",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Store\\Model\\System\\Store",
+      "position": 40
+    },
+    "sitemap_time": {
+      "label": "Last Generated",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/sitemap/edit/sitemap_id/{{sitemap_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

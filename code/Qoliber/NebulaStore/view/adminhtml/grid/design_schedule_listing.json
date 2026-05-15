@@ -1,0 +1,72 @@
+{
+  "id": "design_schedule_listing",
+  "acl": "Magento_Config::config_design",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "design_schedule.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "design_change_id",
+      "direction": "desc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add Design Change",
+      "url": "adminhtml/system_design/new"
+    }
+  },
+  "columns": {
+    "design_change_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "store_id": {
+      "label": "Store",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Store\\Model\\System\\Store",
+      "position": 20
+    },
+    "design": {
+      "label": "Design",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 30
+    },
+    "date_from": {
+      "label": "Date From",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 40
+    },
+    "date_to": {
+      "label": "Date To",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/system_design/edit/id/{{design_change_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

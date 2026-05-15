@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nebula.qoliber.dev/schemas/grid.v1.json",
+  "title": "Nebula Grid Definition",
+  "description": "Declarative schema for a Nebula admin grid. Files live at view/adminhtml/grid/<id>.json and are deep-merged across modules by the definition resolver. A file MAY be a `base` (contains `id` + `columns` + `dataSource`) or an `overlay` (omits `id` and only contributes a subset of keys that are merged onto the base).",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {"^_": {}},
+  "allOf": [
+    {"$ref": "#/$defs/baseOrOverlay"}
+  ],
+  "properties": {
+    "id": {
+      "title": "Grid identifier",
+      "description": "Unique snake_case identifier. Base files MUST set this and it MUST match the file name (without .json). Overlay files MUST omit it.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "acl": {
+      "title": "ACL resource",
+      "description": "Magento ACL resource required to access the grid. Format: Vendor_Module::resource.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_]+::[A-Za-z0-9_:-]+$"
+    },
+    "dataSource": {
+      "title": "Data source",
+      "description": "Where the grid rows come from.",
+      "$ref": "#/$defs/dataSource"
+    },
+    "settings": {
+      "title": "Grid settings",
+      "description": "Pagination, default sort, toolbar and add-button configuration.",
+      "$ref": "#/$defs/gridSettings"
+    },
+    "columns": {
+      "title": "Columns",
+      "description": "Map of column_id -> column definition. Render order is controlled by the numeric `position` on each column.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+      "additionalProperties": {"$ref": "#/$defs/column"}
+    }
+  },
+  "$defs": {
+    "baseOrOverlay": {
+      "oneOf": [
+        {
+          "title": "Base grid",
+          "description": "A standalone grid definition.",
+          "type": "object",
+          "required": ["id", "dataSource", "columns"]
+        },
+        {
+          "title": "Overlay fragment",
+          "description": "An overlay contributed by another module. Must NOT set `id`.",
+          "type": "object",
+          "not": {"required": ["id"]},
+          "anyOf": [
+            {"required": ["columns"]},
+            {"required": ["settings"]},
+            {"required": ["dataSource"]},
+            {"required": ["acl"]}
+          ]
+        }
+      ]
+    },
+    "dataSource": {
+      "title": "Grid data source",
+      "description": "A data provider alias plus optional provider-specific config.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider"],
+      "properties": {
+        "provider": {
+          "title": "Data provider alias",
+          "description": "Alias registered in DataProviderRegistry (e.g. catalog.product.grid). FQCNs are rejected — register an alias in your module's etc/di.xml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)*$"
+        },
+        "config": {
+          "title": "Provider config",
+          "description": "Free-form map forwarded to the provider. Well-known keys: collection, attributes, method, identifierParam.",
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "collection": {
+              "title": "Collection FQCN",
+              "description": "For the generic CollectionProvider: the Magento Collection class to instantiate.",
+              "type": "string"
+            },
+            "attributes": {
+              "title": "Attributes to load",
+              "description": "Attribute codes to eager-load onto each row.",
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "method": {
+              "title": "Collection method",
+              "description": "Optional collection method to invoke after creation (e.g. addTaxClass).",
+              "type": "string"
+            },
+            "identifierParam": {
+              "title": "Identifier request param",
+              "description": "Request parameter name carrying the row id.",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "gridSettings": {
+      "title": "Grid settings",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pageSize": {
+          "title": "Default page size",
+          "description": "Number of rows rendered per page by default.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSizes": {
+          "title": "Page size options",
+          "description": "Values offered in the page-size picker.",
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "defaultSort": {
+          "title": "Default sort",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["field", "direction"],
+          "properties": {
+            "field": {
+              "title": "Sort field",
+              "description": "Column id the grid sorts by when first opened.",
+              "type": "string"
+            },
+            "direction": {
+              "title": "Sort direction",
+              "type": "string",
+              "enum": ["asc", "desc"]
+            }
+          }
+        },
+        "massActions": {
+          "title": "Mass actions",
+          "description": "Either false (disabled) or an array of mass-action descriptors.",
+          "oneOf": [
+            {"type": "boolean", "const": false},
+            {
+              "type": "array",
+              "items": {"$ref": "#/$defs/massAction"}
+            }
+          ]
+        },
+        "addButton": {
+          "title": "Add button",
+          "description": "Primary toolbar button. Either a single-URL button or a dropdown of options.",
+          "$ref": "#/$defs/addButton"
+        }
+      }
+    },
+    "addButton": {
+      "title": "Add button",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": {
+          "title": "Label",
+          "description": "Visible button text.",
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "title": "Target URL",
+          "description": "Admin route to navigate to on click. Mutually exclusive with `options`.",
+          "type": "string"
+        },
+        "options": {
+          "title": "Dropdown options",
+          "description": "When set, the button renders as a split dropdown. Mutually exclusive with `url`.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "url"],
+            "properties": {
+              "label": {"title": "Option label", "type": "string", "minLength": 1},
+              "url":   {"title": "Option URL",   "type": "string", "minLength": 1}
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {"required": ["url"],     "not": {"required": ["options"]}},
+        {"required": ["options"], "not": {"required": ["url"]}}
+      ]
+    },
+    "massAction": {
+      "title": "Mass action",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "url"],
+      "properties": {
+        "id":      {"title": "Action id",  "description": "Unique id for the mass action.",   "type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "label":   {"title": "Label",      "description": "Button label shown in the toolbar.","type": "string", "minLength": 1},
+        "url":     {"title": "Submit URL", "description": "Admin route the selected ids POST to.","type": "string", "minLength": 1},
+        "confirm": {"title": "Confirm message", "description": "If set, shown in a confirmation dialog before submission.", "type": "string"}
+      }
+    },
+    "column": {
+      "title": "Column",
+      "description": "A column definition. Every column needs either a built-in `type` or a `renderer` (a snippet reference).",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {"^_": {}},
+      "required": ["label", "position"],
+      "properties": {
+        "label": {
+          "title": "Header label",
+          "description": "Column header text. Empty string is allowed for the trailing actions column.",
+          "type": "string"
+        },
+        "type": {
+          "title": "Built-in column type",
+          "description": "One of the built-in column renderers. Mutually exclusive with `renderer`.",
+          "type": "string",
+          "enum": ["text", "select", "date", "price", "thumbnail", "badge", "boolean", "link", "html", "actions"]
+        },
+        "renderer": {
+          "title": "Snippet renderer",
+          "description": "Reference to a snippet that renders the cell, e.g. snippet.custom_renderer. For simple static option sets use type:badge with inline options instead. Mutually exclusive with `type`.",
+          "type": "string",
+          "pattern": "^snippet\\.[a-z][a-z0-9_]*$"
+        },
+        "position": {
+          "title": "Position",
+          "description": "Integer controlling column order. Lower numbers render first. Use 999 for the trailing actions column.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "sortable": {
+          "title": "Sortable",
+          "description": "Whether the column header toggles sort on click.",
+          "type": "boolean"
+        },
+        "searchable": {
+          "title": "Searchable",
+          "description": "Whether the global search box includes this column.",
+          "type": "boolean"
+        },
+        "filter": {
+          "title": "Filter widget",
+          "description": "Which filter widget to render under the header. `false` disables filtering.",
+          "oneOf": [
+            {"type": "boolean", "const": false},
+            {"type": "string", "enum": ["text", "select", "range", "date"]}
+          ]
+        },
+        "filterOptions": {
+          "title": "Inline filter options",
+          "description": "For filter=select: map of value -> label rendered as-is.",
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "filterOptionsSource": {
+          "title": "Filter options source alias",
+          "description": "For filter=select: alias registered in FilterOptionSourceRegistry (e.g. magento.store.system). FQCNs are rejected — register an alias in etc/di.xml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)*$"
+        },
+        "options": {
+          "title": "Badge options",
+          "description": "For type=badge: map of cell value -> {label, class}. Convention: for simple static option sets (status, enabled/disabled, visibility) declare options inline here instead of using renderer: snippet.*. Dynamic option sets should use filterOptionsSource.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "class"],
+            "properties": {
+              "label": {"title": "Badge label", "type": "string"},
+              "class": {
+                "title": "Badge visual class",
+                "type": "string",
+                "enum": ["success", "error", "warning", "info", "neutral"]
+              }
+            }
+          }
+        },
+        "actions": {
+          "title": "Row actions",
+          "description": "For type=actions: list of row-level links.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "url"],
+            "properties": {
+              "label": {"title": "Action label", "type": "string", "minLength": 1},
+              "url":   {"title": "Action URL template", "description": "May contain {{field}} placeholders substituted from the row.", "type": "string", "minLength": 1}
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {"required": ["type"],     "not": {"required": ["renderer"]}},
+        {"required": ["renderer"], "not": {"required": ["type"]}}
+      ]
+    }
+  }
+}

@@ -1,0 +1,126 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\SeoPreview $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\SeoPreview) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\SeoPreview::class);
+}
+
+// Resolve a value from whichever shape the form layer hands us:
+//   - EAV form (catalog product/category) → block data carries `entity`
+//     as a DataObject; read via $entity->getData(field).
+//   - Simple form (CMS page, etc.) → block data carries `entity_data` as
+//     a flat associative array; read by key.
+$entity     = $block->getData('entity');
+$entityData = $block->getData('entity_data');
+$readField  = static function (string $field) use ($entity, $entityData): string {
+    if ($entity !== null && method_exists($entity, 'getData')) {
+        return (string) $entity->getData($field);
+    }
+    if (is_array($entityData) && array_key_exists($field, $entityData)) {
+        return (string) $entityData[$field];
+    }
+    return '';
+};
+
+// Field-name overrides — any entity with title/url/meta_* style fields can
+// reuse this snippet by passing the field names from JSON. Defaults match
+// catalog product/category; CMS pages pass title/identifier instead.
+//
+// IMPORTANT: SectionRenderer hands the JSON config under `section` (not as
+// top-level block data). Read overrides from $section, not $block->getData().
+$section = $block->getData('section') ?? [];
+
+$titleField       = (string) ($section['title_field']       ?? 'name');
+$urlField         = (string) ($section['url_field']         ?? 'url_key');
+$metaTitleField   = (string) ($section['meta_title_field']  ?? 'meta_title');
+$metaDescField    = (string) ($section['meta_description_field'] ?? 'meta_description');
+$urlPlaceholder   = (string) ($section['url_placeholder']   ?? 'product-url');
+$entityNoun       = (string) ($section['entity_noun']       ?? 'product');
+$titlePlaceholder = (string) ($section['title_placeholder'] ?? (string) __('Product Title'));
+
+// URL suffix resolution:
+//   1. Explicit `url_extension` on the snippet → used verbatim (escape hatch).
+//   2. Else look up via the ViewModel using `entity_type` ('product', 'category',
+//      'cms_page', …). The ViewModel reads scope config so the preview matches
+//      whatever the storefront actually emits.
+$entityType   = (string) ($section['entity_type'] ?? '');
+$explicitExt  = $section['url_extension'] ?? null;
+if ($explicitExt !== null) {
+    $urlExtension = (string) $explicitExt;
+} elseif ($entityType !== '') {
+    $urlExtension = $viewModel->getUrlSuffix($entityType);
+} else {
+    $urlExtension = '.html';
+}
+
+$entityTitle     = $readField($titleField);
+$entityUrlKey    = $readField($urlField);
+$metaTitle       = $readField($metaTitleField);
+$metaDescription = $readField($metaDescField);
+
+$baseUrl = $viewModel->getBaseUrl();
+?>
+
+<div x-data="{
+    title: '<?= $escaper->escapeJs($metaTitle ?: $entityTitle) ?>',
+    url: '<?= $escaper->escapeJs($entityUrlKey ?: $urlPlaceholder) ?>',
+    description: '<?= $escaper->escapeJs(mb_substr($metaDescription, 0, 160)) ?>',
+    baseUrl: '<?= $escaper->escapeJs($baseUrl) ?>',
+    extension: '<?= $escaper->escapeJs($urlExtension) ?>'
+}"
+<?php /*
+    Nebula text inputs no longer expose a `name=` attribute — values
+    live in Alpine state and serialize at submit. Look up by id first
+    (Nebula EAV / non-EAV FieldNamer patterns), then fall back to the
+    legacy `name=` lookup for any vanilla-Magento input on the page.
+    The x-init expression below MUST start with `const` / `let` so
+    Alpine's evaluator wraps it in `(async()=>{…})()` rather than
+    treating the body as a return-expression. A leading JS comment
+    inside x-init breaks that detection — keep the rationale here in
+    PHP-land instead.
+*/ ?>
+x-init="
+    const listen = (attr, prop) => {
+        const el = document.getElementById('nebula-eav-' + attr)
+            || document.getElementById('nebula-field-' + attr)
+            || document.querySelector('[name=' + attr + '], [name$=\'[' + attr + ']\']');
+        if (!el) return;
+        el.addEventListener('input', (e) => { $data[prop] = e.target.value; });
+    };
+    listen('<?= $escaper->escapeJs($metaTitleField) ?>', 'title');
+    listen('<?= $escaper->escapeJs($urlField) ?>', 'url');
+    listen('<?= $escaper->escapeJs($metaDescField) ?>', 'description');
+    listen('<?= $escaper->escapeJs($titleField) ?>', 'title');
+">
+    <p class="text-xs text-gray-400 mb-3"><?= $escaper->escapeHtml((string) __('This is how your %1 may appear in Google search results:', $entityNoun)) ?></p>
+
+    <div class="rounded-lg border border-gray-200 bg-white p-5">
+        <div class="max-w-xl">
+            <h3 class="text-lg text-blue-800 hover:underline cursor-pointer leading-snug"
+                x-text="(title || '<?= $escaper->escapeJs($entityTitle ?: $titlePlaceholder) ?>').substring(0, 70)"></h3>
+            <p class="text-sm text-green-700 mt-1 truncate"
+               x-text="baseUrl + '/' + (url || '<?= $escaper->escapeJs($urlPlaceholder) ?>') + extension"></p>
+            <div class="flex items-center gap-1 mt-1">
+                <div class="flex">
+                    <svg class="h-3.5 w-3.5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="h-3.5 w-3.5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="h-3.5 w-3.5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="h-3.5 w-3.5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="h-3.5 w-3.5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <span class="text-xs text-gray-500"><?= $escaper->escapeHtml((string) __('Rating: 4.0 — 24 reviews')) ?></span>
+            </div>
+            <p class="text-sm text-gray-600 mt-1 leading-relaxed"
+               x-text="(description || '<?= $escaper->escapeJs((string) __('No meta description set. Add one to improve search visibility.')) ?>').substring(0, 160)"></p>
+        </div>
+    </div>
+
+    <p class="text-xs text-gray-400 mt-2"><?= $escaper->escapeHtml((string) __('Preview updates as you type in the SEO fields above.')) ?></p>
+</div>

@@ -1,0 +1,108 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */ ?>
+
+<div x-show="searchOpen" x-cloak
+     class="fixed inset-0 z-[9999] flex items-center justify-center"
+     @keydown.escape.window="searchOpen = false">
+
+    <div x-show="searchOpen"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="searchOpen = false"></div>
+
+    <div class="relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl bg-white shadow-2xl"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         @click.stop>
+
+        <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <h2 class="text-lg font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Search Products')) ?></h2>
+            <button type="button" @click="searchOpen = false"
+                    class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="border-b border-gray-200 px-6 py-3">
+            <div class="relative">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                </svg>
+                <input type="text"
+                       x-ref="searchInput"
+                       x-model="searchQuery"
+                       @input.debounce.350ms="search()"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('Search by name or SKU...')) ?>"
+                       class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                <div x-show="searching" class="absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg class="h-4 w-4 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-6 py-2">
+            <div x-show="searchQuery.length < 2 && searchResults.length === 0"
+                 class="py-12 text-center text-sm text-gray-500">
+                <?= $escaper->escapeHtml(__('Type at least 2 characters to search.')) ?>
+            </div>
+
+            <div x-show="searchQuery.length >= 2 && !searching && searchResults.length === 0"
+                 class="py-12 text-center text-sm text-gray-500">
+                <?= $escaper->escapeHtml(__('No products found.')) ?>
+            </div>
+
+            <template x-for="product in searchResults" :key="product.id">
+                <div @click="addProduct(product)"
+                     class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-indigo-50 transition-colors border-b border-gray-100 last:border-0">
+                    <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                        <img x-show="product.thumbnail" :src="product.thumbnail" :alt="product.name"
+                             class="h-full w-full object-cover">
+                        <div x-show="!product.thumbnail"
+                             class="flex h-full w-full items-center justify-center text-gray-400">
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-gray-900 truncate" x-text="product.name"></div>
+                        <div class="text-xs text-gray-500">
+                            <span class="font-mono" x-text="product.sku"></span>
+                            <span x-show="product.type_id" class="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500" x-text="product.type_id"></span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 flex-shrink-0"
+                         x-text="product.price != null ? '$' + Number(product.price).toFixed(2) : ''"></div>
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700">
+                            <?= $escaper->escapeHtml(__('Add')) ?>
+                        </span>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="flex items-center justify-end border-t border-gray-200 px-6 py-3">
+            <button type="button" @click="searchOpen = false; searchQuery = ''; searchResults = []"
+                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 transition-colors cursor-pointer">
+                <?= $escaper->escapeHtml(__('Done')) ?>
+            </button>
+        </div>
+    </div>
+</div>

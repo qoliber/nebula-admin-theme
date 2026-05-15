@@ -1,0 +1,69 @@
+{
+  "id": "store_group_edit",
+  "acl": "Magento_Backend::store",
+  "route": "adminhtml_system_store_editgroup",
+  "dataSource": {
+    "provider": "store_group.form",
+    "config": {
+      "identifierParam": "group_id"
+    }
+  },
+  "settings": {
+    "title": "Store",
+    "identifierField": "group[group_id]",
+    "identifierParam": "group_id",
+    "backUrl": "adminhtml/system_store/index",
+    "saveUrl": "adminhtml/system_store/save"
+  },
+  "hiddenFields": {
+    "store_type": "group",
+    "store_action": "edit"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "group[group_id]": {
+          "type": "hidden",
+          "position": 1
+        },
+        "group[website_id]": {
+          "label": "Website",
+          "type": "select",
+          "required": true,
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getWebsiteValuesForForm",
+          "position": 10
+        },
+        "group[name]": {
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "group[code]": {
+          "label": "Code",
+          "type": "text",
+          "required": true,
+          "position": 30
+        },
+        "group[root_category_id]": {
+          "label": "Root Category",
+          "type": "select",
+          "required": true,
+          "optionsSource": "Magento\\Catalog\\Model\\Category\\Attribute\\Source\\Page",
+          "position": 40
+        },
+        "group[default_store_id]": {
+          "label": "Default Store View",
+          "type": "select",
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getStoreValuesForForm",
+          "position": 50
+        }
+      }
+    }
+  }
+}

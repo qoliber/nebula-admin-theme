@@ -1,0 +1,289 @@
+<?php
+
+/**
+ * EAV Form — full-width action bar, two-column body (tree left, tabs right).
+ *
+ * Desktop : category tree always visible beside the form content.
+ * Tablet/Mobile : tree hidden, "Browse Categories" button opens the drawer.
+ *
+ * @var \Qoliber\NebulaForm\Block\EavForm $block
+ */
+
+declare(strict_types=1);
+
+// ---------------------------------------------------------------------------
+// Sidebar snippet
+// ---------------------------------------------------------------------------
+$definition       = $block->getDefinition();
+$sidebarRenderer  = (string) ($definition['settings']['sidebarRenderer'] ?? '');
+$formId           = (string) ($definition['id'] ?? $block->getFormId());
+$drawerStorageKey = 'nebula-category-drawer-' . md5($formId);
+
+$sidebarHtml = '';
+$snippet     = $block->resolveSnippet($sidebarRenderer);
+if ($snippet !== null && !empty($snippet['template'])) {
+    /** @var \Magento\Framework\View\Element\Template $sidebarBlock */
+    $sidebarBlock = $block->getLayout()->createBlock(\Magento\Framework\View\Element\Template::class);
+    $block->setModuleOnBlock($sidebarBlock, $snippet['template']);
+    $sidebarBlock->setTemplate($snippet['template']);
+    $sidebarBlock->setData('entity', $block->getEntity());
+    $sidebarBlock->setData('entity_data', $block->getEntityData());
+    $sidebarBlock->setData('form_block', $block);
+    $sidebarHtml = $sidebarBlock->toHtml();
+}
+
+$block->setData('_sidebar_rendered', true);
+
+// ---------------------------------------------------------------------------
+// "Browse Categories" button — tablet/mobile only via .nebula-cat-browse-btn
+// ---------------------------------------------------------------------------
+$treeTriggerHtml =
+    '<button'
+    . ' type="button"'
+    . ' @click="toggleDrawer()"'
+    . ' class="nebula-cat-browse-btn items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"'
+    . ' :aria-expanded="drawerOpen ? \'true\' : \'false\'"'
+    . ' aria-controls="nebula-category-drawer-panel"'
+    . '>'
+    . '<svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">'
+    . '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z" />'
+    . '</svg>'
+    . '<span x-text="drawerOpen ? \'' . $escaper->escapeJs((string) __('Hide Categories')) . '\' : \'' . $escaper->escapeJs((string) __('Browse Categories')) . '\'"></span>'
+    . '</button>';
+
+$buttonBlock = $block->getLayout()->createBlock(\Magento\Framework\View\Element\Text::class);
+$buttonBlock->setText($treeTriggerHtml);
+$block->setChild('actions_before_back', $buttonBlock);
+
+// ---------------------------------------------------------------------------
+// Variables required by form-shell.phtml (mirrors eav/form.phtml setup)
+// ---------------------------------------------------------------------------
+$entityId    = $block->getEntityId();
+$isNew       = $block->isNewEntity();
+$formKey     = $block->getFormKey();
+$saveUrl     = $block->getSaveUrl();
+$backUrl     = $block->getBackUrl();
+$deleteUrl   = $block->getDeleteUrl();
+$entityType  = (string) ($definition['entity'] ?? '');
+$headerTitle = (string) ($definition['settings']['title'] ?? 'Edit');
+
+if ($entityType === 'catalog_product') {
+    $title       = (string) ($block->getFieldValue('name') ?? (string) __('New Product'));
+    $statusValue = (int) ($block->getFieldValue('status') ?? 1);
+    $statusLabel = (string) ($statusValue === 1 ? __('Enabled') : __('Disabled'));
+    $statusClass = $statusValue === 1 ? 'bg-green-100 text-green-800 ring-green-600/20' : 'bg-red-100 text-red-800 ring-red-600/20';
+    $subtitle    = ucfirst((string) ($block->getFieldValue('type_id') ?? 'simple'));
+    if ($entityId) {
+        $subtitle .= ' · SKU: ' . (string) ($block->getFieldValue('sku') ?? '');
+    }
+} elseif ($entityType === 'customer') {
+    $firstName   = (string) ($block->getFieldValue('firstname') ?? '');
+    $lastName    = (string) ($block->getFieldValue('lastname') ?? '');
+    $title       = trim($firstName . ' ' . $lastName) ?: (string) __('New Customer');
+    $statusLabel = null;
+    $statusClass = '';
+    $subtitle    = (string) ($block->getFieldValue('email') ?? $headerTitle);
+} elseif ($entityType === 'catalog_category') {
+    $title       = (string) ($block->getFieldValue('name') ?? (string) __('New Category'));
+    $statusValue = (int) ($block->getFieldValue('is_active') ?? 1);
+    $statusLabel = (string) ($statusValue === 1 ? __('Active') : __('Inactive'));
+    $statusClass = $statusValue === 1 ? 'bg-green-100 text-green-800 ring-green-600/20' : 'bg-red-100 text-red-800 ring-red-600/20';
+    $subtitle    = $headerTitle;
+} else {
+    $title       = (string) ($block->getFieldValue('name')
+        ?? $block->getFieldValue('title')
+        ?? ($isNew ? __('New %1', $headerTitle) : __('Edit %1', $headerTitle)));
+    $statusLabel = null;
+    $statusClass = '';
+    $subtitle    = $headerTitle;
+}
+
+$hasFiles   = false;
+$formRef    = 'nebulaEavForm';
+$routeFields = $block->getHiddenInputs();
+?>
+
+<style>
+    /* Tree sidebar: hidden on tablet/mobile, visible on desktop */
+    .nebula-cat-sidebar { display: none; }
+    /* Browse Categories button: visible on tablet/mobile, hidden on desktop */
+    .nebula-cat-browse-btn { display: inline-flex; }
+    @media (min-width: 1024px) {
+        .nebula-cat-sidebar { display: block; }
+        .nebula-cat-browse-btn { display: none; }
+    }
+</style>
+
+<div
+    x-data="nebulaForm({
+        formKey: '<?= $escaper->escapeJs($formKey) ?>',
+        categoryDrawerStorageKey: '<?= $escaper->escapeJs($drawerStorageKey) ?>'
+    })"
+    class="relative w-full"
+>
+    <div
+        x-data="nebulaCategoryDrawer({
+            storageKey: '<?= $escaper->escapeJs($drawerStorageKey) ?>',
+            defaultOpen: false
+        })"
+        data-nebula-category-drawer
+        class="relative w-full"
+    >
+        <?php
+        // form-shell.phtml renders: outer nebulaForm div + full-width action bar + opens <form>
+        include $block->getTemplateFile('Qoliber_NebulaForm::form-shell.phtml');
+        ?>
+
+        <div class="flex gap-6 w-full mt-0">
+            <!-- Category tree: desktop sidebar -->
+            <div class="nebula-cat-sidebar w-64 flex-shrink-0">
+                <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm p-4">
+                    <?php if ($sidebarHtml) : ?>
+                        <?= /* @noEscape */ $sidebarHtml ?>
+                    <?php else : ?>
+                        <div class="text-sm text-gray-500"><?= $escaper->escapeHtml((string) __('No category tree available.')) ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Form content: tabs + fields -->
+            <div class="flex-1 min-w-0">
+                <?= /* @noEscape */ $block->getLayoutTreeRenderer()->render($block, $block->getLayoutTree(), $block->getLayout()) ?>
+
+                <?php $remainingGroups = $block->getRemainingAttributeGroups(); ?>
+                <?php if (!empty($remainingGroups)) : ?>
+                <div x-data="{ activeAttrTab: 0 }" class="mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex gap-1 overflow-x-auto" aria-label="Additional Attribute Groups">
+                            <?php foreach (array_values($remainingGroups) as $i => $group) : ?>
+                            <button type="button" @click="activeAttrTab = <?= (int) $i ?>"
+                                    :class="activeAttrTab === <?= (int) $i ?>
+                                        ? 'border-indigo-500 text-indigo-600'
+                                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                                    class="whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition">
+                                <?= $escaper->escapeHtml($block->translate((string) $group['label'])) ?>
+                            </button>
+                            <?php endforeach; ?>
+                        </nav>
+                    </div>
+                    <div class="mt-4">
+                        <?php foreach (array_values($remainingGroups) as $i => $group) : ?>
+                        <div x-show="activeAttrTab === <?= (int) $i ?>">
+                            <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+                                <div class="px-6 py-4 divide-y divide-gray-100">
+                                    <?php foreach ($group['attributes'] as $attribute) : ?>
+                                        <?= /* @noEscape */ $block->getFieldRenderer()->render($block, (string) $attribute->getAttributeCode(), $block->getLayout()) ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php
+        // form-shell-close.phtml closes the <form> + the nebulaForm <div> from form-shell
+        include $block->getTemplateFile('Qoliber_NebulaForm::form-shell-close.phtml');
+        ?>
+
+        <!-- Drawer: tablet/mobile only, controlled by Alpine x-show -->
+        <div
+            x-show="drawerOpen"
+            x-cloak
+            class="fixed inset-0"
+            style="z-index:2147483647;"
+            @keydown.escape.window="closeDrawer()"
+        >
+            <div
+                x-show="drawerOpen"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                @click="closeDrawer()"
+            ></div>
+
+            <aside
+                id="nebula-category-drawer-panel"
+                x-show="drawerOpen"
+                x-transition:enter="transform transition ease-out duration-300"
+                x-transition:enter-start="translate-x-full"
+                x-transition:enter-end="translate-x-0"
+                x-transition:leave="transform transition ease-in duration-200"
+                x-transition:leave-start="translate-x-0"
+                x-transition:leave-end="translate-x-full"
+                class="absolute right-0 top-0 h-full w-full max-w-xl overflow-hidden border-l border-gray-200 bg-white shadow-2xl"
+                style="z-index:2147483647;"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="nebula-category-drawer-title"
+                @click.stop
+                x-ref="drawerPanel"
+            >
+                <div class="flex h-full flex-col">
+                    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                        <div>
+                            <h2 id="nebula-category-drawer-title" class="text-lg font-bold text-gray-900">
+                                <?= $escaper->escapeHtml((string) __('Category Tree')) ?>
+                            </h2>
+                            <p class="mt-0.5 text-sm text-gray-500">
+                                <?= $escaper->escapeHtml((string) __('Browse categories and switch editing context.')) ?>
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="closeDrawer()"
+                            class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+                        >
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+                        <?= /* @noEscape */ $sidebarHtml ?>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window._nebulaCategoryDrawerRegistered) return;
+    window._nebulaCategoryDrawerRegistered = true;
+    var register = function () {
+        Alpine.data('nebulaCategoryDrawer', function (config) {
+            return {
+                drawerOpen: !!config.defaultOpen,
+                storageKey: config.storageKey || null,
+                init() {
+                    if (this.storageKey) {
+                        try {
+                            var stored = window.localStorage.getItem(this.storageKey);
+                            if (stored !== null) this.drawerOpen = (stored === 'open');
+                        } catch (e) {}
+                    }
+                    this.$watch('drawerOpen', (value) => {
+                        if (this.storageKey) {
+                            try { window.localStorage.setItem(this.storageKey, value ? 'open' : 'closed'); } catch (e) {}
+                        }
+                    });
+                },
+                toggleDrawer() { this.drawerOpen = !this.drawerOpen; },
+                closeDrawer() { this.drawerOpen = false; }
+            };
+        });
+    };
+    if (window.Alpine) register();
+    else document.addEventListener('alpine:init', register);
+})();
+</script>

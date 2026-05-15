@@ -1,0 +1,56 @@
+{
+  "name": "buttons",
+  "label": "Buttons",
+  "icon": "fa-solid fa-square",
+  "menuSection": "elements",
+  "sortOrder": 50,
+  "isContainer": true,
+  "parents": { "defaultPolicy": "allow", "deny": ["stage"] },
+  "children": { "defaultPolicy": "deny", "allow": ["button-item"] },
+  "appearances": {
+    "inline": {
+      "default": true,
+      "label": "Inline",
+      "masterTemplate": "master/buttons/default.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "buttons",
+            "data-appearance": "inline"
+          },
+          "styles": {
+            "text-align": { "source": "text_align" },
+            "display": { "source": "display", "converter": "display" },
+            "margin": { "source": "margins_and_padding", "converter": "margins" },
+            "padding": { "source": "margins_and_padding", "converter": "paddings" }
+          },
+          "cssSource": "css_classes"
+        }
+      }
+    },
+    "stacked": {
+      "label": "Stacked",
+      "masterTemplate": "master/buttons/stacked.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "buttons",
+            "data-appearance": "stacked"
+          },
+          "styles": {
+            "text-align": { "source": "text_align" },
+            "display": { "source": "display", "converter": "display" },
+            "margin": { "source": "margins_and_padding", "converter": "margins" },
+            "padding": { "source": "margins_and_padding", "converter": "paddings" }
+          },
+          "cssSource": "css_classes"
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "inline"
+  }
+}

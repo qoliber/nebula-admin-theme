@@ -1,0 +1,4 @@
+{
+  "id": "indexing_toggles",
+  "template": "Qoliber_NebulaTheme::eav/snippet/indexing_toggles.phtml"
+}

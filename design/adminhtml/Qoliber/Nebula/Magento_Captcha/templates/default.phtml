@@ -1,0 +1,71 @@
+<?php
+/**
+ * Qoliber Nebula — Captcha
+ *
+ * @var \Magento\Captcha\Block\Captcha\DefaultCaptcha $block
+ * @var \Magento\Captcha\Model\DefaultModel $captcha
+ */
+
+$captcha = $block->getCaptchaModel();
+$validationEnabled = $block->hasData('frontend_validation') ? $block->getData('frontend_validation') : true;
+?>
+<div class="space-y-3" x-data="nebulaCaptcha()">
+    <div class="flex items-center gap-3">
+        <img id="<?= $block->escapeHtmlAttr($block->getFormId()) ?>"
+             width="<?= /* @noEscape */ (float) $block->getImgWidth() ?>"
+             height="<?= /* @noEscape */ (float) $block->getImgHeight() ?>"
+             src="<?= $block->escapeUrl($captcha->getImgSrc()) ?>"
+             alt="<?= $block->escapeHtmlAttr(__('CAPTCHA')) ?>"
+             class="rounded-lg border border-gray-200 shadow-sm"/>
+        <button type="button"
+                @click="reload()"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
+                title="<?= $block->escapeHtmlAttr(__('Reload captcha')) ?>">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183"/>
+            </svg>
+        </button>
+    </div>
+
+    <div>
+        <label for="captcha" class="block text-sm font-medium text-gray-700">
+            <?= $block->escapeHtml(__('Type the characters you see')) ?>
+        </label>
+        <input id="captcha"
+               type="text"
+               name="<?= $block->escapeHtmlAttr(\Magento\Captcha\Helper\Data::INPUT_NAME_FIELD_VALUE) ?>[<?= $block->escapeHtml($block->getFormId()) ?>]"
+               <?php if ($validationEnabled): ?>required<?php endif; ?>
+               autocomplete="off"
+               class="mt-1.5 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none transition sm:text-sm"/>
+        <?php if ($captcha->isCaseSensitive()): ?>
+            <p class="mt-1 text-xs text-gray-400"><?= $block->escapeHtml(__('Case sensitive')) ?></p>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+    function nebulaCaptcha() {
+        return {
+            async reload() {
+                try {
+                    const response = await fetch('<?= $block->escapeJs($block->getRefreshUrl()) ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams({
+                            'formId': '<?= $block->escapeJs($block->getFormId()) ?>'
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.imgSrc) {
+                        document.getElementById('<?= $block->escapeJs($block->getFormId()) ?>').src = data.imgSrc;
+                    }
+                } catch (e) {
+                    console.error('Captcha reload failed:', e);
+                }
+            }
+        }
+    }
+</script>

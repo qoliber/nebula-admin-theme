@@ -1,0 +1,1209 @@
+/* Nebula dashboard card controls and shared widget UI styles. */
+.nebula-dashboard-card {
+  position: relative;
+  overflow: visible;
+}
+
+.nebula-dashboard-empty-state {
+  margin-bottom: 1rem;
+}
+
+.nebula-dashboard-card__menu-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.nebula-dashboard-card__audience,
+.nebula-dashboard-card__menu-toggle {
+  height: 2rem;
+  min-width: 2rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--nebula-border-default);
+  border-radius: var(--nebula-radius-md);
+  background: var(--nebula-bg-secondary);
+  color: var(--nebula-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.nebula-dashboard-card__menu-toggle {
+  cursor: pointer;
+}
+
+.nebula-dashboard-card__menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 80;
+  width: 12.5rem;
+  border-radius: var(--nebula-radius-lg);
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-primary);
+  box-shadow: var(--nebula-shadow-lg);
+  overflow: hidden;
+}
+
+.nebula-dashboard-card__menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.875rem 1rem;
+  color: var(--nebula-text-primary);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--nebula-border-default);
+  cursor: pointer;
+}
+
+.nebula-dashboard-card__menu-item:last-child {
+  border-bottom: 0;
+}
+
+.nebula-dashboard-card__menu-item:hover {
+  background: var(--nebula-bg-secondary);
+}
+
+.nebula-dashboard-card__menu-item--danger {
+  color: var(--color-rose-500);
+}
+
+.nebula-dashboard-summary-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 56%, transparent);
+  padding: 1rem 1.1rem;
+  min-height: 5.35rem;
+}
+
+.nebula-dashboard-summary-card__icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-primary);
+  color: var(--nebula-text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nebula-dashboard-summary-card__icon-svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.nebula-dashboard-summary-card__icon--revenue {
+  color: var(--nebula-color-info);
+}
+
+.nebula-dashboard-summary-card__icon--orders,
+.nebula-dashboard-summary-card__icon--shipping {
+  color: var(--nebula-color-success);
+}
+
+.nebula-dashboard-summary-card__icon--tax,
+.nebula-dashboard-summary-card__icon--quantity {
+  color: var(--nebula-color-warning);
+}
+
+.nebula-dashboard-summary-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.nebula-dashboard-summary-card__label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-summary-card__value {
+  margin: 0;
+  color: var(--nebula-text-primary);
+  font-size: 2.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.nebula-dashboard-summary-card__decimals {
+  margin-left: 0.08rem;
+  color: var(--nebula-text-secondary);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+@media (max-width: 1280px) {
+  .nebula-dashboard-summary-card {
+    padding: 0.85rem 0.95rem;
+  }
+
+  .nebula-dashboard-summary-card__value {
+    font-size: 1.72rem;
+  }
+
+  .nebula-dashboard-summary-card__decimals {
+    font-size: 1.12rem;
+  }
+}
+
+.nebula-dashboard-quick-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nebula-dashboard-card--content-clipped {
+  border-color: color-mix(
+    in srgb,
+    var(--color-amber-400) 55%,
+    var(--nebula-border-default)
+  );
+}
+
+.nebula-dashboard-quick-actions__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.75rem;
+  text-decoration: none;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-quick-actions__item:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-brand-primary, #4f66b4) 45%,
+    var(--nebula-border-default)
+  );
+  background: color-mix(
+    in srgb,
+    var(--nebula-brand-primary, #4f66b4) 10%,
+    transparent
+  );
+}
+
+.nebula-dashboard-quick-actions__icon {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--nebula-brand-primary, #4f66b4);
+}
+
+.nebula-dashboard-quick-actions__copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.nebula-dashboard-quick-actions__copy strong {
+  font-size: 1.05rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.nebula-dashboard-quick-actions__copy small {
+  font-size: 0.9rem;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-dashboard-quick-actions__notice {
+  border: 1px dashed
+    color-mix(in srgb, var(--color-amber-400) 50%, var(--nebula-border-default));
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--color-amber-50) 55%, transparent);
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.nebula-dashboard-quick-actions__notice strong {
+  font-size: 0.82rem;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-quick-actions__notice span {
+  font-size: 0.78rem;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-dashboard-quick-actions__empty {
+  border: 1px dashed var(--nebula-border-default);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 58%, transparent);
+  padding: 0.75rem;
+}
+
+.nebula-dashboard-quick-actions__empty strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-quick-actions__empty span {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-dashboard-sales-overview-wrapper {
+  margin-top: 0.5rem;
+}
+
+.nebula-dashboard-sales-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.nebula-dashboard-sales-overview__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.nebula-dashboard-sales-overview__metric {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.75rem;
+  min-height: 4.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+}
+
+.nebula-dashboard-sales-overview__label {
+  font-size: 0.75rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nebula-text-tertiary);
+  font-weight: 600;
+}
+
+.nebula-dashboard-sales-overview__value {
+  font-size: 1.06rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-sales-overview__delta {
+  font-size: 0.82rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.nebula-dashboard-sales-overview__delta--positive {
+  color: var(--nebula-color-success);
+}
+
+.nebula-dashboard-sales-overview__delta--negative {
+  color: var(--nebula-color-error);
+}
+
+.nebula-dashboard-sales-overview__trend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.nebula-dashboard-sales-overview__trend-title {
+  font-size: 0.76rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nebula-text-tertiary);
+  font-weight: 600;
+}
+
+.nebula-dashboard-sales-overview__trend-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.nebula-dashboard-sales-overview__trend-item {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.58rem 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: var(--nebula-text-secondary);
+  font-size: 0.88rem;
+}
+
+.nebula-dashboard-sales-overview__trend-day {
+  font-weight: 700;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-sales-overview__trend-values {
+  color: var(--nebula-text-secondary);
+  text-align: right;
+}
+
+.nebula-dashboard-sales-overview__updated {
+  font-size: 0.78rem;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-sales-overview__status {
+  border: 1px dashed var(--nebula-border-default);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 58%, transparent);
+  color: var(--nebula-text-secondary);
+  padding: 0.75rem;
+  font-size: 0.92rem;
+}
+
+.nebula-dashboard-sales-overview__status--error {
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-color-error) 42%,
+    var(--nebula-border-default)
+  );
+  background: color-mix(
+    in srgb,
+    var(--nebula-color-error-light) 62%,
+    transparent
+  );
+  color: var(--nebula-color-error);
+}
+
+.nebula-dashboard-recent-orders-wrapper {
+  margin-top: 0.5rem;
+}
+
+.nebula-dashboard-recent-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nebula-dashboard-recent-orders__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.nebula-dashboard-recent-orders__item {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.65rem 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.nebula-dashboard-recent-orders__item:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-brand-primary, #4f66b4) 45%,
+    var(--nebula-border-default)
+  );
+  background: color-mix(
+    in srgb,
+    var(--nebula-brand-primary, #4f66b4) 10%,
+    transparent
+  );
+}
+
+.nebula-dashboard-recent-orders__head,
+.nebula-dashboard-recent-orders__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.nebula-dashboard-recent-orders__order {
+  color: var(--nebula-text-primary);
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.nebula-dashboard-recent-orders__total {
+  color: var(--nebula-text-primary);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.nebula-dashboard-recent-orders__customer {
+  color: var(--nebula-text-secondary);
+  font-size: 0.86rem;
+}
+
+.nebula-dashboard-recent-orders__status-pill {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 9999px;
+  background: var(--nebula-bg-primary);
+  color: var(--nebula-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0.22rem 0.5rem;
+  font-weight: 600;
+}
+
+.nebula-dashboard-recent-orders__time {
+  color: var(--nebula-text-tertiary);
+  font-size: 0.78rem;
+}
+
+.nebula-dashboard-recent-orders__updated {
+  font-size: 0.78rem;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-recent-orders__status {
+  border: 1px dashed var(--nebula-border-default);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 58%, transparent);
+  color: var(--nebula-text-secondary);
+  padding: 0.75rem;
+  font-size: 0.92rem;
+}
+
+.nebula-dashboard-recent-orders__status--error {
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-color-error) 42%,
+    var(--nebula-border-default)
+  );
+  background: color-mix(
+    in srgb,
+    var(--nebula-color-error-light) 62%,
+    transparent
+  );
+  color: var(--nebula-color-error);
+}
+
+.nebula-dashboard-search-intelligence-wrapper {
+  margin-top: 0.5rem;
+}
+
+.nebula-dashboard-search-intelligence {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nebula-dashboard-search-intelligence__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.nebula-dashboard-search-intelligence__summary-card {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.65rem;
+}
+
+.nebula-dashboard-search-intelligence__label {
+  font-size: 0.74rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nebula-text-tertiary);
+  font-weight: 600;
+}
+
+.nebula-dashboard-search-intelligence__value {
+  margin-top: 0.2rem;
+  font-size: 1.02rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-search-intelligence__columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.nebula-dashboard-search-intelligence__column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nebula-dashboard-search-intelligence__title {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: var(--nebula-text-primary);
+  font-weight: 700;
+  margin: 0;
+}
+
+.nebula-dashboard-search-intelligence__term-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.nebula-dashboard-search-intelligence__term-item {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.58rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-dashboard-search-intelligence__query {
+  color: var(--nebula-text-primary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.nebula-dashboard-search-intelligence__meta {
+  color: var(--nebula-text-primary);
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.nebula-dashboard-search-intelligence__updated {
+  font-size: 0.78rem;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-bestsellers-wrapper {
+  margin-top: 0.5rem;
+}
+
+.nebula-dashboard-bestsellers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nebula-dashboard-bestsellers__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.nebula-dashboard-bestsellers__summary-card {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.65rem;
+}
+
+.nebula-dashboard-bestsellers__label {
+  font-size: 0.74rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nebula-text-tertiary);
+  font-weight: 600;
+}
+
+.nebula-dashboard-bestsellers__value {
+  margin-top: 0.2rem;
+  font-size: 1.02rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-bestsellers__list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nebula-dashboard-bestsellers__title {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: var(--nebula-text-primary);
+  font-weight: 700;
+  margin: 0;
+}
+
+.nebula-dashboard-bestsellers__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.nebula-dashboard-bestsellers__row {
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 55%, transparent);
+  padding: 0.58rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-dashboard-bestsellers__row-head,
+.nebula-dashboard-bestsellers__row-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.nebula-dashboard-bestsellers__product,
+.nebula-dashboard-bestsellers__revenue,
+.nebula-dashboard-bestsellers__units {
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-bestsellers__product {
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.nebula-dashboard-bestsellers__units,
+.nebula-dashboard-bestsellers__sku,
+.nebula-dashboard-bestsellers__revenue {
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.nebula-dashboard-bestsellers__updated {
+  font-size: 0.78rem;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-bestsellers__status {
+  border: 1px dashed var(--nebula-border-default);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 58%, transparent);
+  color: var(--nebula-text-secondary);
+  padding: 0.75rem;
+  font-size: 0.92rem;
+}
+
+.nebula-dashboard-bestsellers__status--error {
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-color-error) 42%,
+    var(--nebula-border-default)
+  );
+  background: color-mix(
+    in srgb,
+    var(--nebula-color-error-light) 62%,
+    transparent
+  );
+  color: var(--nebula-color-error);
+}
+
+.nebula-dashboard-search-intelligence__status {
+  border: 1px dashed var(--nebula-border-default);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--nebula-bg-secondary) 58%, transparent);
+  color: var(--nebula-text-secondary);
+  padding: 0.75rem;
+  font-size: 0.92rem;
+}
+
+.nebula-dashboard-search-intelligence__status--error {
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-color-error) 42%,
+    var(--nebula-border-default)
+  );
+  background: color-mix(
+    in srgb,
+    var(--nebula-color-error-light) 62%,
+    transparent
+  );
+  color: var(--nebula-color-error);
+}
+
+@media (max-width: 1024px) {
+  .nebula-dashboard-search-intelligence__columns {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .nebula-dashboard-bestsellers__summary {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .nebula-dashboard-bestsellers__row-head,
+  .nebula-dashboard-bestsellers__row-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.nebula-dashboard-card__resize-handle {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 1px solid var(--nebula-border-default);
+  border-radius: 0.375rem;
+  background: var(--nebula-bg-secondary);
+  color: var(--nebula-text-primary);
+  cursor: nwse-resize;
+  line-height: 1;
+}
+
+.nebula-dashboard-card--loading {
+  opacity: 0.65;
+}
+
+.nebula-dashboard-card--resizing,
+.nebula-dashboard--resizing {
+  user-select: none;
+}
+
+.nebula-dashboard-grid--edit-mode [data-role="nebula-dashboard-card-grid"] {
+  position: relative;
+  isolation: isolate;
+  min-height: 420px;
+}
+
+.nebula-dashboard-grid--edit-mode
+  [data-role="nebula-dashboard-card-grid"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(79, 102, 180, 0.18) 0,
+      rgba(79, 102, 180, 0.18) 1px,
+      transparent 1px,
+      transparent 8.333333%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(79, 102, 180, 0.2) 0,
+      rgba(79, 102, 180, 0.2) 1px,
+      transparent 1px,
+      transparent 56px
+    );
+}
+
+.nebula-dashboard-grid__slots {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: 56px;
+  gap: 1rem;
+  padding: 0;
+}
+
+.nebula-dashboard-grid__slot {
+  border: 1px dashed rgba(79, 102, 180, 0.28);
+  border-radius: 0.75rem;
+  background: rgba(79, 102, 180, 0.05);
+}
+
+.nebula-dashboard-grid--edit-mode
+  [data-role="nebula-dashboard-card-grid"]
+  > [data-widget-id] {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+ * Dashboard skin-aware primitives (skin/dark-mode compatible)
+ * Replaces hardcoded text-nebula-50/100/200/300, bg-nebula-900/950,
+ * border-nebula-700/800 utility chains in dashboard/index.phtml,
+ * grid.phtml, chart.phtml, chart/period.phtml.
+ * Every color resolves through skin CSS variables so light + dark
+ * skins both render correctly.
+ * ============================================================ */
+
+.nebula-dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nebula-dashboard-welcome__greeting {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-welcome__sub {
+  margin-top: 0.125rem;
+  font-size: 0.875rem;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-welcome__meta {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--nebula-text-muted);
+}
+
+.nebula-dashboard-welcome__day {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-dashboard-stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .nebula-dashboard-stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1280px) {
+  .nebula-dashboard-stats-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* Card primitive (extends existing .nebula-dashboard-card) */
+.nebula-dashboard-panel {
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-primary);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.nebula-dashboard-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-secondary);
+  padding: 1rem 1.25rem;
+}
+
+.nebula-dashboard-panel__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nebula-dashboard-panel__icon {
+  display: inline-flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-tertiary);
+  color: var(--nebula-text-secondary);
+  flex-shrink: 0;
+}
+
+.nebula-dashboard-panel__icon svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+.nebula-dashboard-panel__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  margin: 0;
+}
+
+.nebula-dashboard-panel__view-all {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--nebula-text-tertiary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.nebula-dashboard-panel__view-all:hover { color: var(--nebula-text-primary); }
+
+.nebula-dashboard-panel__body { padding: 1.25rem; }
+
+.nebula-dashboard-panel__section-header {
+  display: block;
+  background: var(--nebula-bg-tertiary);
+  padding: 0.625rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nebula-text-secondary);
+  border-bottom: 1px solid var(--nebula-border-light);
+}
+
+/* Quick links list (right column "Search Intelligence", etc.) */
+.nebula-dashboard-quicklinks { padding: 0.5rem; }
+
+.nebula-dashboard-quicklink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--nebula-text-secondary);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nebula-dashboard-quicklink:hover {
+  background: var(--nebula-bg-hover);
+  color: var(--nebula-text-primary);
+}
+
+.nebula-dashboard-quicklink__icon {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-tertiary);
+  color: var(--nebula-text-secondary);
+  flex-shrink: 0;
+}
+
+.nebula-dashboard-quicklink__icon svg { height: 1rem; width: 1rem; }
+
+.nebula-dashboard-quicklink__title { font-weight: 500; }
+
+.nebula-dashboard-quicklink__desc {
+  font-size: 0.75rem;
+  color: var(--nebula-text-muted);
+}
+
+/* Dashboard grid (table) - replaces hardcoded utilities in dashboard/grid.phtml */
+.nebula-dashboard-table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+
+.nebula-dashboard-table thead tr {
+  border-bottom: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-secondary);
+}
+
+.nebula-dashboard-table th {
+  background: var(--nebula-bg-secondary);
+  padding: 0.625rem 1.25rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-table tbody tr {
+  border-top: 1px solid var(--nebula-border-light);
+  transition: background 0.15s;
+}
+
+.nebula-dashboard-table tbody tr:hover { background: var(--nebula-bg-hover); }
+
+.nebula-dashboard-table td {
+  padding: 0.625rem 1.25rem;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-dashboard-table-empty {
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+}
+
+.nebula-dashboard-table-empty__icon {
+  margin: 0 auto 0.75rem;
+  height: 2rem;
+  width: 2rem;
+  color: var(--nebula-text-muted);
+}
+
+.nebula-dashboard-table-empty__text {
+  font-size: 0.875rem;
+  color: var(--nebula-text-tertiary);
+}
+
+.nebula-dashboard-table-empty__hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--nebula-text-muted);
+}
+
+/* Chart - replaces hardcoded utilities in dashboard/chart.phtml */
+.nebula-dashboard-chart { position: relative; }
+
+.nebula-dashboard-chart__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--nebula-bg-primary) 80%, transparent);
+}
+
+.nebula-dashboard-chart__spinner {
+  height: 1.5rem;
+  width: 1.5rem;
+  color: var(--color-nebula-500);
+  animation: spin 1s linear infinite;
+}
+
+.nebula-dashboard-chart__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.nebula-dashboard-chart__empty-icon {
+  margin: 0 auto 0.5rem;
+  height: 2rem;
+  width: 2rem;
+  color: var(--nebula-text-muted);
+}
+
+.nebula-dashboard-chart__empty-text {
+  font-size: 0.875rem;
+  color: var(--nebula-text-muted);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Chart period selector */
+.nebula-dashboard-chart-period {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nebula-dashboard-chart-period__label {
+  font-size: 0.75rem;
+  color: var(--nebula-text-muted);
+}
+
+.nebula-dashboard-chart-period__select {
+  border-radius: 0.5rem;
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-secondary);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--nebula-text-primary);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.nebula-dashboard-chart-period__select:focus {
+  outline: none;
+  border-color: var(--color-nebula-500);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-nebula-500) 20%, transparent);
+}
+
+/* Dashboard panel description (under panel header / standalone) */
+.nebula-dashboard-panel__description {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--nebula-text-tertiary);
+  line-height: 1.5;
+}
+
+/* Standalone CTA button inside a panel */
+.nebula-dashboard-panel__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  border: 1px solid var(--nebula-border-default);
+  background: var(--nebula-bg-secondary);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.nebula-dashboard-panel__cta:hover {
+  background: var(--nebula-bg-hover);
+  border-color: var(--nebula-border-strong);
+}
+
+.nebula-dashboard-panel__cta svg { height: 0.75rem; width: 0.75rem; }
+
+/* Variant: panel laid out as a single row banner (used by Advanced Reporting) */
+.nebula-dashboard-panel--banner {
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  grid-column: 1 / -1;
+}
+
+.nebula-dashboard-panel--banner > .nebula-dashboard-panel__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}

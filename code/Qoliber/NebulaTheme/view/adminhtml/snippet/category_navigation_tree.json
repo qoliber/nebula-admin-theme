@@ -1,0 +1,4 @@
+{
+  "id": "category_navigation_tree",
+  "template": "Qoliber_NebulaTheme::eav/snippet/category_navigation_tree.phtml"
+}

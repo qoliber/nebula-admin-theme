@@ -1,0 +1,80 @@
+{
+  "id": "cms_block_listing",
+  "acl": "Magento_Cms::block",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "cms_block.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "block_id",
+      "direction": "asc"
+    },
+    "addButton": {
+      "label": "Add New Block",
+      "url": "cms/block/new"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "block_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "title": {
+      "label": "Title",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "identifier": {
+      "label": "Identifier",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "is_active": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "position": 40
+    },
+    "creation_time": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "update_time": {
+      "label": "Modified",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "cms/block/edit/block_id/{{block_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

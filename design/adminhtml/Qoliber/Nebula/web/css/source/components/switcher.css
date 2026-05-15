@@ -1,0 +1,6 @@
+/* Nebula store scope switcher component overrides. */
+
+body.dark .nebula-scope-switcher .nebula-scope-current,
+.dark .nebula-scope-switcher .nebula-scope-current {
+    color: #e5e7eb !important;
+}

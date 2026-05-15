@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
+    <type name="nebula_definitions"
+          translate="label,description"
+          instance="Qoliber\NebulaComponent\Model\Cache\Type\NebulaDefinitions">
+        <label>Nebula Definitions</label>
+        <description>Compiled grid/form/snippet/content_type JSON definitions.</description>
+    </type>
+</config>

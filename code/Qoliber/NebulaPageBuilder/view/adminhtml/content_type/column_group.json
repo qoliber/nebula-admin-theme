@@ -1,0 +1,42 @@
+{
+  "name": "column-group",
+  "label": "Columns",
+  "icon": "fa-solid fa-columns",
+  "menuSection": "layout",
+  "sortOrder": 20,
+  "isContainer": true,
+  "parents": {
+    "defaultPolicy": "deny",
+    "allow": ["stage", "row", "column-group"]
+  },
+  "children": {
+    "defaultPolicy": "deny",
+    "allow": ["column-line", "column"]
+  },
+  "appearances": {
+    "default": {
+      "default": true,
+      "label": "Default",
+      "masterTemplate": "master/column-group/default.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "column-group",
+            "data-appearance": "default",
+            "data-grid-size": "grid_size"
+          },
+          "styles": {
+            "display": {"source": "display", "converter": "display"}
+          },
+          "cssClasses": ["pagebuilder-column-group"],
+          "cssSource": "css_classes"
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "default",
+    "grid_size": "12"
+  }
+}

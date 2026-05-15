@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- Nebula: Replace legacy notification toolbar with Alpine.js version -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="header">
+            <block class="Magento\AdminNotification\Block\ToolbarEntry"
+                   name="notification.messages"
+                   before="user"
+                   aclResource="Magento_AdminNotification::show_toolbar"
+                   template="Magento_AdminNotification::toolbar_entry.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

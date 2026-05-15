@@ -1,0 +1,80 @@
+{
+  "id": "tax_rate_listing",
+  "acl": "Magento_Tax::manage_tax",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "tax_rate.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "tax_calculation_rate_id",
+      "direction": "asc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Add New Tax Rate",
+      "url": "tax/rate/add"
+    }
+  },
+  "columns": {
+    "tax_calculation_rate_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "code": {
+      "label": "Tax Identifier",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "tax_country_id": {
+      "label": "Country",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "tax_region_id": {
+      "label": "State/Region",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 40
+    },
+    "tax_postcode": {
+      "label": "Zip/Post Code",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 50
+    },
+    "rate": {
+      "label": "Rate",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "tax/rate/edit/rate/{{tax_calculation_rate_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

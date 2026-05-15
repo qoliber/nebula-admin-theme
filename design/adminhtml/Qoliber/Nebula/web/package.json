@@ -1,0 +1,48 @@
+{
+  "name": "nebula",
+  "version": "1.0.0",
+  "description": "Nebula admin framework — CSS and TypeScript sources.",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i css/source/app.css -o css/dist/app.css --minify",
+    "build:js": "node build.mjs",
+    "build": "npm run build:css && npm run build:js",
+    "watch:css": "node watch-css.mjs",
+    "watch:js": "node build.mjs --watch",
+    "watch": "(trap 'kill 0' SIGINT; npm run watch:css & npm run watch:js & wait)",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jakwinkler/m2-nebula.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jakwinkler/m2-nebula/issues"
+  },
+  "homepage": "https://github.com/jakwinkler/m2-nebula#readme",
+  "dependencies": {
+    "alpinejs": "^3.14.0",
+    "@alpinejs/collapse": "^3.14.0",
+    "chart.js": "^4.4.0",
+    "quill": "^2.0.3",
+    "sortablejs": "^1.15.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.1",
+    "@types/alpinejs": "^3.13.10",
+    "@types/sortablejs": "^1.15.8",
+    "@vitest/coverage-v8": "^2.0.0",
+    "esbuild": "^0.23.0",
+    "happy-dom": "^15.0.0",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}

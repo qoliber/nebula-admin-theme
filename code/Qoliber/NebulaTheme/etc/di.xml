@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <preference for="Magento\Catalog\Block\Adminhtml\Product\Attribute"
+                type="Qoliber\NebulaTheme\Block\Adminhtml\Product\Attribute"/>
+
+    <!--
+        DataProviderRegistry alias bindings for NebulaTheme's consolidated
+        providers. JSON files reference providers by alias (e.g.,
+        "provider": "catalog_rule.form") instead of FQCN, so the runtime
+        resolver can validate and substitute the implementation.
+    -->
+    <!--
+        Snippet ViewModel registry — binds snippet ID to a view model class.
+        Snippet templates retrieve their ViewModel via $block->getData('view_model')
+        which the snippet renderer pre-populates from this binding.
+    -->
+    <type name="Qoliber\NebulaComponent\Model\SnippetViewModelRegistry">
+        <arguments>
+            <argument name="viewModels" xsi:type="array">
+                <!-- Catalog snippets (formerly NebulaCatalog) -->
+                <item name="attribute_labels"         xsi:type="object">Qoliber\NebulaTheme\ViewModel\AttributeLabels</item>
+                <item name="attribute_options"        xsi:type="object">Qoliber\NebulaTheme\ViewModel\AttributeOptions</item>
+                <item name="category_navigation_tree" xsi:type="object">Qoliber\NebulaTheme\ViewModel\CategoryTree</item>
+                <item name="category_products"        xsi:type="object">Qoliber\NebulaTheme\ViewModel\CategoryProducts</item>
+                <item name="category_tree"            xsi:type="object">Qoliber\NebulaTheme\ViewModel\CategoryTree</item>
+                <item name="media_gallery"            xsi:type="object">Qoliber\NebulaTheme\ViewModel\MediaGallery</item>
+                <item name="related_products"         xsi:type="object">Qoliber\NebulaTheme\ViewModel\RelatedProducts</item>
+                <item name="seo_preview"              xsi:type="object">Qoliber\NebulaTheme\ViewModel\SeoPreview</item>
+                <item name="stock_fields"             xsi:type="object">Qoliber\NebulaTheme\ViewModel\StockFields</item>
+                <item name="tier_prices"              xsi:type="object">Qoliber\NebulaTheme\ViewModel\TierPrices</item>
+                <item name="website_checkboxes"       xsi:type="object">Qoliber\NebulaTheme\ViewModel\WebsiteCheckboxes</item>
+                <item name="weight_field"             xsi:type="object">Qoliber\NebulaTheme\ViewModel\WeightField</item>
+
+                <!-- Customer snippets (formerly NebulaCustomer) -->
+                <item name="customer_addresses"       xsi:type="object">Qoliber\NebulaTheme\ViewModel\CustomerAddresses</item>
+                <item name="customer_cart"            xsi:type="object">Qoliber\NebulaTheme\ViewModel\CustomerCart</item>
+                <item name="customer_orders_lazy"     xsi:type="object">Qoliber\NebulaTheme\ViewModel\CustomerOrdersLazy</item>
+                <item name="customer_overview"        xsi:type="object">Qoliber\NebulaTheme\ViewModel\CustomerOverview</item>
+
+                <!-- Product type snippets (formerly NebulaProductBundle/Configurable) -->
+                <item name="bundle_options"           xsi:type="object">Qoliber\NebulaTheme\ViewModel\BundleOptions</item>
+                <item name="bundle_settings"          xsi:type="object">Qoliber\NebulaTheme\ViewModel\BundleSettings</item>
+                <item name="configurable_options"     xsi:type="object">Qoliber\NebulaTheme\ViewModel\ConfigurableOptions</item>
+
+                <!-- Sales rule snippets -->
+                <item name="coupon_generator"         xsi:type="object">Qoliber\NebulaTheme\ViewModel\CouponGenerator</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        seo_preview URL-suffix registry. The seo_preview snippet reads the
+        suffix appended to entity URLs (so the Google preview matches what
+        the storefront emits). Each entry is `entity_type` → scope-config
+        path; the ViewModel looks up the value via ScopeConfigInterface at
+        render time. 3rd-party modules wanting an SEO preview for their own
+        entity (blog post, brand, …) add their entity_type here from their
+        own di.xml — no class extension needed.
+
+        CMS pages are absent on purpose: they have no URL suffix.
+    -->
+    <type name="Qoliber\NebulaTheme\ViewModel\SeoPreview">
+        <arguments>
+            <argument name="suffixConfigPaths" xsi:type="array">
+                <item name="product"  xsi:type="string">catalog/seo/product_url_suffix</item>
+                <item name="category" xsi:type="string">catalog/seo/category_url_suffix</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        CollectionRegistry alias bindings — short, stable aliases used in
+        grid JSON (`"collection": "cms_page.collection"`) → vendor collection
+        FQCN. Replaces the previous prefix-allowlist that let JSON pick any
+        `Magento\…` or `Qoliber\…` class. NebulaStore di.xml contributes the
+        store/design entries.
+    -->
+    <type name="Qoliber\NebulaGrid\Model\Registry\CollectionRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="admin_user.collection" xsi:type="string">Magento\User\Model\ResourceModel\User\Collection</item>
+                <item name="catalog_rule.collection" xsi:type="string">Magento\CatalogRule\Model\ResourceModel\Rule\Collection</item>
+                <item name="cms_block.collection" xsi:type="string">Magento\Cms\Model\ResourceModel\Block\Collection</item>
+                <item name="cms_page.collection" xsi:type="string">Magento\Cms\Model\ResourceModel\Page\Collection</item>
+                <item name="customer_group.collection" xsi:type="string">Magento\Customer\Model\ResourceModel\Group\Collection</item>
+                <item name="email_template.collection" xsi:type="string">Magento\Email\Model\ResourceModel\Template\Collection</item>
+                <item name="integration.collection" xsi:type="string">Magento\Integration\Model\ResourceModel\Integration\Collection</item>
+                <item name="newsletter_subscriber.collection" xsi:type="string">Magento\Newsletter\Model\ResourceModel\Subscriber\Collection</item>
+                <item name="order_status.collection" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Status\Collection</item>
+                <item name="product_attributes.collection" xsi:type="string">Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection</item>
+                <item name="sales_order.collection" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Grid\Collection</item>
+                <item name="sales_order_creditmemo.collection" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Creditmemo\Grid\Collection</item>
+                <item name="sales_order_invoice.collection" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Invoice\Grid\Collection</item>
+                <item name="sales_order_shipment.collection" xsi:type="string">Magento\Sales\Model\ResourceModel\Order\Shipment\Grid\Collection</item>
+                <item name="sales_rule.collection" xsi:type="string">Magento\SalesRule\Model\ResourceModel\Rule\Collection</item>
+                <item name="search_term.collection" xsi:type="string">Magento\Search\Model\ResourceModel\Query\Collection</item>
+                <item name="sitemap.collection" xsi:type="string">Magento\Sitemap\Model\ResourceModel\Sitemap\Collection</item>
+                <item name="tax_rate.collection" xsi:type="string">Magento\Tax\Model\ResourceModel\Calculation\Rate\Collection</item>
+                <item name="tax_rule.collection" xsi:type="string">Magento\Tax\Model\ResourceModel\Calculation\Rule\Collection</item>
+                <item name="url_rewrite.collection" xsi:type="string">Magento\UrlRewrite\Model\ResourceModel\UrlRewriteCollection</item>
+                <item name="user_role.collection" xsi:type="string">Magento\Authorization\Model\ResourceModel\Role\Collection</item>
+                <item name="widget_instance.collection" xsi:type="string">Magento\Widget\Model\ResourceModel\Widget\Instance\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Qoliber\NebulaComponent\Model\Registry\DataProviderRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="admin_user.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\AdminUserProvider</item>
+                <item name="attribute.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\AttributeFormProvider</item>
+                <item name="attribute_set.grid" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\AttributeSetProvider</item>
+                <item name="catalog_rule.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\CatalogRuleProvider</item>
+                <item name="category.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\CategoryFormProvider</item>
+                <item name="cms_block.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\CmsBlockProvider</item>
+                <item name="cms_page.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\CmsPageProvider</item>
+                <item name="customer.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\CustomerFormProvider</item>
+                <item name="customer.grid" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\CustomerGridProvider</item>
+                <item name="customer_group.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\CustomerGroupProvider</item>
+                <item name="email_template.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\EmailTemplateProvider</item>
+                <item name="product.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\ProductFormProvider</item>
+                <item name="product.grid" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\ProductProvider</item>
+                <item name="sales_rule.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\SalesRuleProvider</item>
+                <item name="sales_rule.coupons.grid" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\SalesRuleCouponsGridProvider</item>
+                <item name="tax_rule.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\TaxRuleProvider</item>
+                <item name="url_rewrite.form" xsi:type="string">Qoliber\NebulaTheme\Model\DataProvider\UrlRewriteProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

@@ -1,0 +1,481 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaTheme\Block\AttributeSetEdit $block */
+
+$setId = $block->getAttributeSetId();
+$setName = $block->getAttributeSetName();
+$isDefault = $block->isDefaultSet();
+$groupsJson = $block->getGroupsJson();
+$unassignedJson = $block->getUnassignedAttributesJson();
+$formKey = $block->getFormKeyValue();
+$saveUrl = $block->getSaveUrl();
+$backUrl = $block->getBackUrl();
+$deleteUrl = $block->getDeleteUrl();
+?>
+
+<div x-data="attributeSetEditor()" x-init="init()" class="max-w-7xl">
+
+    <!-- Header -->
+    <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="<?= $escaper->escapeUrl($backUrl) ?>"
+               class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+                <?= $escaper->escapeHtml((string) __('Back')) ?>
+            </a>
+            <h1 class="text-xl font-bold text-gray-900"><?= $escaper->escapeHtml((string) __('Edit Attribute Set')) ?></h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <?php if (!$isDefault) : ?>
+            <button type="button"
+                    @click="confirmDelete()"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200 transition hover:bg-red-100">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                <?= $escaper->escapeHtml((string) __('Delete')) ?>
+            </button>
+            <?php endif; ?>
+            <button type="button"
+                    @click="save()"
+                    :disabled="saving"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50">
+                <svg class="h-4 w-4" x-show="!saving" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <svg class="h-4 w-4 animate-spin" x-show="saving" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                <span x-text="saving ? '<?= $escaper->escapeJs((string) __('Saving...')) ?>' : '<?= $escaper->escapeJs((string) __('Save')) ?>'"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Attribute Set Name -->
+    <div class="mb-6 rounded-xl bg-white p-4 shadow-sm border border-gray-200">
+        <label for="attribute_set_name" class="block text-sm font-medium text-gray-700 mb-1">
+            <?= $escaper->escapeHtml((string) __('Attribute Set Name')) ?>
+        </label>
+        <input type="text" id="attribute_set_name" x-model="setName"
+               class="w-full max-w-md rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+               required />
+    </div>
+
+    <!-- Two-panel layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left panel: Groups (2/3) -->
+        <div class="lg:col-span-2 space-y-3">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-lg font-semibold text-gray-900"><?= $escaper->escapeHtml((string) __('Attribute Groups')) ?></h2>
+                <button type="button" @click="addGroup()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-indigo-600 border border-indigo-300 transition hover:bg-indigo-50">
+                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    <?= $escaper->escapeHtml((string) __('Add Group')) ?>
+                </button>
+            </div>
+
+            <template x-for="(group, gIdx) in groups" :key="group.id">
+                <div class="rounded-xl bg-white shadow-sm border border-gray-200 overflow-hidden">
+                    <!-- Group header -->
+                    <div class="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200 cursor-pointer"
+                         @click="group.collapsed = !group.collapsed">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <svg class="h-4 w-4 text-gray-400 transition-transform" :class="{'rotate-90': !group.collapsed}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+
+                            <!-- Editable group name -->
+                            <template x-if="group.editing">
+                                <input type="text" x-model="group.name"
+                                       @click.stop
+                                       @keydown.enter="group.editing = false"
+                                       @keydown.escape="group.editing = false"
+                                       @blur="group.editing = false"
+                                       x-ref="groupNameInput"
+                                       class="rounded border border-indigo-300 px-2 py-0.5 text-sm font-semibold focus:ring-1 focus:ring-indigo-500 outline-none" />
+                            </template>
+                            <template x-if="!group.editing">
+                                <span class="text-sm font-semibold text-gray-900" x-text="group.name"
+                                      @dblclick.stop="startEditGroupName(group)"></span>
+                            </template>
+
+                            <span class="text-xs text-gray-400" x-text="'(' + group.attributes.length + ')'"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <!-- Move up -->
+                            <button type="button" @click.stop="moveGroup(gIdx, -1)" x-show="gIdx > 0"
+                                    class="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200" title="<?= $escaper->escapeHtmlAttr((string) __('Move Up')) ?>">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>
+                            </button>
+                            <!-- Move down -->
+                            <button type="button" @click.stop="moveGroup(gIdx, 1)" x-show="gIdx < groups.length - 1"
+                                    class="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200" title="<?= $escaper->escapeHtmlAttr((string) __('Move Down')) ?>">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+                            </button>
+                            <!-- Rename -->
+                            <button type="button" @click.stop="startEditGroupName(group)"
+                                    class="rounded p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50" title="<?= $escaper->escapeHtmlAttr((string) __('Rename')) ?>">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+                            </button>
+                            <!-- Delete group -->
+                            <button type="button" @click.stop="deleteGroup(gIdx)"
+                                    class="rounded p-1 text-gray-400 hover:text-red-600 hover:bg-red-50" title="<?= $escaper->escapeHtmlAttr((string) __('Delete Group')) ?>">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Group attributes -->
+                    <div x-show="!group.collapsed" x-collapse>
+                        <div class="divide-y divide-gray-100">
+                            <template x-for="(attr, aIdx) in group.attributes" :key="attr.attribute_id">
+                                <div class="flex items-center justify-between px-4 py-2 hover:bg-gray-50 group/attr">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <!-- Reorder buttons -->
+                                        <div class="flex flex-col gap-0.5 opacity-0 group-hover/attr:opacity-100 transition">
+                                            <button type="button" @click="moveAttribute(group, aIdx, -1)" x-show="aIdx > 0"
+                                                    class="text-gray-300 hover:text-gray-600">
+                                                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>
+                                            </button>
+                                            <button type="button" @click="moveAttribute(group, aIdx, 1)" x-show="aIdx < group.attributes.length - 1"
+                                                    class="text-gray-300 hover:text-gray-600">
+                                                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+                                            </button>
+                                        </div>
+                                        <span class="text-sm text-gray-700" x-text="attr.code"></span>
+                                        <span class="text-xs text-gray-400" x-show="attr.label !== attr.code" x-text="'(' + attr.label + ')'"></span>
+                                        <span x-show="!attr.is_unassignable"
+                                              class="inline-flex items-center rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                                            <?= $escaper->escapeHtml((string) __('System')) ?>
+                                        </span>
+                                    </div>
+                                    <button type="button" @click="unassignAttribute(group, aIdx)"
+                                            x-show="attr.is_unassignable"
+                                            class="rounded p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover/attr:opacity-100 transition"
+                                            title="<?= $escaper->escapeHtmlAttr((string) __('Remove from group')) ?>">
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                            </template>
+
+                            <!-- Empty state -->
+                            <div x-show="group.attributes.length === 0" class="px-4 py-3 text-sm text-gray-400 italic">
+                                <?= $escaper->escapeHtml((string) __('No attributes in this group')) ?>
+                            </div>
+                        </div>
+
+                        <!-- Add attribute to group -->
+                        <div class="border-t border-gray-100 px-4 py-2">
+                            <div x-show="group.addingAttribute" class="flex items-center gap-2">
+                                <div class="relative flex-1">
+                                    <input type="text" x-model="group.attrSearch" placeholder="<?= $escaper->escapeHtmlAttr((string) __('Search attributes...')) ?>"
+                                           @click.outside="group.addingAttribute = false"
+                                           class="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" />
+                                    <div x-show="filteredUnassigned(group.attrSearch).length > 0"
+                                         class="absolute z-10 mt-1 w-full max-h-48 overflow-auto rounded-lg bg-white shadow-lg border border-gray-200">
+                                        <template x-for="attr in filteredUnassigned(group.attrSearch)" :key="attr.attribute_id">
+                                            <button type="button" @click="assignAttribute(group, attr)"
+                                                    class="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                                                <span x-text="attr.code"></span>
+                                                <span class="text-gray-400 text-xs" x-show="attr.label !== attr.code" x-text="'(' + attr.label + ')'"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <button type="button" @click="group.addingAttribute = false; group.attrSearch = ''"
+                                        class="rounded p-1.5 text-gray-400 hover:text-gray-600">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            <button type="button" x-show="!group.addingAttribute"
+                                    @click="group.addingAttribute = true; group.attrSearch = ''"
+                                    class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                <?= $escaper->escapeHtml((string) __('Add Attribute')) ?>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Right panel: Unassigned Attributes (1/3) -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-4">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2"><?= $escaper->escapeHtml((string) __('Unassigned Attributes')) ?></h2>
+                <div class="rounded-xl bg-white shadow-sm border border-gray-200 overflow-hidden">
+                    <!-- Search -->
+                    <div class="p-3 border-b border-gray-200">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                            <input type="text" x-model="unassignedSearch" placeholder="<?= $escaper->escapeHtmlAttr((string) __('Search...')) ?>"
+                                   class="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" />
+                        </div>
+                    </div>
+
+                    <!-- Attribute list -->
+                    <div class="max-h-[600px] overflow-auto divide-y divide-gray-50">
+                        <template x-for="attr in filteredUnassigned(unassignedSearch)" :key="attr.attribute_id">
+                            <div class="flex items-center justify-between px-3 py-2 hover:bg-gray-50 group/ua">
+                                <div class="min-w-0">
+                                    <span class="text-sm text-gray-700" x-text="attr.code"></span>
+                                    <span class="text-xs text-gray-400 block" x-show="attr.label !== attr.code" x-text="attr.label"></span>
+                                </div>
+                                <!-- Assign dropdown -->
+                                <div class="relative" x-data="{ open: false }">
+                                    <button type="button" @click="open = !open"
+                                            class="rounded p-1 text-gray-300 hover:text-indigo-600 opacity-0 group-hover/ua:opacity-100 transition"
+                                            title="<?= $escaper->escapeHtmlAttr((string) __('Assign to group')) ?>">
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                    </button>
+                                    <div x-show="open" @click.outside="open = false"
+                                         class="absolute right-0 z-20 mt-1 w-48 rounded-lg bg-white shadow-lg border border-gray-200 py-1">
+                                        <template x-for="group in groups" :key="group.id">
+                                            <button type="button" @click="assignAttribute(group, attr); open = false"
+                                                    class="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700"
+                                                    x-text="group.name">
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="unassigned.length === 0" class="px-3 py-4 text-sm text-gray-400 italic text-center">
+                            <?= $escaper->escapeHtml((string) __('All attributes are assigned')) ?>
+                        </div>
+                        <div x-show="unassigned.length > 0 && filteredUnassigned(unassignedSearch).length === 0" class="px-3 py-4 text-sm text-gray-400 italic text-center">
+                            <?= $escaper->escapeHtml((string) __('No matching attributes')) ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Message area -->
+    <div x-show="message" x-transition class="fixed bottom-6 right-6 z-50">
+        <div :class="messageError ? 'bg-red-50 border-red-200 text-red-800' : 'bg-green-50 border-green-200 text-green-800'"
+             class="rounded-lg border px-4 py-3 shadow-lg text-sm font-medium">
+            <span x-text="message"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+function attributeSetEditor() {
+    return {
+        setName: <?= /* @noEscape */ json_encode($setName) ?>,
+        groups: [],
+        unassigned: [],
+        removedGroups: [],
+        unassignedSearch: '',
+        saving: false,
+        message: '',
+        messageError: false,
+
+        init() {
+            const rawGroups = <?= /* @noEscape */ $groupsJson ?>;
+            this.groups = rawGroups.map(g => ({
+                ...g,
+                collapsed: false,
+                editing: false,
+                addingAttribute: false,
+                attrSearch: ''
+            }));
+            this.unassigned = <?= /* @noEscape */ $unassignedJson ?>;
+        },
+
+        filteredUnassigned(search) {
+            if (!search) return this.unassigned;
+            const q = search.toLowerCase();
+            return this.unassigned.filter(a =>
+                a.code.toLowerCase().includes(q) || a.label.toLowerCase().includes(q)
+            );
+        },
+
+        addGroup() {
+            const name = prompt('<?= $escaper->escapeJs((string) __('Enter new group name:')) ?>');
+            if (!name || !name.trim()) return;
+
+            // Check uniqueness
+            if (this.groups.some(g => g.name.toLowerCase() === name.trim().toLowerCase())) {
+                alert('<?= $escaper->escapeJs((string) __('A group with this name already exists.')) ?>');
+                return;
+            }
+
+            this.groups.push({
+                id: 'gNEW_' + Date.now(),
+                name: name.trim(),
+                sort_order: this.groups.length + 1,
+                attributes: [],
+                collapsed: false,
+                editing: false,
+                addingAttribute: false,
+                attrSearch: ''
+            });
+        },
+
+        startEditGroupName(group) {
+            group.editing = true;
+            this.$nextTick(() => {
+                const input = this.$el.querySelector('input[x-model="group.name"]');
+                if (input) input.focus();
+            });
+        },
+
+        async deleteGroup(gIdx) {
+            const group = this.groups[gIdx];
+
+            // Check for system attributes
+            const hasSystem = group.attributes.some(a => !a.is_unassignable);
+            if (hasSystem) {
+                alert('<?= $escaper->escapeJs((string) __('This group contains system attributes. Move them to another group first.')) ?>');
+                return;
+            }
+
+            if (group.attributes.length > 0) {
+                if (!(await window.Nebula.confirm({ title: '<?= $escaper->escapeJs((string) __('Delete this group?')) ?>', message: '<?= $escaper->escapeJs((string) __('Its attributes will be moved to Unassigned.')) ?>', danger: true, confirmText: '<?= $escaper->escapeJs((string) __('Delete group')) ?>' }))) {
+                    return;
+                }
+            }
+
+            // Move user-defined attributes to unassigned
+            group.attributes.forEach(attr => {
+                if (attr.is_unassignable) {
+                    this.unassigned.push({
+                        attribute_id: attr.attribute_id,
+                        code: attr.code,
+                        label: attr.label,
+                        is_user_defined: attr.is_user_defined,
+                        entity_id: attr.entity_id
+                    });
+                }
+            });
+
+            // Track removed group if it's an existing one (numeric id)
+            if (typeof group.id === 'number' || (typeof group.id === 'string' && !group.id.startsWith('gNEW_'))) {
+                this.removedGroups.push(group.id);
+            }
+
+            this.groups.splice(gIdx, 1);
+        },
+
+        moveGroup(idx, direction) {
+            const newIdx = idx + direction;
+            if (newIdx < 0 || newIdx >= this.groups.length) return;
+            const temp = this.groups[idx];
+            this.groups[idx] = this.groups[newIdx];
+            this.groups[newIdx] = temp;
+            // Force reactivity
+            this.groups = [...this.groups];
+        },
+
+        moveAttribute(group, idx, direction) {
+            const newIdx = idx + direction;
+            if (newIdx < 0 || newIdx >= group.attributes.length) return;
+            const temp = group.attributes[idx];
+            group.attributes[idx] = group.attributes[newIdx];
+            group.attributes[newIdx] = temp;
+            group.attributes = [...group.attributes];
+        },
+
+        assignAttribute(group, attr) {
+            // Remove from unassigned
+            this.unassigned = this.unassigned.filter(a => a.attribute_id !== attr.attribute_id);
+
+            // Add to group
+            group.attributes.push({
+                attribute_id: attr.attribute_id,
+                code: attr.code,
+                label: attr.label,
+                entity_id: attr.entity_id || 0,
+                is_user_defined: attr.is_user_defined,
+                is_unassignable: true
+            });
+
+            group.addingAttribute = false;
+            group.attrSearch = '';
+        },
+
+        unassignAttribute(group, aIdx) {
+            const attr = group.attributes[aIdx];
+            group.attributes.splice(aIdx, 1);
+
+            this.unassigned.push({
+                attribute_id: attr.attribute_id,
+                code: attr.code,
+                label: attr.label,
+                is_user_defined: attr.is_user_defined,
+                entity_id: attr.entity_id
+            });
+        },
+
+        async confirmDelete() {
+            if (await window.Nebula.confirm({ title: '<?= $escaper->escapeJs((string) __('Delete this attribute set?')) ?>', message: '<?= $escaper->escapeJs((string) __('All products using this set will be removed. This cannot be undone.')) ?>', danger: true, confirmText: '<?= $escaper->escapeJs((string) __('Delete set')) ?>' })) {
+                window.location.href = <?= /* @noEscape */ json_encode($deleteUrl) ?>;
+            }
+        },
+
+        showMessage(msg, isError) {
+            this.message = msg;
+            this.messageError = isError;
+            setTimeout(() => { this.message = ''; }, 4000);
+        },
+
+        save() {
+            if (!this.setName.trim()) {
+                this.showMessage('<?= $escaper->escapeJs((string) __('Attribute set name is required.')) ?>', true);
+                return;
+            }
+
+            this.saving = true;
+
+            // Build data in the format organizeData expects
+            const reqGroups = [];
+            const reqAttributes = [];
+            const reqNotAttributes = [];
+
+            this.groups.forEach((group, gIdx) => {
+                reqGroups.push([group.id, group.name, gIdx + 1]);
+
+                group.attributes.forEach((attr, aIdx) => {
+                    reqAttributes.push([attr.attribute_id, group.id, aIdx + 1, attr.entity_id || 0]);
+                });
+            });
+
+            this.unassigned.forEach(attr => {
+                if (attr.entity_id > 0) {
+                    reqNotAttributes.push(attr.entity_id);
+                }
+            });
+
+            const data = {
+                attribute_set_name: this.setName,
+                groups: reqGroups,
+                attributes: reqAttributes,
+                not_attributes: reqNotAttributes,
+                removeGroups: [...new Set(this.removedGroups)]
+            };
+
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(data));
+            formData.append('form_key', <?= /* @noEscape */ json_encode($formKey) ?>);
+
+            fetch(<?= /* @noEscape */ json_encode($saveUrl) ?>, {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(response => {
+                this.saving = false;
+                if (response.error) {
+                    this.showMessage(response.message || '<?= $escaper->escapeJs((string) __('An error occurred while saving.')) ?>', true);
+                } else if (response.url) {
+                    this.showMessage('<?= $escaper->escapeJs((string) __('Saved successfully.')) ?>', false);
+                    setTimeout(() => { window.location.href = response.url; }, 1000);
+                }
+            })
+            .catch(() => {
+                this.saving = false;
+                this.showMessage('<?= $escaper->escapeJs((string) __('An error occurred while saving.')) ?>', true);
+            });
+        }
+    };
+}
+</script>

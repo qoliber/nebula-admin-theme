@@ -1,0 +1,68 @@
+{
+  "id": "design_theme_listing",
+  "acl": "Magento_Theme::theme",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "design_theme.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "theme_id",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "theme_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "theme_title": {
+      "label": "Theme Title",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "parent_theme_title": {
+      "label": "Parent Theme",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 30
+    },
+    "theme_path": {
+      "label": "Theme Path",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 40
+    },
+    "preview_image": {
+      "label": "Preview",
+      "renderer": "snippet.theme_preview",
+      "sortable": false,
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "adminhtml/system_design_theme/edit/id/{{theme_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

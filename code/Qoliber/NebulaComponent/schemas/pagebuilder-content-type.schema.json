@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nebula.qoliber.dev/schemas/pagebuilder-content-type.v1.json",
+  "title": "Nebula PageBuilder Content Type",
+  "description": "Declarative schema for a PageBuilder content type. Files live at view/adminhtml/content_type/<name>.json. Each file defines one content type registered with the Nebula PageBuilder registry: identity, tree-position rules, visual appearances, and default property values.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "label", "appearances", "defaults"],
+  "properties": {
+    "name": {
+      "title": "Content type name",
+      "description": "Unique kebab-case identifier. Used as `data-content-type` attribute. MUST match the filename (with dashes replaced by underscores).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "label": {
+      "title": "Display label",
+      "description": "Human-readable name shown in the PageBuilder panel.",
+      "type": "string",
+      "minLength": 1
+    },
+    "icon": {
+      "title": "Panel icon",
+      "description": "Font Awesome class string (e.g. `fa-solid fa-grip-lines`). Empty string hides the icon.",
+      "type": "string"
+    },
+    "menuSection": {
+      "title": "Panel section",
+      "description": "Which section of the PageBuilder panel lists this type. Omit for system-only types.",
+      "type": "string",
+      "enum": ["layout", "elements", "media", "addContent"]
+    },
+    "sortOrder": {
+      "title": "Sort order",
+      "description": "Integer ordering within the panel section.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "isContainer": {
+      "title": "Is container",
+      "description": "Whether this type accepts child content.",
+      "type": "boolean"
+    },
+    "isSystem": {
+      "title": "Is system-internal",
+      "description": "If true, the type is only reachable through explicit parent rules (not listed in the panel). Default: false.",
+      "type": "boolean"
+    },
+    "parents": {
+      "title": "Parent policy",
+      "description": "Declares which content types may contain this one.",
+      "$ref": "#/$defs/treePolicy"
+    },
+    "children": {
+      "title": "Children policy",
+      "description": "Declares which content types this one may contain.",
+      "$ref": "#/$defs/treePolicy"
+    },
+    "appearances": {
+      "title": "Appearances",
+      "description": "Map of appearance_id -> appearance descriptor. Exactly one appearance MUST be marked `default: true`.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z][a-z0-9-]*$"},
+      "additionalProperties": {"$ref": "#/$defs/appearance"}
+    },
+    "defaults": {
+      "title": "Default property values",
+      "description": "Initial values applied to a new instance of this content type. Typically includes `appearance` plus type-specific settings.",
+      "type": "object",
+      "required": ["appearance"],
+      "additionalProperties": {"type": ["string", "number", "boolean", "null"]}
+    }
+  },
+  "$defs": {
+    "treePolicy": {
+      "title": "Tree policy",
+      "description": "Controls which content types are allowed on a given tree edge.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultPolicy"],
+      "properties": {
+        "defaultPolicy": {
+          "title": "Default policy",
+          "description": "Applied when a given content type is not listed in `allow` or `deny`.",
+          "type": "string",
+          "enum": ["allow", "deny"]
+        },
+        "allow": {
+          "title": "Allow list",
+          "description": "Content type names explicitly allowed (overrides defaultPolicy=deny).",
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "uniqueItems": true
+        },
+        "deny": {
+          "title": "Deny list",
+          "description": "Content type names explicitly denied (overrides defaultPolicy=allow).",
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "A visual variant of a content type with its own template and element-to-property bindings.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "masterTemplate", "elements"],
+      "properties": {
+        "default": {
+          "title": "Is default appearance",
+          "description": "Exactly one appearance per content type MUST be marked default.",
+          "type": "boolean",
+          "const": true
+        },
+        "label": {
+          "title": "Appearance label",
+          "description": "Human-readable name shown in the appearance picker.",
+          "type": "string",
+          "minLength": 1
+        },
+        "masterTemplate": {
+          "title": "Master template path",
+          "description": "phtml template relative to the PageBuilder templates root.",
+          "type": "string",
+          "pattern": "^master/[A-Za-z0-9_./-]+\\.phtml$"
+        },
+        "elements": {
+          "title": "Elements map",
+          "description": "Map of element_key -> element descriptor. `main` is always present.",
+          "type": "object",
+          "minProperties": 1,
+          "required": ["main"],
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_-]*$"},
+          "additionalProperties": {"$ref": "#/$defs/element"}
+        }
+      }
+    },
+    "element": {
+      "title": "Element",
+      "description": "A rendered DOM node: its tag, which HTML attributes/CSS properties map to which content-type properties, and optional static styling.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tag": {
+          "title": "HTML tag",
+          "description": "Static HTML tag (e.g. `div`, `a`, `hr`). Use `dynamic` to resolve from a property at runtime via `tagSource`.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*$"
+        },
+        "tagSource": {
+          "title": "Dynamic tag property",
+          "description": "Required when `tag` is `dynamic`. Names the property whose value becomes the tag name.",
+          "type": "string"
+        },
+        "attributes": {
+          "title": "HTML attributes map",
+          "description": "Map of attribute_name -> value or property source. Static strings become static attributes; object form binds to a property.",
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {"type": "string"},
+              {"$ref": "#/$defs/sourceBinding"}
+            ]
+          }
+        },
+        "styles": {
+          "title": "CSS styles map",
+          "description": "Map of css_property -> property source. Each entry pulls a value from the content type's data.",
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/sourceBinding"}
+        },
+        "staticStyles": {
+          "title": "Static CSS styles",
+          "description": "CSS declarations applied unconditionally. Plain key/value strings.",
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "cssClasses": {
+          "title": "Static CSS classes",
+          "description": "Always-on CSS class names.",
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "cssSource": {
+          "title": "CSS class property",
+          "description": "Name of the content-type property whose value is split into dynamic CSS classes.",
+          "type": "string"
+        }
+      }
+    },
+    "sourceBinding": {
+      "title": "Property source binding",
+      "description": "Binds an attribute/style to a content-type property, with an optional converter.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "properties": {
+        "source": {
+          "title": "Property name",
+          "description": "Content-type property key from which the value is read.",
+          "type": "string",
+          "minLength": 1
+        },
+        "converter": {
+          "title": "Converter name",
+          "description": "Name of a converter registered with PageBuilder (e.g. backgroundImage, borderStyle, minHeight, margins, paddings, display).",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

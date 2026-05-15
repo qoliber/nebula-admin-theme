@@ -1,0 +1,54 @@
+{
+  "id": "product_edit",
+  "dataSource": {
+    "provider": "catalog.product.grid",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "saveUrl": "catalog/product/save",
+    "backUrl": "catalog/product/index"
+  },
+  "fieldsets": {
+    "basic": {
+      "label": "Basic",
+      "position": 10,
+      "fields": {
+        "sku": {"label": "SKU", "type": "text", "position": 10},
+        "name": {"label": "Name", "type": "text", "position": 20}
+      }
+    }
+  },
+  "layout": [
+    {
+      "type": "row",
+      "children": [
+        {
+          "type": "column",
+          "children": [
+            {
+              "type": "section",
+              "id": "main",
+              "label": "Main",
+              "open": true,
+              "fields": ["sku", "name"]
+            }
+          ]
+        },
+        {
+          "type": "column",
+          "children": [
+            {
+              "type": "section",
+              "id": "sidebar",
+              "label": "Sidebar",
+              "open": false,
+              "renderer": "snippet.status_badge"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

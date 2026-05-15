@@ -1,0 +1,23 @@
+/* ============================================================
+ * DARK MODE — uses semantic variables, skins can override
+ * ============================================================ */
+.dark {
+  --nebula-bg-primary: #1f2937;
+  --nebula-bg-secondary: #111827;
+  --nebula-bg-tertiary: #374151;
+  --nebula-bg-hover: #374151;
+  --nebula-text-primary: #f3f4f6;
+  --nebula-text-secondary: #d1d5db;
+  --nebula-text-tertiary: #9ca3af;
+  --nebula-text-muted: #6b7280;
+  --nebula-border-light: #374151;
+  --nebula-border-default: #4b5563;
+  --nebula-border-strong: #6b7280;
+  --nebula-header-bg: #1f2937;
+  --nebula-fieldset-header-bg: #1f2937;
+  --nebula-button-bg: #374151;
+  --nebula-page-bg: #111827;
+  --nebula-shadow-sm: none;
+  --nebula-shadow-md: none;
+  --nebula-shadow-lg: none;
+}

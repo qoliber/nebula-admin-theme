@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="customer_form" remove="true"/>
+        <referenceBlock name="customer_edit_tabs" remove="true"/>
+        <referenceContainer name="left" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Qoliber\NebulaForm\Block\EavForm"
+                   name="nebula.customer_edit"
+                   after="-">
+                <arguments>
+                    <argument name="form_id" xsi:type="string">customer_edit</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="nebula.customer.scripts"
+                   template="Qoliber_NebulaTheme::scripts/customer-addresses.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

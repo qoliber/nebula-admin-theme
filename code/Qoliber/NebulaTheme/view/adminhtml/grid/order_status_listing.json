@@ -1,0 +1,52 @@
+{
+  "id": "order_status_listing",
+  "acl": "Magento_Sales::order_statuses",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "order_status.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "status",
+      "direction": "asc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Create New Status",
+      "url": "sales/order_status/new"
+    }
+  },
+  "columns": {
+    "status": {
+      "label": "Status Code",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 10
+    },
+    "label": {
+      "label": "Status Label",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "sales/order_status/edit/status/{{status}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

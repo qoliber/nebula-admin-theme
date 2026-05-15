@@ -1,0 +1,38 @@
+<?php
+
+/** @var \Qoliber\NebulaForm\Block\Form $block */
+$step = (string) ($field['step'] ?? '1');
+$config = json_encode([
+    'fieldName' => $fieldName,
+    'value' => (string) ($fieldValue ?? ''),
+    'step' => $step,
+    'disabled' => $isDisabled,
+    'required' => $isRequired,
+    'validation' => $field['validation'] ?? [],
+], JSON_UNESCAPED_SLASHES);
+$validateRules = ['number'];
+if ($isRequired) {
+    array_unshift($validateRules, 'required');
+}
+foreach (($field['validation'] ?? []) as $rule => $value) {
+    if ($value === true) {
+        $validateRules[] = $rule;
+    } elseif ($value !== false) {
+        $validateRules[] = $rule . ':' . $value;
+    }
+}
+$validateAttr = ' data-validate="' . $escaper->escapeHtmlAttr(implode('|', $validateRules)) . '"'
+    . ' data-validate-label="' . $escaper->escapeHtmlAttr($block->translate((string) ($field['label'] ?? $fKey))) . '"';
+$fieldControl = '<div x-data="nebulaField_number(' . htmlspecialchars((string) $config, ENT_QUOTES, 'UTF-8') . ')">'
+    . '<input type="number"'
+    . ' id="' . $escaper->escapeHtmlAttr($fieldId) . '"'
+    . ' x-model="value"'
+    . ' step="' . $escaper->escapeHtmlAttr($step) . '"'
+    . (isset($field['validation']['min']) ? ' min="' . $escaper->escapeHtmlAttr((string) $field['validation']['min']) . '"' : '')
+    . (isset($field['validation']['max']) ? ' max="' . $escaper->escapeHtmlAttr((string) $field['validation']['max']) . '"' : '')
+    . $validateAttr
+    . ($isDisabled ? ' disabled' : '')
+    . ($isReadonly ? ' readonly' : '')
+    . ' class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500">'
+    . '</div>';
+include __DIR__ . '/_row.phtml';

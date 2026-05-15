@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Backend\Block\Widget\Grid\Container">
+        <plugin name="nebula_grid_remove_legacy_grid_containers"
+                type="Qoliber\NebulaGrid\Plugin\RemoveLegacyGridBlocks"/>
+    </type>
+
+    <!--
+        Collection registry. Maps short, stable aliases used in grid JSON
+        (`"collection": "cms_page.collection"`) to the underlying vendor
+        collection FQCN. Each module that owns grids contributes its bindings
+        via `<arguments name="bindings">` array merge — see NebulaTheme and
+        NebulaStore di.xml for the full list.
+    -->
+    <preference for="Qoliber\NebulaGrid\Api\CollectionRegistryInterface"
+                type="Qoliber\NebulaGrid\Model\Registry\CollectionRegistry"/>
+
+    <!--
+        Generic collection-backed provider alias. Any Nebula grid that wires
+        `"provider": "grid.collection"` + `"config.collection": <FQCN>` gets
+        pagination/sort/search/filter plumbing for free.
+    -->
+    <type name="Qoliber\NebulaComponent\Model\Registry\DataProviderRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="grid.collection" xsi:type="string">Qoliber\NebulaGrid\Model\DataProvider\CollectionProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Column-renderer registry. Each built-in grid column type maps to a
+        dedicated renderer class. Third parties add to this array via their
+        own di.xml without editing this file.
+    -->
+    <type name="Qoliber\NebulaComponent\Model\RendererPool">
+        <arguments>
+            <argument name="columnRenderers" xsi:type="array">
+                <item name="text"      xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\TextRenderer</item>
+                <item name="select"    xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\SelectRenderer</item>
+                <item name="badge"     xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\BadgeRenderer</item>
+                <item name="boolean"   xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\BooleanRenderer</item>
+                <item name="price"     xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\PriceRenderer</item>
+                <item name="date"      xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\DateRenderer</item>
+                <item name="thumbnail" xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\ThumbnailRenderer</item>
+                <item name="link"      xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\LinkRenderer</item>
+                <item name="actions"   xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\ActionsRenderer</item>
+                <item name="html"      xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\HtmlRenderer</item>
+            </argument>
+            <argument name="defaultColumnRenderer" xsi:type="object">Qoliber\NebulaGrid\Renderer\Column\TextRenderer</argument>
+        </arguments>
+    </type>
+</config>

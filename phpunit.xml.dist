@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    PHPUnit config for the Nebula module suite. Bootstraps the parent Magento
+    install's composer autoload so vendor types like Magento\Store\Model\System\Store
+    resolve inside unit tests. Run from m2-nebula/:
+
+        ./dev-tools/vendor/bin/phpunit
+        ./dev-tools/vendor/bin/phpunit code/Qoliber/NebulaTheme/Test/Unit/...
+
+    Mirrors the same bootstrap strategy phpstan.neon.dist uses.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="../vendor/autoload.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnWarning="true"
+         failOnRisky="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>code/Qoliber/*/Test/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>code/Qoliber</directory>
+        </include>
+        <exclude>
+            <directory>code/Qoliber/*/Test</directory>
+            <directory>code/Qoliber/*/docs</directory>
+            <directory>code/Qoliber/*/dev</directory>
+        </exclude>
+    </source>
+</phpunit>

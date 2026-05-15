@@ -1,0 +1,175 @@
+{
+  "id": "catalog_category_edit_refresh",
+  "type": "eav",
+  "entity": "catalog_category",
+  "acl": "Magento_Catalog::categories",
+  "dataSource": {
+    "provider": "category.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Category",
+    "saveUrl": "catalog/category/save",
+    "backUrl": "catalog/category/index",
+    "deleteUrl": "catalog/category/delete",
+    "identifierField": "entity_id",
+    "identifierParam": "id",
+    "sidebarRenderer": "snippet.category_navigation_tree",
+    "template": "Qoliber_NebulaTheme::eav/form-with-drawer.phtml"
+  },
+  "layout": [
+    {
+      "id": "category_edit_tabs",
+      "type": "tabs",
+      "children": [
+        {
+          "id": "general_tab",
+          "label": "General",
+          "children": [
+            {
+              "id": "general_main_row",
+              "type": "row",
+              "children": [
+                {
+                  "id": "general_left_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "general_section",
+                      "type": "section",
+                      "label": "General",
+                      "fields": ["name", "is_active", "include_in_menu"]
+                    }
+                  ]
+                },
+                {
+                  "id": "general_right_column",
+                  "type": "column",
+                  "width": "1/2",
+                  "children": [
+                    {
+                      "id": "display_settings_section",
+                      "type": "section",
+                      "label": "Display Settings",
+                      "children": [
+                        {
+                          "type": "fields",
+                          "fields": [
+                            "display_mode",
+                            "is_anchor"
+                          ]
+                        },
+                        {
+                          "type": "snippet",
+                          "renderer": "snippet.category_sortby_fields"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "content_tab",
+          "label": "Content",
+          "children": [
+            {
+              "id": "content_section",
+              "type": "section",
+              "label": "Content",
+              "fields": ["description", "landing_page"]
+            },
+            {
+              "id": "design_section",
+              "type": "section",
+              "label": "Design",
+              "fields": [
+                "custom_use_parent_settings",
+                "custom_apply_to_products",
+                "page_layout",
+                "custom_layout_update_file",
+                "custom_layout_update"
+              ]
+            },
+            {
+              "id": "schedule_design_update_section",
+              "type": "section",
+              "label": "Schedule Design Update",
+              "fields": [
+                "custom_design",
+                "custom_design_from",
+                "custom_design_to"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "seo_tab",
+          "label": "SEO",
+          "children": [
+            {
+              "id": "seo_fields_section",
+              "type": "section",
+              "label": "Search Engine Optimization",
+              "children": [
+                {
+                  "type": "fields",
+                  "fields": [
+                    "url_key",
+                    "meta_title",
+                    "meta_keywords",
+                    "meta_description"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "seo_preview_section",
+              "type": "section",
+              "label": "Search Engine Optimization Preview",
+              "renderer": "snippet.seo_preview",
+              "entity_type": "category",
+              "entity_noun": "category",
+              "title_placeholder": "Category Name",
+              "url_placeholder": "category-url"
+            }
+          ]
+        },
+        {
+          "id": "products_tab",
+          "label": "Products",
+          "children": [
+            {
+              "id": "products_section",
+              "type": "section",
+              "label": "Products in Category",
+              "renderer": "snippet.category_products"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "excludeGroups": ["general-information", "display-settings", "custom-design"],
+  "overrides": {
+    "fields": {
+      "description": {
+        "type": "wysiwyg"
+      },
+      "is_active": {
+        "type": "toggle"
+      },
+      "include_in_menu": {
+        "type": "toggle"
+      },
+      "is_anchor": {
+        "type": "toggle"
+      }
+    }
+  }
+}

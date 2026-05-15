@@ -1,0 +1,9 @@
+{
+  "id": "scope_badge",
+  "type": "badge",
+  "options": {
+    "0": {"label": "Store View", "class": "info"},
+    "1": {"label": "Global", "class": "success"},
+    "2": {"label": "Website", "class": "warning"}
+  }
+}

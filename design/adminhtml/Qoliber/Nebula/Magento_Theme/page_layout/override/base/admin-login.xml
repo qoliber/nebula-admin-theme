@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_layout.xsd">
+    <container name="root">
+        <container name="after.body.start" as="after.body.start" label="Page Top" before="-"/>
+        <container name="login.wrapper" htmlTag="div" htmlClass="nebula-split-layout" label="Login Split Layout">
+            <container name="login.branding" htmlTag="div" htmlClass="nebula-split-branding" label="Branding Panel"/>
+            <container name="login.main" htmlTag="div" htmlClass="nebula-split-main" label="Main Panel">
+                <container name="login.content" htmlTag="main" htmlClass="nebula-split-content" label="Content"/>
+            </container>
+        </container>
+        <container name="login.footer" htmlTag="footer" htmlClass="nebula-split-footer" label="Footer"/>
+        <container name="before.body.end" as="before_body_end" label="Before Body End" after="-"/>
+    </container>
+</layout>

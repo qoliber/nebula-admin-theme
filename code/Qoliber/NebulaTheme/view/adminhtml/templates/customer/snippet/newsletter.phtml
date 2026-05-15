@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$formBlock = $block->getData('form_block');
+$newsletter = $formBlock ? ($formBlock->getFieldValue('_newsletter') ?? []) : [];
+$isSubscribed = (bool) ($newsletter['is_subscribed'] ?? false);
+?>
+
+<div x-data="{ subscribed: <?= $isSubscribed ? 'true' : 'false' ?> }">
+    <input type="hidden" name="newsletter[is_subscribed]" :value="subscribed ? '1' : '0'">
+
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-envelope text-gray-400"></i>
+            <div>
+                <div class="text-sm font-medium text-gray-900"><?= $escaper->escapeHtml((string) __('Newsletter Subscription')) ?></div>
+                <div class="text-xs text-gray-500" x-text="subscribed ? '<?= $escaper->escapeJs((string) __('Customer is subscribed to the newsletter')) ?>' : '<?= $escaper->escapeJs((string) __('Customer is not subscribed to the newsletter')) ?>'"></div>
+            </div>
+        </div>
+
+        <!-- Toggle -->
+        <button type="button"
+                @click="subscribed = !subscribed"
+                :class="subscribed ? 'bg-green-500' : 'bg-gray-300'"
+            :aria-label="subscribed ? '<?= $escaper->escapeJs((string) __('Disable newsletter subscription')) ?>' : '<?= $escaper->escapeJs((string) __('Enable newsletter subscription')) ?>'"
+            :title="subscribed ? '<?= $escaper->escapeJs((string) __('Disable newsletter subscription')) ?>' : '<?= $escaper->escapeJs((string) __('Enable newsletter subscription')) ?>'"
+            role="switch"
+            :aria-checked="subscribed"
+                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:ring-offset-2">
+            <span :class="subscribed ? 'translate-x-5' : 'translate-x-0'"
+                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+        </button>
+    </div>
+</div>

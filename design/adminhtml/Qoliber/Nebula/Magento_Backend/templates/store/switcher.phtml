@@ -1,0 +1,125 @@
+<?php
+/**
+ * Qoliber Nebula — Store Switcher
+ * No RequireJS, no data-mage-init — pure Alpine.js
+ *
+ * @var \Magento\Backend\Block\Store\Switcher $block
+ */
+
+$websites = $block->getWebsites();
+if (!$websites) {
+    return;
+}
+
+$switchUrl = $block->getSwitchUrl();
+$currentName = $block->getCurrentSelectionName();
+$defaultName = $block->getDefaultSelectionName();
+$storeId = (int) $block->getStoreId();
+$storeVarName = $block->getStoreVarName();
+$groupVarName = $block->getStoreGroupVarName();
+$websiteVarName = $block->getWebsiteVarName();
+?>
+<div x-data="nebulaScopeSwitcher()" class="relative nebula-scope-switcher">
+    <button @click="open = !open"
+            @click.outside="open = false"
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm hover:bg-gray-50 transition">
+        <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/>
+        </svg>
+        <span class="font-medium"><?= $block->escapeHtml(__('Scope:')) ?></span>
+        <span class="text-nebula-800 font-medium nebula-scope-current"><?= $block->escapeHtml($currentName) ?></span>
+        <svg class="h-3 w-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+        </svg>
+    </button>
+
+    <div x-show="open"
+         x-cloak
+         x-transition
+         class="absolute left-0 z-50 mt-2 w-72 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+        <div class="max-h-80 overflow-y-auto py-1">
+            <?php if ($block->hasDefaultOption()): ?>
+                <?php if ($defaultName !== $currentName): ?>
+                    <a @click="switchScope('<?= $block->escapeJs($storeVarName) ?>', '', '<?= $block->escapeJs($switchUrl) ?>')"
+                       class="block px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 cursor-pointer">
+                        <?= $block->escapeHtml($defaultName) ?>
+                    </a>
+                <?php else: ?>
+                    <div class="px-4 py-2 text-sm font-semibold text-nebula-800 bg-nebula-50">
+                        <?= $block->escapeHtml($defaultName) ?>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <?php foreach ($websites as $website): ?>
+                <?php $showWebsite = false; ?>
+                <?php foreach ($website->getGroups() as $group): ?>
+                    <?php $showGroup = false; ?>
+                    <?php foreach ($block->getStores($group) as $store): ?>
+                        <?php if (!$showWebsite): ?>
+                            <?php $showWebsite = true; ?>
+                            <?php if ($block->isWebsiteSwitchEnabled() && !$block->isWebsiteSelected($website)): ?>
+                                <a @click="switchScope('<?= $block->escapeJs($websiteVarName) ?>', '<?= $block->escapeJs($website->getId()) ?>', '<?= $block->escapeJs($switchUrl) ?>')"
+                                   class="block px-4 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer">
+                                    <?= $block->escapeHtml($website->getName()) ?>
+                                </a>
+                            <?php else: ?>
+                                <div class="px-4 py-1.5 text-sm font-semibold <?= $block->isWebsiteSelected($website) ? 'text-nebula-800 bg-nebula-50' : 'text-gray-500' ?>">
+                                    <?= $block->escapeHtml($website->getName()) ?>
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php if (!$showGroup): ?>
+                            <?php $showGroup = true; ?>
+                            <?php if ($block->isStoreGroupSwitchEnabled() && !$block->isStoreGroupSelected($group)): ?>
+                                <a @click="switchScope('<?= $block->escapeJs($groupVarName) ?>', '<?= $block->escapeJs($group->getId()) ?>', '<?= $block->escapeJs($switchUrl) ?>')"
+                                   class="block px-4 pl-6 py-1 text-xs font-medium text-gray-500 hover:bg-gray-50 cursor-pointer">
+                                    <?= $block->escapeHtml($group->getName()) ?>
+                                </a>
+                            <?php else: ?>
+                                <div class="px-4 pl-6 py-1 text-xs font-medium <?= $block->isStoreGroupSelected($group) ? 'text-nebula-800' : 'text-gray-400' ?>">
+                                    <?= $block->escapeHtml($group->getName()) ?>
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php if ($block->isStoreSwitchEnabled() && !$block->isStoreSelected($store)): ?>
+                            <a @click="switchScope('<?= $block->escapeJs($storeVarName) ?>', '<?= $block->escapeJs($store->getId()) ?>', '<?= $block->escapeJs($switchUrl) ?>')"
+                               class="block px-4 pl-10 py-1.5 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer">
+                                <?= $block->escapeHtml($store->getName()) ?>
+                            </a>
+                        <?php else: ?>
+                            <div class="px-4 pl-10 py-1.5 text-sm <?= $block->isStoreSelected($store) ? 'text-nebula-800 font-medium bg-nebula-50' : 'text-gray-400' ?>">
+                                <?= $block->escapeHtml($store->getName()) ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($block->getShowManageStoresLink() && $block->getAuthorization()->isAllowed('Magento_Backend::store')): ?>
+            <div class="border-t border-gray-100 px-4 py-2">
+                <a href="<?= /* @noEscape */ $block->getUrl('*/system_store') ?>"
+                   class="text-xs font-medium text-nebula-800 hover:text-nebula-700 transition">
+                    <?= $block->escapeHtml(__('Manage Stores')) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+    function nebulaScopeSwitcher() {
+        return {
+            open: false,
+            switchScope(param, value, baseUrl) {
+                const url = new URL(baseUrl);
+                url.searchParams.set(param, value);
+                window.location.href = url.toString();
+            }
+        }
+    }
+</script>

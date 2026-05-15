@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Snippet: status_badge
+ *
+ * Available variables:
+ * @var \Magento\Framework\View\Element\Template $block
+ * $block->getData('value')   - raw column value
+ * $block->getData('item')    - full row data
+ * $block->getData('column')  - merged column config (includes snippet options)
+ * $block->getData('key')     - column key
+ */
+
+$value = $block->getData('value');
+$column = $block->getData('column');
+$options = $column['options'] ?? [];
+$option = $options[(string) $value] ?? null;
+
+$classMap = [
+    'success' => 'bg-green-100 text-green-800 ring-green-600/20',
+    'error'   => 'bg-red-100 text-red-800 ring-red-600/20',
+    'warning' => 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
+    'info'    => 'bg-blue-100 text-blue-800 ring-blue-600/20',
+    'neutral' => 'bg-gray-100 text-gray-800 ring-gray-600/20',
+];
+
+if ($option) {
+    $semantic = $option['class'] ?? 'neutral';
+    $twClass = $classMap[$semantic] ?? $semantic;
+    $label = (string) __($option['label'] ?? (string) $value);
+} else {
+    $twClass = $classMap['neutral'];
+    $label = $escaper->escapeHtml((string) ($value ?? ''));
+}
+?>
+<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset <?= $escaper->escapeHtmlAttr($twClass) ?>">
+    <?= $escaper->escapeHtml($label) ?>
+</span>

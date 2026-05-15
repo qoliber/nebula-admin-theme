@@ -1,0 +1,70 @@
+@import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+/* Existing component partials — keep at top to match pre-split cascade order. */
+@import "./components/grid.css";
+@import "./components/forms.css";
+@import "./components/widget.css";
+@import "./components/pagebuilder.css";
+@import "./components/switcher.css";
+@import "./components/dashboard-widgets.css";
+@import "./overrides/routes.css";
+
+/* Scan theme templates AND module code for Tailwind classes */
+@source "../../../**/*.{phtml,xml,js,json}";
+@source "../../../../../../../code/Qoliber/**/*.{phtml,php,js,json}";
+@source "../../../../../../../code/Siteation/**/*.{phtml,php,js,json}";
+
+.nebula-array-drag-handle {
+    cursor: grab;
+}
+
+.nebula-array-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* === Base layer === */
+@import "./base/tokens.css";
+@import "./base/reset.css";
+@import "./base/tailwind-bridge.css";
+
+/* === Layout === */
+@import "./layout/login.css";
+@import "./layout/sidebar.css";
+@import "./layout/topbar.css";
+@import "./layout/main.css";
+@import "./layout/two-col.css";
+
+body.nebula-menu-top {
+    overflow-x: hidden;
+}
+
+/* === Magento-generated HTML chrome (selectors we can't change at the template) === */
+@import "./vendor/badges.css";
+@import "./vendor/messages.css";
+@import "./vendor/buttons.css";
+@import "./vendor/form.css";
+@import "./vendor/system-account.css";
+@import "./vendor/tabs.css";
+@import "./vendor/tables.css";
+
+/* === System Config form (nebula-owned chrome) === */
+@import "./config/fieldset.css";
+@import "./config/field.css";
+@import "./config/inherited.css";
+@import "./config/file-input.css";
+@import "./config/buttons.css";
+@import "./config/notice.css";
+@import "./config/inline-controls.css";
+@import "./config/notes.css";
+@import "./config/inherit-toggle.css";
+
+/* === Dark mode === */
+@import "./dark/tokens.css";
+@import "./dark/config-form.css";
+@import "./dark/admin-bridge.css";
+@import "./dark/reports.css";
+@import "./dark/inputs.css";
+
+/* === Dashboard builder modals === */
+@import "./components/dashboard-modal.css";

@@ -1,0 +1,28 @@
+/* Dark mode patches for vendor admin__ chrome — control support text + grid pager. */
+.dark .nebula-main .admin__control-support-text,
+.dark .nebula-main .admin__control-support-text span,
+.dark .nebula-main .admin__control-support-text label,
+.dark .nebula-main .admin__control-support-text strong,
+.dark .nebula-main .admin__control-support-text b {
+  color: var(--nebula-text-secondary) !important;
+}
+
+.dark .nebula-main .admin__data-grid-pager .action-previous,
+.dark .nebula-main .admin__data-grid-pager .action-next,
+.dark .nebula-main .admin__data-grid-pager .action-first,
+.dark .nebula-main .admin__data-grid-pager .action-last,
+.dark .nebula-main .admin__data-grid-pager .admin__control-support-text a {
+  color: var(--color-nebula-200) !important;
+}
+
+.dark .nebula-main .admin__data-grid-pager .action-previous:hover,
+.dark .nebula-main .admin__data-grid-pager .action-next:hover,
+.dark .nebula-main .admin__data-grid-pager .action-first:hover,
+.dark .nebula-main .admin__data-grid-pager .action-last:hover,
+.dark
+  .nebula-main
+  .admin__data-grid-pager
+  .admin__control-support-text
+  a:hover {
+  color: var(--color-nebula-100) !important;
+}

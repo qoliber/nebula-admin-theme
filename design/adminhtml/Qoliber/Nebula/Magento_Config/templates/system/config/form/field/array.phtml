@@ -1,0 +1,453 @@
+<?php
+declare(strict_types=1);
+/**
+ * Nebula override for Magento dynamic field arrays.
+ * Replaces legacy Prototype/RequireJS implementation with Alpine.
+ *
+ * @var \Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$htmlId = $block->getHtmlId() ? (string) $block->getHtmlId() : '_' . uniqid();
+$element = $block->getElement();
+$columns = $block->getColumns();
+$colspan = $block->isAddAfter() ? 2 : 1;
+
+$columnTemplates = [];
+foreach ($columns as $columnName => $column) {
+    $columnTemplates[$columnName] = $block->renderCellTemplate($columnName);
+}
+
+$rows = [];
+foreach ($block->getArrayRows() as $row) {
+    $rows[] = $row->getData();
+}
+
+$config = [
+    'htmlId' => $htmlId,
+    'columns' => array_keys($columns),
+    'columnTemplates' => $columnTemplates,
+    'initialRows' => $rows,
+    'addAfter' => $block->isAddAfter(),
+    'disabled' => (bool) $element->getDisabled(),
+];
+
+$configJson = json_encode($config);
+?>
+<style>
+    #grid<?= $escaper->escapeHtmlAttr($htmlId) ?> .nebula-action-delete {
+        color: var(--nebula-button-primary-bg);
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 18%, transparent);
+        border: 1px solid color-mix(in srgb, var(--nebula-button-primary-bg) 52%, transparent);
+    }
+
+    #grid<?= $escaper->escapeHtmlAttr($htmlId) ?> .nebula-action-delete:hover,
+    #grid<?= $escaper->escapeHtmlAttr($htmlId) ?> .nebula-action-delete:focus-visible {
+        color: var(--color-white);
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 86%, var(--color-nebula-900));
+        border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 76%, var(--color-nebula-900));
+        outline: none;
+    }
+
+    .dark #grid<?= $escaper->escapeHtmlAttr($htmlId) ?> .nebula-action-delete {
+        color: var(--nebula-button-primary-bg);
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 20%, var(--color-nebula-950));
+        border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 58%, transparent);
+    }
+
+    .dark #grid<?= $escaper->escapeHtmlAttr($htmlId) ?> .nebula-action-delete:hover,
+    .dark #grid<?= $escaper->escapeHtmlAttr($htmlId) ?> .nebula-action-delete:focus-visible {
+        color: var(--color-white);
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 84%, var(--color-nebula-900));
+        border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 72%, var(--color-nebula-900));
+    }
+</style>
+<div id="grid<?= $escaper->escapeHtmlAttr($htmlId) ?>"
+    class="nebula-config-array nebula-config-value w-full"
+    data-nebula-field-array-config="<?= $escaper->escapeHtmlAttr((string) $configJson) ?>"
+     x-data="nebulaFieldArray(JSON.parse($el.dataset.nebulaFieldArrayConfig || '{}'))"
+    x-on:nebula-array-disabled-changed="onExternalDisabledChange($event)"
+     x-init="init()">
+    <div class="admin__control-table-wrapper overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table class="admin__control-table w-full table-fixed text-sm">
+            <thead>
+            <tr class="border-b border-gray-200 bg-gray-50">
+                <th class="w-12 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <span class="sr-only"><?= $escaper->escapeHtml(__('Drag')) ?></span>
+                </th>
+                <?php foreach ($columns as $column): ?>
+                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                        <?= $escaper->escapeHtml($column['label']) ?>
+                    </th>
+                <?php endforeach; ?>
+                <?php if ($block->isAddAfter()): ?>
+                    <th class="col-actions px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                        <?= $escaper->escapeHtml(__('Add after')) ?>
+                    </th>
+                <?php endif; ?>
+                <th class="col-actions px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <?= $escaper->escapeHtml(__('Action')) ?>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <template x-for="row in rows" :key="row._id">
+                <tr class="border-b border-gray-100 last:border-b-0" :data-row-id="row._id">
+                    <td class="px-2 py-2 align-top text-center">
+                        <button type="button"
+                                data-nebula-drag-handle
+                                class="nebula-array-drag-handle inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                title="<?= $escaper->escapeHtmlAttr((string) __('Drag to reorder row')) ?>"
+                                aria-label="<?= $escaper->escapeHtmlAttr((string) __('Drag to reorder row')) ?>"
+                                :disabled="disabled">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4" fill="currentColor">
+                                <circle cx="8" cy="6" r="1.5"></circle>
+                                <circle cx="8" cy="12" r="1.5"></circle>
+                                <circle cx="8" cy="18" r="1.5"></circle>
+                                <circle cx="16" cy="6" r="1.5"></circle>
+                                <circle cx="16" cy="12" r="1.5"></circle>
+                                <circle cx="16" cy="18" r="1.5"></circle>
+                            </svg>
+                        </button>
+                    </td>
+                    <?php foreach ($columns as $columnName => $column): ?>
+                        <td class="px-4 py-2 align-top" x-html="renderCell('<?= $escaper->escapeJs($columnName) ?>', row)"></td>
+                    <?php endforeach; ?>
+                    <?php if ($block->isAddAfter()): ?>
+                        <td class="px-4 py-2 align-top">
+                            <button type="button"
+                                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                    @click="addRow(row._id)"
+                                    :disabled="disabled">
+                                <?= $escaper->escapeHtml(__('Add after')) ?>
+                            </button>
+                        </td>
+                    <?php endif; ?>
+                    <td class="px-4 py-2 align-top">
+                        <button type="button"
+                                class="nebula-action-delete inline-flex h-8 w-8 items-center justify-center rounded-md disabled:cursor-not-allowed disabled:opacity-50"
+                                title="<?= $escaper->escapeHtmlAttr((string) __('Delete row')) ?>"
+                                @click="deleteRow(row._id)"
+                                :disabled="disabled">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4" fill="currentColor">
+                                <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM6 9h2v9H6V9Z"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            </template>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="<?= (int) (count($columns) + $colspan + 1) ?>" class="col-actions-add px-4 py-3">
+                    <button type="button"
+                            class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            @click="addRow()"
+                            :disabled="disabled">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4" fill="currentColor">
+                            <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/>
+                        </svg>
+                        <span><?= $escaper->escapeHtml($block->getAddButtonLabel()) ?></span>
+                    </button>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <input type="hidden" name="<?= $escaper->escapeHtmlAttr((string) $element->getName()) ?>[__empty]" value="" />
+</div>
+
+<script>
+(function () {
+    if (window._nebulaFieldArrayRegistered) {
+        return;
+    }
+    window._nebulaFieldArrayRegistered = true;
+
+    var register = function () {
+        Alpine.data('nebulaFieldArray', function (config) {
+            return {
+                htmlId: config.htmlId,
+                columns: config.columns || [],
+                columnTemplates: config.columnTemplates || {},
+                rows: Array.isArray(config.initialRows) ? config.initialRows : [],
+                addAfter: !!config.addAfter,
+                disabled: !!config.disabled,
+                sortableInstance: null,
+
+                init: function () {
+                    this.rows = this.rows.map(this.normalizeRow.bind(this));
+                    this.$nextTick(this.refreshColumnValues.bind(this));
+                    this.$nextTick(this.syncControlDisabledState.bind(this));
+                    this.$nextTick(this.initSortable.bind(this));
+                },
+
+                normalizeRow: function (row) {
+                    var normalized = row && typeof row === 'object' ? Object.assign({}, row) : {};
+
+                    if (!normalized._id) {
+                        normalized._id = this.nextRowId();
+                    }
+
+                    if (!normalized.option_extra_attrs || typeof normalized.option_extra_attrs !== 'object') {
+                        normalized.option_extra_attrs = {};
+                    }
+
+                    if (!normalized.column_values || typeof normalized.column_values !== 'object') {
+                        normalized.column_values = {};
+                    }
+
+                    this.columns.forEach(function (columnName) {
+                        if (typeof normalized[columnName] === 'undefined' || normalized[columnName] === null) {
+                            normalized[columnName] = '';
+                        }
+
+                        var key = normalized._id + '_' + columnName;
+                        if (typeof normalized.column_values[key] === 'undefined') {
+                            normalized.column_values[key] = normalized[columnName];
+                        }
+                    });
+
+                    return normalized;
+                },
+
+                nextRowId: function () {
+                    return '_' + Date.now().toString() + '_' + Math.floor(Math.random() * 1000).toString();
+                },
+
+                addRow: function (afterId) {
+                    var row = this.normalizeRow({
+                        _id: this.nextRowId(),
+                        option_extra_attrs: {},
+                        column_values: {}
+                    });
+
+                    if (afterId && this.addAfter) {
+                        var index = this.rows.findIndex(function (existingRow) {
+                            return existingRow._id === afterId;
+                        });
+
+                        if (index !== -1) {
+                            this.rows.splice(index + 1, 0, row);
+                        } else {
+                            this.rows.push(row);
+                        }
+                    } else {
+                        this.rows.push(row);
+                    }
+
+                    this.$nextTick(this.refreshColumnValues.bind(this));
+                    this.$nextTick(this.syncControlDisabledState.bind(this));
+                    this.$nextTick(this.initSortable.bind(this));
+                },
+
+                deleteRow: function (rowId) {
+                    this.rows = this.rows.filter(function (row) {
+                        return row._id !== rowId;
+                    });
+                    this.$nextTick(this.syncControlDisabledState.bind(this));
+                    this.$nextTick(this.initSortable.bind(this));
+                },
+
+                initSortable: function () {
+                    this.destroySortable();
+
+                    if (typeof window.Sortable === 'undefined') {
+                        return;
+                    }
+
+                    var root = document.getElementById('grid' + this.htmlId);
+                    if (!root) {
+                        return;
+                    }
+
+                    var tbody = root.querySelector('tbody');
+                    if (!tbody || this.rows.length < 2) {
+                        return;
+                    }
+
+                    var baseOptions = {
+                        animation: 150,
+                        draggable: 'tr[data-row-id]',
+                        disabled: this.disabled,
+                        onEnd: this.onSortEnd.bind(this)
+                    };
+
+                    var hasHandle = !!tbody.querySelector('[data-nebula-drag-handle]');
+
+                    try {
+                        this.sortableInstance = new window.Sortable(
+                            tbody,
+                            hasHandle ? Object.assign({}, baseOptions, { handle: '[data-nebula-drag-handle]' }) : baseOptions
+                        );
+                    } catch (error) {
+                        this.sortableInstance = null;
+                    }
+                },
+
+                destroySortable: function () {
+                    if (this.sortableInstance && typeof this.sortableInstance.destroy === 'function') {
+                        this.sortableInstance.destroy();
+                    }
+
+                    this.sortableInstance = null;
+                },
+
+                onSortEnd: function () {
+                    var rowIds = this.getRowOrderFromDom();
+                    if (!rowIds.length) {
+                        return;
+                    }
+
+                    this.reorderRowsByIds(rowIds);
+                    this.$nextTick(this.refreshColumnValues.bind(this));
+                    this.$nextTick(this.syncControlDisabledState.bind(this));
+                },
+
+                getRowOrderFromDom: function () {
+                    var root = document.getElementById('grid' + this.htmlId);
+                    if (!root) {
+                        return [];
+                    }
+
+                    return Array.from(root.querySelectorAll('tbody tr[data-row-id]'))
+                        .map(function (row) {
+                            return row.getAttribute('data-row-id') || '';
+                        })
+                        .filter(function (id) {
+                            return id !== '';
+                        });
+                },
+
+                reorderRowsByIds: function (rowIds) {
+                    var rowMap = {};
+                    this.rows.forEach(function (row) {
+                        rowMap[row._id] = row;
+                    });
+
+                    var orderedRows = rowIds
+                        .map(function (id) {
+                            return rowMap[id] || null;
+                        })
+                        .filter(function (row) {
+                            return row !== null;
+                        });
+
+                    if (orderedRows.length === this.rows.length) {
+                        this.rows = orderedRows;
+                    }
+                },
+
+                onExternalDisabledChange: function (event) {
+                    if (!event || !event.detail) {
+                        return;
+                    }
+
+                    this.disabled = !!event.detail.disabled;
+                    this.$nextTick(this.syncControlDisabledState.bind(this));
+                    this.$nextTick(this.initSortable.bind(this));
+                },
+
+                renderCell: function (columnName, row) {
+                    var template = this.columnTemplates[columnName] || '';
+                    return this.interpolateTemplate(template, row);
+                },
+
+                interpolateTemplate: function (template, row) {
+                    var self = this;
+
+                    return String(template)
+                        .replace(/<%-\s*([a-zA-Z0-9_\.]+)\s*%>/g, function (_, path) {
+                            var value = self.resolvePath(row, path);
+                            return self.escapeHtml(value);
+                        })
+                        .replace(/<%=\s*([a-zA-Z0-9_\.]+)\s*%>/g, function (_, path) {
+                            var value = self.resolvePath(row, path);
+                            return value == null ? '' : String(value);
+                        });
+                },
+
+                resolvePath: function (source, path) {
+                    return path.split('.').reduce(function (acc, key) {
+                        if (acc && Object.prototype.hasOwnProperty.call(acc, key)) {
+                            return acc[key];
+                        }
+                        return '';
+                    }, source || {});
+                },
+
+                escapeHtml: function (value) {
+                    return String(value == null ? '' : value)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                },
+
+                refreshColumnValues: function () {
+                    var root = document.getElementById('grid' + this.htmlId);
+                    if (root) {
+                        this.applyNebulaControlClasses(root);
+                    }
+
+                    this.rows.forEach(function (row) {
+                        Object.keys(row.column_values || {}).forEach(function (elementId) {
+                            var input = document.getElementById(elementId);
+                            if (!input) {
+                                return;
+                            }
+
+                            var value = row.column_values[elementId];
+                            if (typeof value === 'undefined' || value === null) {
+                                value = '';
+                            }
+
+                            input.value = String(value);
+                        });
+                    });
+                },
+
+                applyNebulaControlClasses: function (root) {
+                    root.querySelectorAll('select').forEach(function (select) {
+                        select.classList.add('admin__control-select');
+                        select.classList.add('w-full');
+                    });
+
+                    root.querySelectorAll('input[type="text"]').forEach(function (input) {
+                        input.classList.add('admin__control-text');
+                        input.classList.add('w-full');
+                    });
+                },
+
+                syncControlDisabledState: function () {
+                    var shouldDisable = this.disabled;
+                    var root = document.getElementById('grid' + this.htmlId);
+                    if (!root) {
+                        return;
+                    }
+
+                    var controls = root.querySelectorAll('select, input[type="text"], button');
+                    controls.forEach(function (control) {
+                        if (control && control.name && control.name.indexOf('[__empty]') !== -1) {
+                            return;
+                        }
+                        control.disabled = shouldDisable;
+                    });
+
+                    if (this.sortableInstance && typeof this.sortableInstance.option === 'function') {
+                        this.sortableInstance.option('disabled', shouldDisable);
+                    }
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) {
+        register();
+    } else {
+        document.addEventListener('alpine:init', register);
+    }
+})();
+</script>

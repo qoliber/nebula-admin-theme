@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Snippet: store_view_link
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ */
+
+$value = $block->getData('value');
+$item = $block->getData('item');
+$storeId = $item['store_id'] ?? '';
+
+if ($value) {
+    $url = $block->getUrl('adminhtml/system_store/editStore', ['store_id' => $storeId]);
+    ?>
+    <a href="<?= $escaper->escapeUrl($url) ?>" class="text-nebula-600 hover:text-nebula-500 dark:text-nebula-200 dark:hover:text-nebula-100">
+        <?= $escaper->escapeHtml($value) ?>
+    </a>
+    <?php
+}

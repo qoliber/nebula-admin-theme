@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\Catalog\Block\Adminhtml\Product\Attribute"
+                type="Qoliber\NebulaTheme\Block\Adminhtml\Product\Attribute"/>
+
+    <type name="Qoliber\NebulaComponent\Model\Registry\OptionSourceRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="nebula.store.view" xsi:type="string">Qoliber\NebulaTheme\Model\Source\StoreView</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Qoliber\NebulaComponent\Model\Registry\FilterOptionSourceRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <!-- Drives the Type column dropdown filter on the widget instance listing grid. -->
+                <item name="nebula.widget.instance_type" xsi:type="string">Qoliber\NebulaTheme\Model\Source\WidgetInstanceType</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Widget chooser snippets — alias-centric, fully data-driven. Each
+        entry binds:
+          - helper_block: the legacy Magento helper-block FQCN that
+            identifies this chooser type in widget.xml
+            <parameter xsi:type="block"><block class="…"/></parameter>.
+            (Empty for choosers identified by xsi:type alone, e.g. conditions.)
+          - template:     the snippet phtml the host wizard mounts.
+          - view_model:   the ViewModel class instantiated and passed
+            into that snippet via block-data.
+
+        Third-party modules add their chooser by appending a binding to
+        the same `choosers` array in their own di.xml. Nothing in
+        NebulaTheme needs editing — neither phtml nor layout XML.
+    -->
+    <type name="Qoliber\NebulaTheme\Model\Registry\WidgetChooserRegistry">
+        <arguments>
+            <argument name="choosers" xsi:type="array">
+                <item name="cms_block" xsi:type="array">
+                    <item name="helper_block" xsi:type="string">Magento\Cms\Block\Adminhtml\Block\Widget\Chooser</item>
+                    <item name="template"     xsi:type="string">Qoliber_NebulaTheme::widget/chooser/cms_block.phtml</item>
+                    <item name="view_model"   xsi:type="string">Qoliber\NebulaTheme\ViewModel\WidgetChooser\CmsBlock</item>
+                </item>
+                <item name="cms_page" xsi:type="array">
+                    <item name="helper_block" xsi:type="string">Magento\Cms\Block\Adminhtml\Page\Widget\Chooser</item>
+                    <item name="template"     xsi:type="string">Qoliber_NebulaTheme::widget/chooser/cms_page.phtml</item>
+                    <item name="view_model"   xsi:type="string">Qoliber\NebulaTheme\ViewModel\WidgetChooser\CmsPage</item>
+                </item>
+                <item name="catalog_category" xsi:type="array">
+                    <item name="helper_block" xsi:type="string">Magento\Catalog\Block\Adminhtml\Category\Widget\Chooser</item>
+                    <item name="template"     xsi:type="string">Qoliber_NebulaTheme::widget/chooser/catalog_category.phtml</item>
+                    <item name="view_model"   xsi:type="string">Qoliber\NebulaTheme\ViewModel\WidgetChooser\CatalogCategory</item>
+                </item>
+                <item name="catalog_product" xsi:type="array">
+                    <item name="helper_block" xsi:type="string">Magento\Catalog\Block\Adminhtml\Product\Widget\Chooser</item>
+                    <item name="template"     xsi:type="string">Qoliber_NebulaTheme::widget/chooser/catalog_product.phtml</item>
+                    <item name="view_model"   xsi:type="string">Qoliber\NebulaTheme\ViewModel\WidgetChooser\CatalogProduct</item>
+                </item>
+                <item name="conditions" xsi:type="array">
+                    <!-- conditions is identified by xsi:type, not by a helper-block FQCN -->
+                    <item name="template"     xsi:type="string">Qoliber_NebulaTheme::widget/chooser/conditions.phtml</item>
+                    <item name="view_model"   xsi:type="string">Qoliber\NebulaTheme\ViewModel\WidgetChooser\Conditions</item>
+                    <item name="mode"         xsi:type="string">inline</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Curated storefront container references used as the fallback set
+        when a widget.xml does not declare its own <containers> block.
+        Themes can append site-specific containers (homepage.feature.row,
+        category.feature.row, …) without monkey-patching the ViewModel.
+    -->
+    <type name="Qoliber\NebulaTheme\Model\Registry\WidgetContainerFallbackRegistry">
+        <arguments>
+            <argument name="containers" xsi:type="array">
+                <item name="content"            xsi:type="string">content</item>
+                <item name="content.top"        xsi:type="string">content.top</item>
+                <item name="content.bottom"     xsi:type="string">content.bottom</item>
+                <item name="sidebar.main"       xsi:type="string">sidebar.main</item>
+                <item name="sidebar.additional" xsi:type="string">sidebar.additional</item>
+                <item name="header.panel"       xsi:type="string">header.panel</item>
+                <item name="header.container"   xsi:type="string">header.container</item>
+                <item name="footer"             xsi:type="string">footer</item>
+                <item name="footer-container"   xsi:type="string">footer-container</item>
+                <item name="page.bottom"        xsi:type="string">page.bottom</item>
+                <item name="before.body.end"    xsi:type="string">before.body.end</item>
+                <item name="after.body.start"   xsi:type="string">after.body.start</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Wizard ViewModels — passed into the widget instance wizard host
+        block via Magento_Widget/layout/adminhtml_widget_instance_edit.xml
+        as <argument xsi:type="object"> bindings. No <type> rules needed
+        here: the classes are concrete and ObjectManager can construct
+        them on its own. This block documents the wiring intent.
+
+          - Qoliber\NebulaTheme\ViewModel\Widget\TypeListing
+          - Qoliber\NebulaTheme\ViewModel\Widget\ParameterTranslator
+          - Qoliber\NebulaTheme\ViewModel\Widget\ContainerCatalog
+          - Qoliber\NebulaTheme\ViewModel\Widget\PageGroupCatalog
+          - Qoliber\NebulaTheme\ViewModel\WidgetInstanceData
+          - Qoliber\NebulaTheme\ViewModel\WidgetChooser\CmsBlock
+    -->
+</config>

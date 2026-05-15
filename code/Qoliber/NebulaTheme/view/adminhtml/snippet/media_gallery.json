@@ -1,0 +1,4 @@
+{
+  "id": "media_gallery",
+  "template": "Qoliber_NebulaTheme::eav/snippet/media_gallery.phtml"
+}

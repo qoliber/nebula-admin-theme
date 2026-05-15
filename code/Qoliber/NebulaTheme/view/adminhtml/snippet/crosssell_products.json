@@ -1,0 +1,4 @@
+{
+  "id": "crosssell_products",
+  "template": "Qoliber_NebulaTheme::eav/snippet/related_products.phtml"
+}

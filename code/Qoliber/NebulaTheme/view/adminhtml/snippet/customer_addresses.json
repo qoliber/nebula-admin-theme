@@ -1,0 +1,4 @@
+{
+    "id": "customer_addresses",
+    "template": "Qoliber_NebulaTheme::customer/snippet/addresses.phtml"
+}

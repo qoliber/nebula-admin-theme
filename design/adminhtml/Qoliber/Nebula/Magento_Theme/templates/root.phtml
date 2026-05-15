@@ -1,0 +1,121 @@
+<?php
+/**
+ * Qoliber Nebula — root template
+ * No RequireJS, no KnockoutJS, no jQuery
+ *
+ * Available vars (from \Magento\Framework\View\Result\Page::render):
+ * $htmlAttributes, $headAttributes, $bodyAttributes,
+ * $headContent, $headCritical, $headAssets, $headAdditional,
+ * $requireJs, $loaderIcon, $layoutContent
+ */
+
+/** @var \Magento\Framework\View\Result\Page $this */
+
+// nebula:allow-object-manager root-page-template — root.phtml is rendered by
+// Magento's Result\Page which does not accept block arguments; this single
+// lookup is the one place in Nebula where a ViewModel cannot be bound via
+// layout XML.
+$nebulaRootViewModel = \Magento\Framework\App\ObjectManager::getInstance()
+    ->get(\Qoliber\NebulaComponent\ViewModel\Root::class);
+$skinCss = $nebulaRootViewModel->getInlineSkinCss();
+$cssUrl = $this->getViewFileUrl('css/dist/app.css');
+$faUrl = $this->getViewFileUrl('css/fontawesome.min.css');
+
+?>
+<!-- NEBULA_ROOT_PHTML_MARKER -->
+<!doctype html>
+<html <?= /* @noEscape */ $htmlAttributes ?> class="h-full bg-gray-100 dark:bg-gray-900">
+    <head <?= /* @noEscape */ $headAttributes ?>>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script>
+            // Sync dark-mode resolution — runs BEFORE the html element paints
+            // so html bg picks up the dark variant on first frame. Without this,
+            // html bg-gray-100 paints light, then body dark class kicks in
+            // later → visible white→dark flash on every navigation.
+            (function () {
+                var stored = localStorage.getItem('nebula_dark');
+                var dark = stored === 'true'
+                    || (stored === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (dark) document.documentElement.classList.add('dark');
+                if (localStorage.getItem('nebula_sidebar') === 'collapsed') {
+                    document.documentElement.classList.add('sidebar-collapsed');
+                }
+            })();
+        </script>
+        <style>
+            [x-cloak]{display:none!important}
+            /* FOUC kill-switch: body stays invisible until layout content is
+               parsed + Alpine has hydrated. Inline rule means it applies from
+               byte zero, before app.css arrives over the network. */
+            body[data-nebula-loading]{visibility:hidden}
+        </style>
+        <script>
+            // Nebula: shim for legacy require() / require.config() calls from modules
+            // Must be defined before Magento head assets/scripts are evaluated.
+            window.require = function(deps, callback) {
+                if (typeof deps === 'object' && !Array.isArray(deps)) return; // require.config({})
+            };
+            window.require.config = function() {};
+            window.define = function() {};
+            window.define.amd = {};
+            window.toggleValueElements = function() {};
+            window.Element = window.Element || {};
+            window.Fieldset = { toggleCollapse: function() {}, applyCollapse: function() {} };
+            window.fireEvent = function() {};
+        </script>
+        <?= /* @noEscape */ $headContent ?>
+        <?= /* @noEscape */ $headCritical ?>
+        <?= /* @noEscape */ $headAssets ?>
+        <?= /* @noEscape */ $headAdditional ?>
+        <link rel="stylesheet" href="<?= /* @noEscape */ $faUrl ?>">
+        <link rel="stylesheet" href="<?= /* @noEscape */ $cssUrl ?>">
+        <?php if ($skinCss): ?>
+            <style><?= /* @noEscape */ $skinCss ?></style>
+        <?php endif; ?>
+        <?php include __DIR__ . '/partials/runtime-bootstrap.phtml'; ?>
+    </head>
+    <body <?= /* @noEscape */ $bodyAttributes ?>
+          data-nebula-loading
+          x-data="{}"
+          :class="($store.nebula.darkMode ? 'dark ' : '') + ($store.nebula.sidebarCollapsed ? 'sidebar-collapsed' : '')">
+        <script>
+            // Mirror the html-level classes onto body so existing CSS rules
+            // targeting body.dark / body.sidebar-collapsed keep working.
+            // Alpine's :class binding takes over once the store is initialised.
+            if (document.documentElement.classList.contains('dark')) {
+                document.body.classList.add('dark');
+            }
+            if (document.documentElement.classList.contains('sidebar-collapsed')) {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        </script>
+        <?= /* @noEscape */ $layoutContent ?>
+        <script>
+            // Reveal the body only once DOM is fully parsed, Alpine has booted,
+            // legacy mage-init has had a chance to fire, and the next paint is
+            // committed. Removes the data-nebula-loading attribute → CSS flips
+            // visibility to visible. Belt-and-braces: rAF after DOMContentLoaded,
+            // plus a hard timeout safety net so a rogue script can never leave
+            // the page hidden forever.
+            (function () {
+                var revealed = false;
+                function reveal() {
+                    if (revealed) return;
+                    revealed = true;
+                    document.body.removeAttribute('data-nebula-loading');
+                }
+                function ready() {
+                    requestAnimationFrame(reveal);
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', ready);
+                } else {
+                    ready();
+                }
+                setTimeout(reveal, 2000);
+            })();
+        </script>
+        <?php include __DIR__ . '/components/confirm-dialog.phtml'; ?>
+    </body>
+</html>

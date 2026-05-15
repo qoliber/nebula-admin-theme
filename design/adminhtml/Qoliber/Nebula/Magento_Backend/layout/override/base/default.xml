@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!--
+    Nebula: Override Magento_Backend default.xml
+    Keeps menu, messages, formkey. Removes RequireJS and all legacy JS.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    layout="admin-1column"
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Magento Admin</title>
+        <meta name="viewport" content="width=1024"/>
+        <meta name="format-detection" content="telephone=no"/>
+    </head>
+    <body>
+        <attribute name="id" value="html-body"/>
+
+        <referenceContainer name="sidebar.logo">
+            <block class="Magento\Backend\Block\Template"
+                name="nebula.sidebar.logo"
+                template="Magento_Backend::page/sidebar_logo.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="header">
+            <block class="Magento\Framework\View\Element\Template"
+                name="nebula.header.sidebar.toggle"
+                before="notification.messages"
+                template="Magento_Backend::page/sidebar_toggle.phtml"/>
+            <block class="Magento\Backend\Block\Page\Header" name="user" after="-">
+                <arguments>
+                    <argument name="show_part" xsi:type="string">user</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+
+        <referenceContainer name="page.menu">
+            <block class="Magento\Backend\Block\Menu" name="menu" as="menu"
+                template="Magento_Backend::menu.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="page.formkey">
+            <block class="Magento\Backend\Block\Admin\Formkey" name="formkey" as="formkey"
+                template="Magento_Backend::admin/formkey.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="page.breadcrumbs">
+            <block class="Magento\Backend\Block\Widget\Breadcrumbs" name="breadcrumbs"/>
+        </referenceContainer>
+
+        <referenceContainer name="main.top">
+            <block class="Magento\Theme\Block\Html\Title" name="page.title"
+                template="Magento_Theme::title.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="page.messages">
+            <block class="Magento\Framework\View\Element\Messages" name="messages" as="messages"/>
+        </referenceContainer>
+
+        <referenceContainer name="page.main.actions">
+            <block class="Magento\Framework\View\Element\Template" name="page.actions.toolbar"
+                template="Magento_Backend::pageactions.phtml" after="-"/>
+        </referenceContainer>
+
+        <move element="page.title" destination="page.main.actions" before="-"/>
+
+        <referenceContainer name="footer">
+            <container name="legal" htmlTag="div" htmlClass="footer-legal">
+                <container name="legal.copyright" htmlTag="p" htmlClass="copyright">
+                    <block class="Magento\Backend\Block\Page\Copyright" name="copyright" as="copyright"/>
+                </container>
+            </container>
+        </referenceContainer>
+    </body>
+</page>

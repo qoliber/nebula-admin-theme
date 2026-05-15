@@ -1,0 +1,41 @@
+{
+  "name": "text",
+  "label": "Text",
+  "icon": "fa-solid fa-align-left",
+  "menuSection": "elements",
+  "sortOrder": 20,
+  "isContainer": false,
+  "parents": { "defaultPolicy": "allow", "deny": ["stage"] },
+  "children": { "defaultPolicy": "deny" },
+  "appearances": {
+    "default": {
+      "default": true,
+      "label": "Default",
+      "masterTemplate": "master/text/default.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "text",
+            "data-appearance": "default"
+          },
+          "styles": {
+            "text-align": { "source": "text_align" },
+            "border-style": { "source": "border_style", "converter": "borderStyle" },
+            "border-color": { "source": "border_color" },
+            "border-width": { "source": "border_width" },
+            "border-radius": { "source": "border_radius" },
+            "display": { "source": "display", "converter": "display" },
+            "margin": { "source": "margins_and_padding", "converter": "margins" },
+            "padding": { "source": "margins_and_padding", "converter": "paddings" }
+          },
+          "cssSource": "css_classes"
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "default",
+    "content": "<p>Enter text here...</p>"
+  }
+}

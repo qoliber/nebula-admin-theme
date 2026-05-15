@@ -1,0 +1,45 @@
+/* --- Top Menu Layout --- */
+.nebula-admin-layout-top {
+  @apply flex flex-col min-h-screen;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.nebula-topbar {
+  @apply flex items-center sticky top-0 z-40 py-2 border-b border-nebula-800;
+  background: linear-gradient(
+    to right,
+    var(--color-nebula-950),
+    var(--color-nebula-900)
+  );
+  min-width: 0;
+  max-width: 100%;
+}
+.nebula-topbar-logo {
+  @apply flex items-center px-5 border-r border-nebula-800 h-full shrink-0;
+}
+.nebula-topbar-nav {
+  @apply flex-1 min-w-0 overflow-visible;
+}
+.nebula-topbar-actions {
+  @apply flex items-center gap-2 px-4 shrink-0;
+}
+.nebula-topbar-menu {
+  @apply flex items-center gap-1 min-w-max;
+}
+.nebula-topbar-tooltip {
+  @apply pointer-events-none absolute left-1/2 z-50 whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-medium;
+  top: calc(100% + 0.35rem);
+  transform: translateX(-50%);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(8, 12, 30, 0.96);
+  color: #eef2ff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.01em;
+}
+.nebula-topbar .nebula-header {
+  @apply bg-transparent border-0 p-0;
+}
+body.nebula-menu-top .nebula-header-sidebar-toggle {
+  @apply hidden;
+}

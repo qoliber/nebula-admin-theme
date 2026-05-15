@@ -1,0 +1,140 @@
+/* Nebula admin form component dark-mode defaults. */
+
+/* Field validation error highlight */
+.nebula-field-error,
+.nebula-field-error:focus {
+  border-color: #dc2626 !important;
+  border-width: 2px !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+  outline: none !important;
+}
+
+.dark .nebula-field-error,
+.dark .nebula-field-error:focus {
+  background-color: rgba(127, 29, 29, 0.25) !important;
+  border-color: #f87171 !important;
+}
+
+.nebula-field-error-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 500;
+  border-left: 3px solid #dc2626;
+}
+
+.nebula-field-error-msg::before {
+  content: "⚠";
+  font-size: 14px;
+  line-height: 1;
+}
+
+.dark .nebula-field-error-msg {
+  background-color: rgba(127, 29, 29, 0.3);
+  color: #fca5a5;
+  border-left-color: #f87171;
+}
+
+
+body.dark .nebula-page-actions,
+.dark .nebula-page-actions {
+  background-color: #242933 !important;
+  border-color: #4b5563 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark .nebula-page-actions a,
+body.dark .nebula-page-actions a span,
+body.dark .nebula-page-actions .action-default,
+body.dark .nebula-page-actions .action-default span,
+body.dark .nebula-page-actions .back,
+body.dark .nebula-page-actions .back span,
+.dark .nebula-page-actions a,
+.dark .nebula-page-actions a span,
+.dark .nebula-page-actions .action-default,
+.dark .nebula-page-actions .action-default span,
+.dark .nebula-page-actions .back,
+.dark .nebula-page-actions .back span {
+  color: #e2e8f0 !important;
+}
+
+body.dark .nebula-page-actions a:hover,
+body.dark .nebula-page-actions a:hover span,
+.dark .nebula-page-actions a:hover,
+.dark .nebula-page-actions a:hover span {
+  color: #f8fafc !important;
+}
+
+body.dark .nebula-page-actions .text-gray-500,
+body.dark .nebula-page-actions .text-gray-400,
+.dark .nebula-page-actions .text-gray-500,
+.dark .nebula-page-actions .text-gray-400 {
+  color: #cbd5e1 !important;
+}
+
+.nebula-action-delete {
+  color: var(--nebula-button-primary-bg);
+  background: color-mix(
+    in srgb,
+    var(--nebula-button-primary-bg) 18%,
+    transparent
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--nebula-button-primary-bg) 52%, transparent);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.nebula-action-delete:hover,
+.nebula-action-delete:focus-visible {
+  color: var(--color-white);
+  background: color-mix(
+    in srgb,
+    var(--nebula-button-primary-bg) 86%,
+    var(--color-nebula-900)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-button-primary-bg) 76%,
+    var(--color-nebula-900)
+  );
+  outline: none;
+}
+
+.dark .nebula-action-delete {
+  color: var(--nebula-button-primary-bg);
+  background: color-mix(
+    in srgb,
+    var(--nebula-button-primary-bg) 20%,
+    var(--color-nebula-950)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-button-primary-bg) 58%,
+    transparent
+  );
+}
+
+.dark .nebula-action-delete:hover,
+.dark .nebula-action-delete:focus-visible {
+  color: var(--color-white);
+  background: color-mix(
+    in srgb,
+    var(--nebula-button-primary-bg) 84%,
+    var(--color-nebula-900)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-button-primary-bg) 72%,
+    var(--color-nebula-900)
+  );
+}

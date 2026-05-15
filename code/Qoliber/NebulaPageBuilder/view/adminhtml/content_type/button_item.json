@@ -1,0 +1,51 @@
+{
+  "name": "button-item",
+  "label": "Button",
+  "icon": "fa-solid fa-square",
+  "sortOrder": 0,
+  "isContainer": false,
+  "isSystem": true,
+  "parents": { "defaultPolicy": "deny", "allow": ["buttons"] },
+  "children": { "defaultPolicy": "deny" },
+  "appearances": {
+    "default": {
+      "default": true,
+      "label": "Default",
+      "masterTemplate": "master/button-item/default.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "button-item",
+            "data-appearance": "default"
+          },
+          "styles": {}
+        },
+        "link": {
+          "tag": "a",
+          "attributes": {
+            "href": "link_url"
+          },
+          "styles": {
+            "background-color": { "source": "button_color" },
+            "border-color": { "source": "border_color" },
+            "border-width": { "source": "border_width" },
+            "border-radius": { "source": "border_radius" }
+          },
+          "cssSource": "css_classes"
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "default",
+    "button_text": "Button",
+    "link_url": "#",
+    "link_target": "",
+    "button_type": "primary",
+    "button_color": "",
+    "border_color": "",
+    "border_width": "",
+    "border_radius": ""
+  }
+}

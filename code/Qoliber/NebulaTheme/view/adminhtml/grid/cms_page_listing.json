@@ -1,0 +1,80 @@
+{
+  "id": "cms_page_listing",
+  "acl": "Magento_Cms::page",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "cms_page.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "page_id",
+      "direction": "asc"
+    },
+    "addButton": {
+      "label": "Add New Page",
+      "url": "cms/page/new"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "page_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "title": {
+      "label": "Title",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "identifier": {
+      "label": "URL Key",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "is_active": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "position": 40
+    },
+    "creation_time": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "update_time": {
+      "label": "Modified",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "cms/page/edit/page_id/{{page_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

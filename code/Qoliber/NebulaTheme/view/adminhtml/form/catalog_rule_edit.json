@@ -1,0 +1,72 @@
+{
+  "id": "catalog_rule_edit",
+  "acl": "Magento_CatalogRule::promo",
+  "route": "catalog_rule_promo_catalog_edit",
+  "replaces": "catalog_rule_form",
+  "dataSource": {
+    "provider": "catalog_rule.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Catalog Price Rule",
+    "identifierField": "rule_id",
+    "backUrl": "catalog_rule/promo_catalog/index",
+    "deleteUrl": "catalog_rule/promo_catalog/delete",
+    "saveUrl": "catalog_rule/promo_catalog/save",
+    "layout": "two-column"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "Rule Information",
+      "position": 10,
+      "open": true,
+      "column": "left",
+      "fields": {
+        "name": { "label": "Rule Name", "type": "text", "required": true, "position": 10 },
+        "is_active": { "label": "Active", "type": "toggle", "position": 20 },
+        "description": { "label": "Description", "type": "textarea", "position": 30 },
+        "website_ids": {
+          "label": "Websites", "type": "multiselect", "required": true,
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getWebsiteValuesForForm", "position": 40
+        },
+        "customer_group_ids": {
+          "label": "Customer Groups", "type": "multiselect", "required": true,
+          "optionsSource": "Magento\\Customer\\Model\\ResourceModel\\Group\\Collection", "position": 50
+        },
+        "from_date": { "label": "From Date", "type": "date", "position": 60 },
+        "to_date": { "label": "To Date", "type": "date", "position": 70 },
+        "sort_order": { "label": "Priority", "type": "text", "position": 80 }
+      }
+    },
+    "conditions": {
+      "label": "Conditions",
+      "position": 15,
+      "open": true,
+      "column": "left",
+      "renderer": "snippet.rule_conditions",
+      "rule_type": "catalog"
+    },
+    "actions": {
+      "label": "Actions",
+      "position": 20,
+      "open": true,
+      "column": "right",
+      "fields": {
+        "simple_action": {
+          "label": "Apply", "type": "select", "required": true, "position": 10,
+          "options": [
+            {"value": "by_percent", "label": "Apply as percentage of original"},
+            {"value": "by_fixed", "label": "Apply as fixed amount"},
+            {"value": "to_percent", "label": "Adjust final price to this percentage"},
+            {"value": "to_fixed", "label": "Adjust final price to discount value"}
+          ]
+        },
+        "discount_amount": { "label": "Discount Amount", "type": "text", "required": true, "position": 20 },
+        "stop_rules_processing": { "label": "Discard Subsequent Rules", "type": "toggle", "position": 30 }
+      }
+    }
+  }
+}

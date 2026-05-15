@@ -1,0 +1,8 @@
+{
+  "id": "boolean_badge",
+  "type": "badge",
+  "options": {
+    "1": {"label": "Yes", "class": "success"},
+    "0": {"label": "No", "class": "neutral"}
+  }
+}

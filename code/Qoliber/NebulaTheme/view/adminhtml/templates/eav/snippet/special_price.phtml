@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$entity = $block->getData('entity');
+$specialPrice = $entity ? $entity->getData('special_price') : null;
+$fromDate = $entity ? $entity->getData('special_from_date') : null;
+$toDate = $entity ? $entity->getData('special_to_date') : null;
+$hasSpecialPrice = $specialPrice !== null && $specialPrice !== '';
+
+$inputClass = 'block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500';
+?>
+
+<div x-data="{ enabled: <?= $hasSpecialPrice ? 'true' : 'false' ?> }" class="w-full border-t border-gray-200 pt-4 mt-4">
+    <div class="flex items-center gap-3 mb-4">
+        <input type="checkbox"
+               x-model="enabled"
+               id="enable_special_price"
+               class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+        <label for="enable_special_price" class="text-sm font-medium text-gray-700">
+            <?= $escaper->escapeHtml((string) __('Enable Special Price')) ?>
+        </label>
+    </div>
+
+    <div x-show="enabled" x-collapse class="grid grid-cols-3 gap-4">
+        <div>
+            <label for="nebula-eav-special_price" class="mb-1 block text-sm font-medium text-gray-700">
+                <?= $escaper->escapeHtml((string) __('Special Price')) ?>
+            </label>
+            <input type="number"
+                   id="nebula-eav-special_price"
+                   name="product[special_price]"
+                   step="0.01"
+                   min="0"
+                   value="<?= $escaper->escapeHtmlAttr((string) ($specialPrice ?? '')) ?>"
+                   class="<?= /* @noEscape */ $inputClass ?>">
+        </div>
+        <div>
+            <label for="nebula-eav-special_from_date" class="mb-1 block text-sm font-medium text-gray-700">
+                <?= $escaper->escapeHtml((string) __('From')) ?>
+            </label>
+            <input type="date"
+                   id="nebula-eav-special_from_date"
+                   name="product[special_from_date]"
+                   value="<?= $escaper->escapeHtmlAttr((string) ($fromDate ?? '')) ?>"
+                   class="<?= /* @noEscape */ $inputClass ?>">
+        </div>
+        <div>
+            <label for="nebula-eav-special_to_date" class="mb-1 block text-sm font-medium text-gray-700">
+                <?= $escaper->escapeHtml((string) __('To')) ?>
+            </label>
+            <input type="date"
+                   id="nebula-eav-special_to_date"
+                   name="product[special_to_date]"
+                   value="<?= $escaper->escapeHtmlAttr((string) ($toDate ?? '')) ?>"
+                   class="<?= /* @noEscape */ $inputClass ?>">
+        </div>
+    </div>
+
+    <template x-if="!enabled">
+        <input type="hidden" name="product[special_price]" value="">
+    </template>
+</div>

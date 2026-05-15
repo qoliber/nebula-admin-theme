@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Minimal stub kept after the legacy Nebula form-mount layout was removed.
+ *
+ * The form-mount block and the `sales_rule_form` removal are now injected by
+ * Qoliber\NebulaForm\Plugin\InjectFormLayout from the form JSON definition.
+ *
+ * What the wirer CANNOT do — and why this file still exists: the controller
+ * Magento\SalesRule\Controller\Adminhtml\Promo\Quote\Edit::execute() calls
+ * setCanShow() on the `promo_sales_rule_edit_tab_coupons` block; without that
+ * block in the layout the controller fatals. The wirer only injects the form
+ * mount + `replaces` removals, it cannot declare dummy compatibility blocks.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <block class="Magento\Framework\View\Element\Template"
+               name="promo_sales_rule_edit_tab_coupons"
+               template="Magento_Backend::widget/grid/empty.phtml"/>
+    </body>
+</page>

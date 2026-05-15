@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<ruleset name="Nebula">
+    <description>
+        PSR-12 baseline + curated Magento2 sniffs for the Nebula admin theme
+        and modules. Magento framework overrides (_isAllowed, _beforeToHtml,
+        _getHeaderHtml, etc.) require leading underscores — those false
+        positives are excluded below. Line length is relaxed to 130 chars to
+        fit Magento's verbose namespaces. The Magento2 standard's full ruleset
+        is too noisy for Nebula's style (terse PHPDoc, Tailwind utility
+        chains); we cherry-pick the high-signal sniffs only.
+    </description>
+
+    <file>code/Qoliber</file>
+    <exclude-pattern>code/Qoliber/*/Test/*</exclude-pattern>
+    <exclude-pattern>code/Qoliber/*/docs/*</exclude-pattern>
+    <exclude-pattern>code/Qoliber/*/dev/*</exclude-pattern>
+
+    <rule ref="PSR12">
+        <!--
+            Magento\Backend\App\AbstractAction and many parent blocks
+            declare protected methods with leading underscores
+            (_isAllowed, _beforeToHtml, _getHeaderHtml, _getFooterHtml,
+            _getExtraJs, _getChildrenElementsHtml, _getElementHtml).
+            We can't rename overrides without breaking the contract.
+        -->
+        <exclude name="PSR2.Methods.MethodDeclaration.Underscore"/>
+
+        <!--
+            PSR-12 was designed for pure .php files. Embedded PHP-in-HTML
+            (.phtml) breaks the indentation rules because the surrounding
+            HTML container sets the visual scope, not the PHP token stack.
+            Let php-cs-fixer own .phtml indentation; phpcs PSR-12 still
+            enforces semantics (line length, naming, etc.) on .phtml.
+        -->
+        <exclude name="Generic.WhiteSpace.ScopeIndent"/>
+        <exclude name="PSR2.ControlStructures.SwitchDeclaration.IndentCase"/>
+        <exclude name="Squiz.WhiteSpace.ScopeClosingBrace"/>
+    </rule>
+
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <!--
+                lineLimit (warning) at 130 — accommodates Magento namespaces.
+                absoluteLineLimit (error) at 300 — soft cap for .php files.
+                Templates carry inline SVG paths and Tailwind utility chains
+                that legitimately exceed 300 chars; we exclude .phtml from
+                the hard limit but keep the warning so unusually long lines
+                still surface in review.
+            -->
+            <property name="lineLimit" value="130"/>
+            <property name="absoluteLineLimit" value="300"/>
+        </properties>
+        <exclude-pattern>*.phtml</exclude-pattern>
+    </rule>
+
+    <!--
+        Curated Magento2 sniffs — only the high-signal ones. The full Magento2
+        standard fights Nebula's deliberate style; we keep the security,
+        correctness, and performance sniffs.
+    -->
+    <rule ref="Magento2.Security.XssTemplate"/>
+    <rule ref="Magento2.Performance.ForeachArrayMerge"/>
+    <rule ref="Magento2.Legacy.EscapeMethodsOnBlockClass"/>
+
+    <!--
+        Magento2.CodeAnalysis.EmptyBlock.DetectedCatch flags `catch (\Throwable)
+        { /* comment */ }` swallows. Nebula uses this pattern intentionally in
+        defensive fallbacks (e.g. ViewModel methods returning safe defaults
+        when a Magento service throws). Each swallow has a one-line rationale
+        comment. Suppress globally rather than annotate 15 individual cases.
+    -->
+    <rule ref="Magento2.CodeAnalysis.EmptyBlock">
+        <severity>0</severity>
+    </rule>
+
+    <!--
+        Magento2.Functions.DiscouragedFunction prefers DriverInterface over
+        native PHP filesystem calls. Reasonable for runtime/storefront paths
+        but counterproductive in console commands that read/write local files
+        outside Magento's DI bootstrap. Suppress for Console\Command scope.
+    -->
+    <rule ref="Magento2.Functions.DiscouragedFunction">
+        <exclude-pattern>code/Qoliber/*/Console/Command/*</exclude-pattern>
+    </rule>
+
+    <!--
+        Magento2.Templates.ObjectManager: Nebula's snippet templates carry a
+        defensive ObjectManager fallback when a view_model is not passed via
+        $block->getData. The fallback is annotated inline with
+        `// nebula:allow-object-manager` and tracked as P2 architectural debt.
+        Suppress globally rather than touching the inline comments.
+    -->
+    <rule ref="Magento2.Templates.ObjectManager">
+        <severity>0</severity>
+    </rule>
+
+    <arg name="extensions" value="php,phtml"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+</ruleset>

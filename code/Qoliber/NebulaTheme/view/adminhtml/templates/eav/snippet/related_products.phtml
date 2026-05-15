@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\RelatedProducts $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\RelatedProducts) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\RelatedProducts::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+$section = $block->getData('section');
+
+$sectionLabel = (string) ($section['label'] ?? '');
+$linkType = $viewModel->resolveLinkType($sectionLabel);
+$fieldPrefix = 'links[' . $linkType . ']';
+
+$linkedProducts = $viewModel->getLinkedProducts($entity, $linkType);
+
+$searchUrl = $formBlock->getUrl('nebula/grid/productSearch');
+$formKey = $formBlock->getFormKey();
+
+// Render using the reusable product selector component
+$renderer = $formBlock->getLayout()->createBlock(\Magento\Framework\View\Element\Template::class);
+$renderer->setTemplate('Qoliber_NebulaComponent::snippet/product_selector.phtml');
+$renderer->setData('field_name', $fieldPrefix);
+$renderer->setData('field_format', 'links');
+$renderer->setData('selected_products', $linkedProducts);
+$renderer->setData('search_url', $searchUrl);
+$renderer->setData('form_key', $formKey);
+$renderer->setData('label', $sectionLabel);
+$renderer->setData('max_results', 20);
+
+echo $renderer->toHtml();

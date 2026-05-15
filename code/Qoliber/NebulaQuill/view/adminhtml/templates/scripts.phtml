@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaQuill\Block\Adminhtml\Assets $block */
+if (!$block->shouldLoadAssets()) {
+    return;
+}
+
+$bundleJs = $block->getViewFileUrl('js/dist/nebula-quill.js');
+$bundleCss = $block->getViewFileUrl('js/dist/nebula-quill.css');
+?>
+<link rel="stylesheet" href="<?= $block->escapeUrl($bundleCss) ?>">
+<script src="<?= /* @noEscape */ $bundleJs ?>"></script>

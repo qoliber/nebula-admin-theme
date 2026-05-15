@@ -1,0 +1,4 @@
+{
+  "id": "unsupported_ui_node",
+  "template": "Qoliber_NebulaComponent::snippet/unsupported_ui_node.phtml"
+}

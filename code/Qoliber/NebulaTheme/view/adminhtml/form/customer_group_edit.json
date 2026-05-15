@@ -1,0 +1,50 @@
+{
+  "id": "customer_group_edit",
+  "acl": "Magento_Customer::group",
+  "route": "customer_group_new",
+  "replaces": "group",
+  "dataSource": {
+    "provider": "customer_group.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Customer Group",
+    "identifierField": "id",
+    "backUrl": "customer/group/index",
+    "deleteUrl": "customer/group/delete",
+    "saveUrl": "customer/group/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "code": {
+          "label": "Group Name",
+          "type": "text",
+          "required": true,
+          "position": 10,
+          "note": "Enter the name for this customer group"
+        },
+        "tax_class": {
+          "label": "Tax Class",
+          "type": "select",
+          "required": true,
+          "optionsSource": "Magento\\Tax\\Model\\TaxClass\\Source\\Customer",
+          "position": 20
+        },
+        "customer_group_excluded_websites": {
+          "label": "Excluded Website(s)",
+          "type": "multiselect",
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getWebsiteValuesForForm",
+          "position": 30,
+          "note": "Select websites to exclude from this customer group"
+        }
+      }
+    }
+  }
+}

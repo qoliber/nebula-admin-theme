@@ -1,0 +1,46 @@
+{
+  "name": "divider",
+  "label": "Divider",
+  "icon": "fa-solid fa-minus",
+  "menuSection": "elements",
+  "sortOrder": 40,
+  "isContainer": false,
+  "parents": { "defaultPolicy": "allow", "deny": ["stage"] },
+  "children": { "defaultPolicy": "deny" },
+  "appearances": {
+    "default": {
+      "default": true,
+      "label": "Default",
+      "masterTemplate": "master/divider/default.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "divider",
+            "data-appearance": "default"
+          },
+          "styles": {
+            "display": { "source": "display", "converter": "display" },
+            "margin": { "source": "margins_and_padding", "converter": "margins" },
+            "padding": { "source": "margins_and_padding", "converter": "paddings" }
+          },
+          "cssSource": "css_classes"
+        },
+        "line": {
+          "tag": "hr",
+          "styles": {
+            "border-color": { "source": "line_color" },
+            "border-width": { "source": "line_width" },
+            "width": { "source": "line_length" }
+          }
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "default",
+    "line_color": "#cecece",
+    "line_width": "1px",
+    "line_length": "100%"
+  }
+}

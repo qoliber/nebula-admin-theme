@@ -1,0 +1,24 @@
+<?php
+/**
+ * Inline-mode chooser: rendered INSIDE the wizard's parameter-row
+ * Alpine scope so it can see `field`, `state`, etc. Mounts the existing
+ * nebulaRuleEditor with config produced by the Conditions ViewModel.
+ *
+ * The host passes the row's `initial` parameters object via the
+ * variables in-scope when this file is included (server-side PHP scope
+ * inheritance from the includer's locals).
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Qoliber\NebulaTheme\ViewModel\WidgetChooser\Conditions $conditionsVm
+ * @var array<string, mixed> $initial  (passed from the wizard host phtml's local scope)
+ */
+$configJson = $escaper->escapeHtmlAttr(json_encode(
+    $conditionsVm->buildConfig($initial['parameters'] ?? []),
+    JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR,
+));
+?>
+<div class="rounded-lg border border-gray-200 bg-white p-3"
+     x-data='nebulaRuleEditor(<?= $configJson ?>)'
+     x-init="init()"
+     x-html="renderTree()"></div>

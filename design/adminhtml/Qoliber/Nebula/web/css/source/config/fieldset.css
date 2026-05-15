@@ -1,0 +1,115 @@
+/* --- Fieldset card --- */
+.nebula-fieldset-card {
+  @apply border mb-4 overflow-hidden transition-all;
+  background: var(--nebula-bg-primary);
+  border-radius: var(--nebula-radius-xl);
+  box-shadow: var(--nebula-shadow-sm);
+  transition-duration: var(--nebula-transition-speed);
+}
+.nebula-fieldset-open {
+  border-left-width: 1px;
+  border-left-style: solid;
+  border-left-color: var(--color-nebula-500);
+}
+.nebula-fieldset-open .nebula-fieldset-header {
+  @apply bg-nebula-50/50;
+}
+.nebula-fieldset-header {
+  @apply flex w-full items-center justify-between;
+  background: var(--nebula-fieldset-header-bg);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xl);
+}
+.nebula-fieldset-toggle {
+  @apply flex flex-1 items-center gap-2.5 text-left text-sm font-semibold text-gray-900 hover:text-nebula-700 transition cursor-pointer py-0.5;
+}
+.nebula-fieldset-title {
+  @apply truncate;
+}
+.nebula-fieldset-pin {
+  @apply flex items-center justify-center h-7 w-7 text-gray-300 hover:text-nebula-500 hover:bg-nebula-50 transition cursor-pointer;
+  border-radius: var(--nebula-radius-md);
+}
+.nebula-fieldset-pinned {
+  @apply text-nebula-500 bg-nebula-50;
+}
+.nebula-fieldset-body {
+  @apply border-t border-gray-100;
+}
+.nebula-fieldset-comment {
+  @apply text-xs text-gray-500 bg-gray-50 border-b border-gray-100;
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xl);
+}
+
+/*
+ * Dark-mode overrides for the fieldset chrome — header, toggle, pin
+ * button, comment band, body border. Light-mode rules use Tailwind utility
+ * classes (bg-nebula-50/50, text-gray-900) which DO NOT have an automatic
+ * dark variant because they're concrete colors. Re-bind to --nebula-* tokens
+ * here so the section opener / pin button / comment band match the rest of
+ * the dark UI instead of staying light-on-dark.
+ */
+.dark .nebula-fieldset-open .nebula-fieldset-header {
+  background: color-mix(in oklab, var(--color-nebula-500) 12%, var(--nebula-bg-primary));
+}
+.dark .nebula-fieldset-toggle {
+  color: var(--nebula-text-primary);
+}
+.dark .nebula-fieldset-toggle:hover {
+  color: var(--color-nebula-300);
+}
+.dark .nebula-fieldset-pin {
+  color: var(--nebula-text-tertiary);
+}
+.dark .nebula-fieldset-pin:hover {
+  color: var(--color-nebula-300);
+  background: color-mix(in oklab, var(--color-nebula-500) 18%, transparent);
+}
+.dark .nebula-fieldset-pinned {
+  color: var(--color-nebula-300);
+  background: color-mix(in oklab, var(--color-nebula-500) 22%, transparent);
+}
+.dark .nebula-fieldset-body {
+  border-top-color: var(--nebula-border-default);
+}
+.dark .nebula-fieldset-comment {
+  background: var(--nebula-bg-secondary);
+  color: var(--nebula-text-secondary);
+  border-bottom-color: var(--nebula-border-default);
+}
+
+/*
+ * Nested fieldset spacing.
+ * Magento's getIsNested() flag is never set in core — vendor only checks it,
+ * never assigns it — so .nebula-config-group-nested would never apply. Catch
+ * nesting structurally instead: any .nebula-config-group that lives inside a
+ * .nebula-fieldset-body is by definition a sub-fieldset. The descendant
+ * combinator scales to any depth automatically.
+ */
+.nebula-fieldset-body .nebula-config-group,
+.nebula-fieldset-body .nebula-config-group-nested {
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-md) 0 var(--nebula-spacing-lg);
+  margin-left: var(--nebula-spacing-md);
+  border-left: 2px solid var(--nebula-border-light);
+}
+.nebula-fieldset-body .nebula-config-group > .nebula-fieldset-card,
+.nebula-fieldset-body .nebula-config-group-nested > .nebula-fieldset-card {
+  border-radius: var(--nebula-radius-lg);
+  box-shadow: none;
+  background: var(--nebula-bg-secondary);
+}
+.nebula-fieldset-body .nebula-config-group > .nebula-fieldset-card .nebula-fieldset-header,
+.nebula-fieldset-body .nebula-config-group-nested > .nebula-fieldset-card .nebula-fieldset-header {
+  background: var(--nebula-bg-tertiary);
+}
+.dark .nebula-fieldset-body .nebula-config-group,
+.dark .nebula-fieldset-body .nebula-config-group-nested {
+  border-left-color: var(--nebula-border-default);
+}
+.dark .nebula-fieldset-body .nebula-config-group > .nebula-fieldset-card,
+.dark .nebula-fieldset-body .nebula-config-group-nested > .nebula-fieldset-card {
+  background: color-mix(in oklab, var(--nebula-bg-primary) 70%, var(--color-nebula-500) 4%);
+}
+.dark .nebula-fieldset-body .nebula-config-group > .nebula-fieldset-card .nebula-fieldset-header,
+.dark .nebula-fieldset-body .nebula-config-group-nested > .nebula-fieldset-card .nebula-fieldset-header {
+  background: color-mix(in oklab, var(--color-nebula-500) 8%, var(--nebula-bg-primary));
+}

@@ -1,0 +1,106 @@
+/*
+ * Bridge from Tailwind's literal gray-* / indigo-* utilities to nebula tokens.
+ * Templates often use Tailwind classes directly (text-gray-700, bg-indigo-600);
+ * remap those at the !important level so re-skinning via --nebula-* propagates
+ * everywhere instead of leaving hard-coded indigo/gray patches behind.
+ */
+
+/* Semantic color overrides — skins can remap ALL gray/neutral shades */
+.text-gray-900 {
+  color: var(--nebula-text-primary) !important;
+}
+.text-gray-800 {
+  color: var(--nebula-text-primary) !important;
+}
+.text-gray-700 {
+  color: var(--nebula-text-secondary) !important;
+}
+.text-gray-600 {
+  color: var(--nebula-text-secondary) !important;
+}
+.text-gray-500 {
+  color: var(--nebula-text-tertiary) !important;
+}
+.text-gray-400 {
+  color: var(--nebula-text-muted) !important;
+}
+.text-gray-300 {
+  color: var(--nebula-text-muted) !important;
+}
+.bg-white {
+  background-color: var(--nebula-bg-primary) !important;
+}
+.bg-gray-50 {
+  background-color: var(--nebula-bg-secondary) !important;
+}
+.bg-gray-100 {
+  background-color: var(--nebula-bg-tertiary) !important;
+}
+.border-gray-200 {
+  border-color: var(--nebula-border-default) !important;
+}
+.border-gray-300 {
+  border-color: var(--nebula-border-strong) !important;
+}
+.border-gray-100 {
+  border-color: var(--nebula-border-light) !important;
+}
+.hover\:bg-gray-50:hover {
+  background-color: var(--nebula-bg-hover) !important;
+}
+.hover\:bg-gray-100:hover {
+  background-color: var(--nebula-bg-tertiary) !important;
+}
+.hover\:text-gray-900:hover {
+  color: var(--nebula-text-primary) !important;
+}
+.hover\:text-gray-700:hover {
+  color: var(--nebula-text-secondary) !important;
+}
+.placeholder\:text-gray-400::placeholder {
+  color: var(--nebula-text-muted) !important;
+}
+
+/* Indigo → nebula primary mapping (templates use indigo-600 for actions) */
+.text-indigo-600 {
+  color: var(--color-nebula-600) !important;
+}
+.text-indigo-700 {
+  color: var(--color-nebula-700) !important;
+}
+.text-indigo-500 {
+  color: var(--color-nebula-500) !important;
+}
+.bg-indigo-600 {
+  background-color: var(--color-nebula-600) !important;
+}
+.bg-indigo-500 {
+  background-color: var(--color-nebula-500) !important;
+}
+.bg-indigo-50 {
+  background-color: var(--color-nebula-50) !important;
+}
+.bg-indigo-100 {
+  background-color: var(--color-nebula-100) !important;
+}
+.hover\:bg-indigo-500:hover {
+  background-color: var(--color-nebula-500) !important;
+}
+.hover\:bg-indigo-100:hover {
+  background-color: var(--color-nebula-100) !important;
+}
+.ring-indigo-600 {
+  --tw-ring-color: var(--color-nebula-600) !important;
+}
+.focus\:ring-indigo-600:focus {
+  --tw-ring-color: var(--color-nebula-600) !important;
+}
+.focus\:border-indigo-600:focus {
+  border-color: var(--color-nebula-600) !important;
+}
+.border-indigo-600 {
+  border-color: var(--color-nebula-600) !important;
+}
+.accent-indigo-600 {
+  accent-color: var(--color-nebula-600) !important;
+}

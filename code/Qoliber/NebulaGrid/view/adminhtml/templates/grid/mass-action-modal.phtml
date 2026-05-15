@@ -1,0 +1,30 @@
+<?php
+
+/** @var \Qoliber\NebulaGrid\Block\Grid $block */ ?>
+
+<template x-if="confirmAction !== null">
+    <div class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="confirmAction = null">
+        <div class="fixed inset-0 bg-gray-900/50" @click="confirmAction = null"></div>
+        <div class="relative rounded-lg bg-white p-6 shadow-xl max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2"><?= $escaper->escapeHtml((string) __('Confirm Action')) ?></h3>
+            <p class="text-sm text-gray-600 mb-6">
+                <?= $escaper->escapeHtml((string) __('Are you sure you want to')) ?>
+                <span class="font-medium text-gray-900" x-text="confirmAction.label.toLowerCase()"></span>
+                <span class="font-medium text-gray-900" x-text="selected.length"></span>
+                <?= $escaper->escapeHtml((string) __('item(s)?')) ?>
+            </p>
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="confirmAction = null"
+                        class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50">
+                    <?= $escaper->escapeHtml((string) __('Cancel')) ?>
+                </button>
+                <button type="button"
+                        @click="executeMassAction()"
+                        class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                    <?= $escaper->escapeHtml((string) __('Confirm')) ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>

@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$entity = $block->getData('entity');
+$fromDate = $entity ? $entity->getData('news_from_date') : null;
+$toDate = $entity ? $entity->getData('news_to_date') : null;
+
+// Format dates for <input type="date">
+$fromValue = '';
+$toValue = '';
+if ($fromDate) {
+    try {
+        $fromValue = (new \DateTimeImmutable((string) $fromDate))->format('Y-m-d');
+    } catch (\Exception) {
+    }
+}
+if ($toDate) {
+    try {
+        $toValue = (new \DateTimeImmutable((string) $toDate))->format('Y-m-d');
+    } catch (\Exception) {
+    }
+}
+
+$inputClass = 'block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none';
+?>
+
+<div class="grid grid-cols-3 gap-4 py-4">
+    <label class="pt-2 text-sm font-medium text-gray-700">
+        <?= $escaper->escapeHtml((string) __('Set Product as New')) ?>
+    </label>
+    <div class="col-span-2 grid grid-cols-2 gap-3">
+        <div>
+            <label for="nebula-eav-news_from_date" class="block text-xs text-gray-500 mb-1"><?= $escaper->escapeHtml((string) __('From')) ?></label>
+            <input type="date"
+                   id="nebula-eav-news_from_date"
+                   name="product[news_from_date]"
+                   value="<?= $escaper->escapeHtmlAttr($fromValue) ?>"
+                   class="<?= /* @noEscape */ $inputClass ?>">
+        </div>
+        <div>
+            <label for="nebula-eav-news_to_date" class="block text-xs text-gray-500 mb-1"><?= $escaper->escapeHtml((string) __('To')) ?></label>
+            <input type="date"
+                   id="nebula-eav-news_to_date"
+                   name="product[news_to_date]"
+                   value="<?= $escaper->escapeHtmlAttr($toValue) ?>"
+                   class="<?= /* @noEscape */ $inputClass ?>">
+        </div>
+    </div>
+</div>

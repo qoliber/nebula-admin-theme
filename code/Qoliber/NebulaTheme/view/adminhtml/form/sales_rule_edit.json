@@ -1,0 +1,206 @@
+{
+  "id": "sales_rule_edit",
+  "acl": "Magento_SalesRule::quote",
+  "route": "sales_rule_promo_quote_edit",
+  "replaces": "sales_rule_form",
+  "dataSource": {
+    "provider": "sales_rule.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Cart Price Rule",
+    "identifierField": "rule_id",
+    "backUrl": "sales_rule/promo_quote/index",
+    "deleteUrl": "sales_rule/promo_quote/delete",
+    "saveUrl": "sales_rule/promo_quote/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "Rule Information",
+      "position": 10,
+      "open": true,
+      "columns": 2,
+      "fields": {
+        "name": {
+          "label": "Rule Name",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "is_active": {
+          "label": "Active",
+          "type": "toggle",
+          "position": 20
+        },
+        "description": {
+          "label": "Description",
+          "type": "textarea",
+          "position": 30,
+          "colspan": 2
+        },
+        "website_ids": {
+          "label": "Websites",
+          "type": "multiselect",
+          "required": true,
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getWebsiteValuesForForm",
+          "position": 40
+        },
+        "customer_group_ids": {
+          "label": "Customer Groups",
+          "type": "multiselect",
+          "required": true,
+          "optionsSource": "Magento\\Customer\\Model\\ResourceModel\\Group\\Collection",
+          "position": 50
+        },
+        "from_date": {
+          "label": "From Date",
+          "type": "date",
+          "position": 60
+        },
+        "to_date": {
+          "label": "To Date",
+          "type": "date",
+          "position": 70
+        },
+        "sort_order": {
+          "label": "Priority",
+          "type": "text",
+          "position": 80
+        },
+        "is_rss": {
+          "label": "Public In RSS Feed",
+          "type": "toggle",
+          "position": 90
+        }
+      }
+    },
+    "coupons": {
+      "label": "Coupons",
+      "position": 15,
+      "open": true,
+      "columns": 2,
+      "fields": {
+        "coupon_type": {
+          "label": "Coupon",
+          "type": "select",
+          "required": true,
+          "position": 10,
+          "options": [
+            {"value": "1", "label": "No Coupon"},
+            {"value": "2", "label": "Specific Coupon"},
+            {"value": "3", "label": "Auto"}
+          ]
+        },
+        "coupon_code": {
+          "label": "Coupon Code",
+          "type": "text",
+          "position": 20
+        },
+        "use_auto_generation": {
+          "label": "Use Auto Generation",
+          "type": "toggle",
+          "position": 25
+        },
+        "uses_per_coupon": {
+          "label": "Uses per Coupon",
+          "type": "text",
+          "position": 30
+        },
+        "uses_per_customer": {
+          "label": "Uses per Customer",
+          "type": "text",
+          "position": 40
+        }
+      }
+    },
+    "conditions": {
+      "label": "Conditions",
+      "position": 17,
+      "open": true,
+      "renderer": "snippet.rule_conditions",
+      "rule_type": "sales"
+    },
+    "actions": {
+      "label": "Actions",
+      "position": 20,
+      "open": true,
+      "columns": 2,
+      "fields": {
+        "simple_action": {
+          "label": "Apply",
+          "type": "select",
+          "required": true,
+          "position": 10,
+          "options": [
+            {"value": "by_percent", "label": "Percent of product price discount"},
+            {"value": "by_fixed", "label": "Fixed amount discount"},
+            {"value": "cart_fixed", "label": "Fixed amount discount for whole cart"},
+            {"value": "buy_x_get_y", "label": "Buy X get Y free (discount amount is Y)"}
+          ]
+        },
+        "discount_amount": {
+          "label": "Discount Amount",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "discount_qty": {
+          "label": "Maximum Qty Discount is Applied To",
+          "type": "text",
+          "position": 30
+        },
+        "discount_step": {
+          "label": "Discount Qty Step (Buy X)",
+          "type": "text",
+          "position": 40
+        },
+        "apply_to_shipping": {
+          "label": "Apply to Shipping Amount",
+          "type": "toggle",
+          "position": 45
+        },
+        "stop_rules_processing": {
+          "label": "Discard Subsequent Rules",
+          "type": "toggle",
+          "position": 50
+        }
+      }
+    },
+    "apply_to": {
+      "label": "Apply the rule only to cart items matching the following conditions (leave blank for all items).",
+      "position": 30,
+      "open": true,
+      "renderer": "snippet.rule_conditions",
+      "rule_type": "sales_actions"
+    },
+    "manage_coupon_codes": {
+      "label": "Manage Coupon Codes",
+      "position": 35,
+      "open": true,
+      "renderer": "snippet.coupon_generator"
+    },
+    "manage_coupon_codes_grid": {
+      "label": "Coupon Codes",
+      "position": 36,
+      "open": true,
+      "renderer": "snippet.coupon_codes_grid"
+    },
+    "labels": {
+      "label": "Labels",
+      "position": 40,
+      "open": true,
+      "columns": 1,
+      "fields": {
+        "store_labels_default": {
+          "label": "Default Rule Label for All Store Views",
+          "type": "text",
+          "submitName": "store_labels[0]",
+          "position": 10
+        }
+      }
+    }
+  }
+}

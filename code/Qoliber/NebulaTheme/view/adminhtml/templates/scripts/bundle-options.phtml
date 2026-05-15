@@ -1,0 +1,8 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+$bundleOptionsJs = $block->getViewFileUrl('js/dist/nebula-bundle-options.js');
+?>
+<script src="<?= /* @noEscape */ $bundleOptionsJs ?>"></script>

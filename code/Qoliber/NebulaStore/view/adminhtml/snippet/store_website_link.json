@@ -1,0 +1,4 @@
+{
+  "id": "store_website_link",
+  "template": "Qoliber_NebulaStore::snippet/store_website_link.phtml"
+}

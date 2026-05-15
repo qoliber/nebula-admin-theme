@@ -1,0 +1,193 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Snippet: searchable_multiselect
+ *
+ * Available variables:
+ * @var \Magento\Framework\View\Element\Template $block
+ * $block->getData('field_name')   - input name (e.g., 'category_ids[]')
+ * $block->getData('options')      - array of [{value, label, path?}]
+ * $block->getData('selected')     - array of selected values (strings)
+ * $block->getData('placeholder')  - search placeholder text
+ * $block->getData('label')        - field label for the modal title
+ */
+
+$fieldName = $block->getData('field_name') ?? 'items[]';
+$options = $block->getData('options') ?? [];
+$selected = $block->getData('selected') ?? [];
+$placeholder = $block->getData('placeholder') ?? __('Search...');
+$fieldLabel = $block->getData('label') ?? __('Select Options');
+$componentId = 'multiselect_' . md5($fieldName);
+
+$configJson = json_encode([
+    'fieldName' => $fieldName,
+    'options' => array_values($options),
+    'selected' => array_map('strval', $selected),
+    'label' => (string) $fieldLabel,
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+?>
+
+<div id="<?= $escaper->escapeHtmlAttr($componentId) ?>"
+     x-data="nebulaMultiselect(<?= $escaper->escapeHtmlAttr($configJson) ?>)">
+
+    <?php if (count($options) <= 12) : ?>
+    <!-- Inline checkboxes for small option sets -->
+    <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+        <template x-for="opt in allOptions" :key="opt.value">
+            <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1">
+                <input type="checkbox"
+                       :checked="isSelected(opt.value)"
+                       @change="toggle(opt.value)"
+                       class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                <span class="text-sm text-gray-700" x-text="opt.path || opt.label"></span>
+            </label>
+        </template>
+    </div>
+    <?php else : ?>
+    <!-- Search input + expand button for large option sets -->
+    <div class="flex items-center gap-2">
+        <div class="relative flex-1" @click.outside="showDropdown = false">
+            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+            </svg>
+            <input type="text"
+                   x-ref="searchInput"
+                   x-model="search"
+                   @focus="showDropdown = true"
+                   placeholder="<?= $escaper->escapeHtmlAttr($placeholder) ?>"
+                   class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+            <!-- Inline dropdown results -->
+            <div x-show="showDropdown && search.length > 0"
+                 x-cloak
+                 class="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                <template x-for="opt in inlineFilteredOptions" :key="opt.value">
+                    <label class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                           @click.stop>
+                        <input type="checkbox"
+                               :checked="isSelected(opt.value)"
+                               @change="toggle(opt.value); $refs.searchInput.focus()"
+                               class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <span class="text-sm text-gray-700" x-text="opt.path || opt.label"></span>
+                    </label>
+                </template>
+                <div x-show="inlineFilteredOptions.length === 0" class="px-3 py-2 text-sm text-gray-500">
+                    <?= $escaper->escapeHtml(__('No results found.')) ?>
+                </div>
+            </div>
+        </div>
+        <button type="button" @click="openModal()"
+                class="flex-shrink-0 inline-flex items-center justify-center h-[38px] w-[38px] rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-300 transition-colors shadow-sm"
+                title="<?= $escaper->escapeHtmlAttr(__('Browse all options')) ?>">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Selected chips -->
+    <div class="flex flex-wrap gap-1.5 mt-2" x-show="selectedItems.length > 0">
+        <template x-for="item in selectedItems" :key="item.value">
+            <span class="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-medium text-white shadow-sm">
+                <span x-text="item.path || item.label" class="truncate max-w-40"></span>
+                <button type="button" @click="toggle(item.value)" class="cursor-pointer text-white/70 hover:text-white flex-shrink-0">
+                    <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </span>
+        </template>
+    </div>
+    <?php endif; ?>
+
+    <!-- Fullscreen modal -->
+    <template x-teleport="body">
+        <div x-show="modalOpen" x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center"
+             @keydown.escape.window="if (modalOpen) { modalOpen = false; $event.stopPropagation(); }">
+            <!-- Backdrop -->
+            <div x-show="modalOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="modalOpen = false"></div>
+            <!-- Modal -->
+            <div class="relative w-full max-w-2xl max-h-[85vh] mx-4 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                 role="dialog"
+                 aria-modal="true"
+                 :aria-label="label"
+                 x-show="modalOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900" x-text="label"></h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-500"><span x-text="selectedValues.length"></span> <?= $escaper->escapeHtml(__('selected')) ?></span>
+                        <button type="button" @click="modalOpen = false"
+                                class="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Search -->
+                <div class="px-6 py-3 border-b border-gray-100">
+                    <div class="relative">
+                        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                        </svg>
+                        <input type="text" x-ref="modalSearch" x-model="modalSearchTerm"
+                               placeholder="<?= $escaper->escapeHtmlAttr($placeholder) ?>"
+                               class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div class="flex gap-3 mt-2">
+                        <button type="button" @click="selectAll()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                            <?= $escaper->escapeHtml(__('Select All')) ?>
+                        </button>
+                        <button type="button" @click="deselectAll()" class="text-xs text-gray-500 hover:text-gray-700 font-medium">
+                            <?= $escaper->escapeHtml(__('Deselect All')) ?>
+                        </button>
+                    </div>
+                </div>
+                <!-- Options list -->
+                <div class="flex-1 overflow-y-auto px-6 py-2">
+                  <div class="grid grid-cols-2 gap-x-4">
+                    <template x-for="opt in modalFilteredOptions" :key="opt.value">
+                        <label class="flex items-center gap-3 px-2 py-2 cursor-pointer hover:bg-gray-50 rounded-lg">
+                            <input type="checkbox"
+                                   :checked="isSelected(opt.value)"
+                                   @change="toggle(opt.value)"
+                                   class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                            <span class="text-sm text-gray-700" x-text="opt.path || opt.label"></span>
+                        </label>
+                    </template>
+                    <div x-show="modalFilteredOptions.length === 0" class="col-span-2 py-8 text-center text-sm text-gray-400">
+                        <?= $escaper->escapeHtml(__('No options match your search.')) ?>
+                    </div>
+                  </div>
+                </div>
+                <!-- Footer -->
+                <div class="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-end">
+                    <button type="button" @click="modalOpen = false"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-sm">
+                        <?= $escaper->escapeHtml(__('Done')) ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Hidden inputs for form submission -->
+    <template x-for="val in selectedValues" :key="val">
+        <input type="hidden" :name="fieldName" :value="val">
+    </template>
+</div>
+

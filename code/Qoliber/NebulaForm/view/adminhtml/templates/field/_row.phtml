@@ -1,0 +1,28 @@
+<?php
+/**
+ * Field row chrome: label column + body column with note.
+ * Wraps a single field. The caller injects the control as $fieldControl.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var string $fieldId
+ * @var string $fKey
+ * @var array<string, mixed> $field
+ * @var bool $isRequired
+ * @var string $fieldControl — pre-rendered HTML control
+ */
+$isFullWidth = !empty($field['full_width']);
+?>
+<div class="grid <?= $isFullWidth ? 'grid-cols-1 gap-3' : 'grid-cols-1 sm:grid-cols-3 gap-4' ?> py-4">
+    <label for="<?= $escaper->escapeHtmlAttr($fieldId) ?>" class="<?= $isFullWidth ? '' : 'sm:pt-2 ' ?>text-sm font-medium text-gray-700">
+        <?= $escaper->escapeHtml($block->translate((string) ($field['label'] ?? $fKey))) ?>
+        <?php if ($isRequired) : ?>
+            <span class="text-red-500">*</span>
+        <?php endif; ?>
+    </label>
+    <div class="<?= $isFullWidth ? '' : 'sm:col-span-2' ?>">
+        <?= /* @noEscape */ $fieldControl ?>
+        <?php if (!empty($field['note'])) : ?>
+            <p class="mt-1 text-xs text-gray-500"><?= $escaper->escapeHtml($block->translate((string) $field['note'])) ?></p>
+        <?php endif; ?>
+    </div>
+</div>

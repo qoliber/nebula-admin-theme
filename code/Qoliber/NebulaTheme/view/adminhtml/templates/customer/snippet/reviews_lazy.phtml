@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+if (!$entity || !$formBlock) {
+    return;
+}
+
+$entityId = (int) $entity->getId();
+$gridUrl = $escaper->escapeUrl($formBlock->getUrl('nebula/grid/data'));
+?>
+
+<div x-data="{ loaded: false, loading: false, html: '' }"
+     x-intersect.once="
+        if (!loaded && !loading) {
+            loading = true;
+            fetch('<?= /* @noEscape */ $gridUrl ?>?id=customer_reviews_grid&customer_id=<?= /* @noEscape */ $entityId ?>')
+                .then(r => r.text())
+                .then(data => { html = data; loaded = true; loading = false; })
+                .catch(() => { loading = false; });
+        }
+     ">
+
+    <!-- Loading state -->
+    <template x-if="loading">
+        <div class="flex items-center justify-center py-12">
+            <i class="fa-solid fa-spinner fa-spin text-indigo-500 text-xl mr-3"></i>
+            <span class="text-sm text-gray-500"><?= $escaper->escapeHtml((string) __('Loading reviews...')) ?></span>
+        </div>
+    </template>
+
+    <!-- Loaded content -->
+    <template x-if="loaded">
+        <div x-html="html"></div>
+    </template>
+
+    <!-- Initial empty state -->
+    <template x-if="!loaded && !loading">
+        <div class="text-center py-8 text-sm text-gray-400">
+            <i class="fa-solid fa-arrow-down mr-1"></i>
+            <?= $escaper->escapeHtml((string) __('Scroll to load reviews')) ?>
+        </div>
+    </template>
+</div>

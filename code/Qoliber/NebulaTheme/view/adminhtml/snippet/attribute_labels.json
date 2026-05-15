@@ -1,0 +1,4 @@
+{
+  "id": "attribute_labels",
+  "template": "Qoliber_NebulaTheme::snippet/attribute_labels.phtml"
+}

@@ -1,0 +1,46 @@
+            <!-- ROW 1 — Type & Theme (stacked fields inside a 33% desktop card) -->
+            <section class="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
+                <header class="border-b border-gray-100 pb-3 mb-3">
+                    <h2 class="text-sm font-bold uppercase tracking-wide text-indigo-700">1. Type &amp; Theme</h2>
+                </header>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">
+                            Widget Type
+                            <span x-show="state.instance_id" class="ml-2 inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0 1 10 0v2a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2zm8-2v2H7V7a3 3 0 0 1 6 0z" clip-rule="evenodd"/></svg>
+                                locked
+                            </span>
+                        </label>
+                        <select x-model="state.instance_type" :disabled="!!state.instance_id"
+                                class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed disabled:border-gray-200">
+                            <option value="">&mdash; Select type &mdash;</option>
+                            <?php foreach ($types as $type): ?>
+                                <option value="<?= $escaper->escapeHtmlAttr($type['value']) ?>">
+                                    <?= $escaper->escapeHtml($type['label']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p x-show="state.instance_id" class="mt-1 text-xs text-gray-500">Type cannot change after creation &mdash; saved parameters are type-specific.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Design Theme</label>
+                        <select x-model.number="state.theme_id"
+                                class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none">
+                            <option value="">&mdash; Select theme &mdash;</option>
+                            <?php foreach ($themes as $theme): ?>
+                                <option value="<?= $escaper->escapeHtmlAttr($theme['value']) ?>">
+                                    <?= $escaper->escapeHtml($theme['label']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="hidden" name="instance_type" :value="state.instance_type"/>
+                <input type="hidden" name="theme_id" :value="state.theme_id"/>
+                <!-- Save controller's _initWidgetInstance reads `code` to look up the class FQCN. -->
+                <input type="hidden" name="code" :value="currentCode()"/>
+            </section>

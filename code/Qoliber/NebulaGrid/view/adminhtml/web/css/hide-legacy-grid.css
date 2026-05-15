@@ -1,0 +1,5 @@
+/* Hide legacy Magento admin grid container (loaded only on pages with Nebula replacement) */
+.adminhtml-product-attribute-index .admin__data-grid-wrap { display: none !important; }
+.adminhtml-product-attribute-index .admin__data-grid-header { display: none !important; }
+.adminhtml-product-attribute-index #container { display: none !important; }
+.adminhtml-product-attribute-index .grid-actions { display: none !important; }

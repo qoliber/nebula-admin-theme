@@ -1,0 +1,57 @@
+{
+  "id": "email_template_edit",
+  "acl": "Magento_Email::template",
+  "route": "adminhtml_email_template_edit",
+  "replaces": "template_edit",
+  "dataSource": {
+    "provider": "email_template.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "Email Template",
+    "identifierField": "template_id",
+    "backUrl": "adminhtml/email_template/index",
+    "deleteUrl": "adminhtml/email_template/delete",
+    "saveUrl": "adminhtml/email_template/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "Template Information",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "template_code": {
+          "label": "Template Name",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "template_subject": {
+          "label": "Template Subject",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "orig_template_code": {
+          "label": "Original Template",
+          "type": "text",
+          "position": 30,
+          "note": "The original template code this template was based on"
+        },
+        "template_text": {
+          "label": "Template Content",
+          "type": "textarea",
+          "required": true,
+          "position": 40
+        },
+        "template_styles": {
+          "label": "Template Styles",
+          "type": "textarea",
+          "position": 50
+        }
+      }
+    }
+  }
+}

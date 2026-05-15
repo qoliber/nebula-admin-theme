@@ -1,0 +1,4 @@
+{
+    "id": "rule_conditions",
+    "template": "Qoliber_NebulaComponent::snippet/rule_editor.phtml"
+}

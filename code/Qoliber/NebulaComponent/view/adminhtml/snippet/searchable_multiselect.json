@@ -1,0 +1,4 @@
+{
+  "id": "searchable_multiselect",
+  "template": "Qoliber_NebulaComponent::snippet/searchable_multiselect.phtml"
+}

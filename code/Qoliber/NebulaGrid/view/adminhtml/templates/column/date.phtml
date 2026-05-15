@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$value = $block->getData('value');
+if (!$value) {
+    return;
+}
+
+$formatted = (string) $block->getData('formatted');
+$parseFailed = (bool) $block->getData('parse_failed');
+?>
+<?php if ($parseFailed) : ?>
+    <?= $escaper->escapeHtml($formatted) ?>
+<?php else : ?>
+    <?= /* @noEscape */ $formatted ?>
+<?php endif;

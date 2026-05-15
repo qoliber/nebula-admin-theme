@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<!--
+    Qoliber_NebulaMenu: Simplified admin menu structure.
+    Removes unnecessary nesting containers and re-creates items
+    directly under top-level parents with unique Nebula IDs.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <!--
+        =============================================================
+            CATALOG: Remove "Inventory" container,
+            re-add items directly under Catalog.
+            Move Attributes from Stores to Catalog.
+        =============================================================
+        -->
+        <remove id="Magento_Catalog::inventory"/>
+        <remove id="Magento_Backend::stores_attributes"/>
+        <add id="Qoliber_NebulaMenu::catalog_products"
+             title="Products" translate="title" module="Magento_Catalog"
+             sortOrder="10" parent="Magento_Catalog::catalog"
+             action="catalog/product/" resource="Magento_Catalog::products"/>
+        <add id="Qoliber_NebulaMenu::catalog_categories"
+             title="Categories" translate="title" module="Magento_Catalog"
+             sortOrder="20" parent="Magento_Catalog::catalog"
+             action="catalog/category/" resource="Magento_Catalog::categories"/>
+        <add id="Qoliber_NebulaMenu::catalog_attributes"
+             title="Attributes" translate="title" module="Magento_Catalog"
+             sortOrder="30" parent="Magento_Catalog::catalog"
+             action="catalog/product_attribute/" resource="Magento_Catalog::attributes_attributes"/>
+        <add id="Qoliber_NebulaMenu::catalog_attribute_sets"
+             title="Attribute Sets" translate="title" module="Magento_Catalog"
+             sortOrder="40" parent="Magento_Catalog::catalog"
+             action="catalog/product_set/" resource="Magento_Catalog::sets"/>
+
+        <!--
+        =============================================================
+            SALES: Remove "Operations" container,
+            re-add items directly under Sales.
+        =============================================================
+        -->
+        <remove id="Magento_Sales::sales_operation"/>
+        <add id="Qoliber_NebulaMenu::sales_orders"
+             title="Orders" translate="title" module="Magento_Sales"
+             sortOrder="10" parent="Magento_Sales::sales"
+             action="sales/order" resource="Magento_Sales::sales_order"/>
+        <add id="Qoliber_NebulaMenu::sales_invoices"
+             title="Invoices" translate="title" module="Magento_Sales"
+             sortOrder="20" parent="Magento_Sales::sales"
+             action="sales/invoice" resource="Magento_Sales::sales_invoice"/>
+        <add id="Qoliber_NebulaMenu::sales_shipments"
+             title="Shipments" translate="title" module="Magento_Sales"
+             sortOrder="30" parent="Magento_Sales::sales"
+             action="sales/shipment" resource="Magento_Sales::shipment"/>
+        <add id="Qoliber_NebulaMenu::sales_creditmemos"
+             title="Credit Memos" translate="title" module="Magento_Sales"
+             sortOrder="40" parent="Magento_Sales::sales"
+             action="sales/creditmemo" resource="Magento_Sales::sales_creditmemo"/>
+        <add id="Qoliber_NebulaMenu::sales_transactions"
+             title="Transactions" translate="title" module="Magento_Sales"
+             sortOrder="50" parent="Magento_Sales::sales"
+             action="sales/transactions" resource="Magento_Sales::transactions"/>
+
+        <!--
+        =============================================================
+            MARKETING: Remove sub-containers,
+            flatten items directly under Marketing.
+        =============================================================
+        -->
+        <remove id="Magento_CatalogRule::promo"/>
+        <remove id="Magento_Backend::marketing_communications"/>
+        <remove id="Magento_Backend::marketing_seo"/>
+        <remove id="Magento_Backend::marketing_user_content"/>
+        <add id="Qoliber_NebulaMenu::marketing_catalog_rules"
+             title="Catalog Price Rules" translate="title" module="Magento_CatalogRule"
+             sortOrder="10" parent="Magento_Backend::marketing"
+             action="catalog_rule/promo_catalog/" resource="Magento_CatalogRule::promo_catalog"/>
+        <add id="Qoliber_NebulaMenu::marketing_cart_rules"
+             title="Cart Price Rules" translate="title" module="Magento_SalesRule"
+             sortOrder="20" parent="Magento_Backend::marketing"
+             action="sales_rule/promo_quote/" resource="Magento_SalesRule::quote"/>
+        <add id="Qoliber_NebulaMenu::marketing_email_templates"
+             title="Email Templates" translate="title" module="Magento_Email"
+             sortOrder="30" parent="Magento_Backend::marketing"
+             action="adminhtml/email_template" resource="Magento_Email::template"/>
+        <add id="Qoliber_NebulaMenu::marketing_url_rewrites"
+             title="URL Rewrites" translate="title" module="Magento_UrlRewrite"
+             sortOrder="40" parent="Magento_Backend::marketing"
+             action="adminhtml/url_rewrite/index" resource="Magento_UrlRewrite::urlrewrite"/>
+
+        <!--
+        =============================================================
+            CONTENT: Remove "Elements" and "Media" containers,
+            flatten under Content.
+        =============================================================
+        -->
+        <remove id="Magento_Backend::content_elements"/>
+        <remove id="Magento_MediaGalleryUi::media"/>
+        <add id="Qoliber_NebulaMenu::content_pages"
+             title="Pages" translate="title" module="Magento_Cms"
+             sortOrder="10" parent="Magento_Backend::content"
+             action="cms/page" resource="Magento_Cms::page"/>
+        <add id="Qoliber_NebulaMenu::content_blocks"
+             title="Blocks" translate="title" module="Magento_Cms"
+             sortOrder="20" parent="Magento_Backend::content"
+             action="cms/block" resource="Magento_Cms::block"/>
+        <add id="Qoliber_NebulaMenu::content_widgets"
+             title="Widgets" translate="title" module="Magento_Widget"
+             sortOrder="30" parent="Magento_Backend::content"
+             action="adminhtml/widget_instance" resource="Magento_Widget::widget_instance"/>
+
+        <!--
+        =============================================================
+            STORES: Remove "Settings" and "Taxes" containers,
+            flatten under Stores.
+        =============================================================
+        -->
+        <remove id="Magento_Backend::stores_settings"/>
+        <remove id="Magento_Tax::sales_tax"/>
+        <remove id="Magento_Backend::other_settings"/>
+        <add id="Qoliber_NebulaMenu::stores_all"
+             title="All Stores" translate="title" module="Magento_Backend"
+             sortOrder="10" parent="Magento_Backend::stores"
+             action="adminhtml/system_store/" resource="Magento_Backend::store"/>
+        <add id="Qoliber_NebulaMenu::stores_config"
+             title="Configuration" translate="title" module="Magento_Config"
+             sortOrder="20" parent="Magento_Backend::stores"
+             action="adminhtml/system_config" resource="Magento_Config::config"/>
+        <add id="Qoliber_NebulaMenu::stores_tax_rules"
+             title="Tax Rules" translate="title" module="Magento_Tax"
+             sortOrder="30" parent="Magento_Backend::stores"
+             action="tax/rule" resource="Magento_Tax::manage_tax"/>
+        <add id="Qoliber_NebulaMenu::stores_currency"
+             title="Currency" translate="title" module="Magento_Backend"
+             sortOrder="40" parent="Magento_Backend::stores"
+             action="adminhtml/system_currency" resource="Magento_CurrencySymbol::system_currency"/>
+
+        <!--
+        =============================================================
+            SYSTEM: Remove "Tools" and "Permissions" containers,
+            flatten under System.
+        =============================================================
+        -->
+        <remove id="Magento_Backend::system_tools"/>
+        <remove id="Magento_User::system_acl"/>
+        <remove id="Magento_Integration::system_extensions"/>
+        <remove id="Magento_Backend::system_convert"/>
+        <remove id="Magento_Backend::system_other_settings"/>
+        <add id="Qoliber_NebulaMenu::system_cache"
+             title="Cache Management" translate="title" module="Magento_Backend"
+             sortOrder="10" parent="Magento_Backend::system"
+             action="adminhtml/cache" resource="Magento_Backend::cache"/>
+        <add id="Qoliber_NebulaMenu::system_index"
+             title="Index Management" translate="title" module="Magento_Indexer"
+             sortOrder="20" parent="Magento_Backend::system"
+             action="indexer/indexer/list" resource="Magento_Indexer::index"/>
+        <add id="Qoliber_NebulaMenu::system_users"
+             title="All Users" translate="title" module="Magento_User"
+             sortOrder="30" parent="Magento_Backend::system"
+             action="adminhtml/user" resource="Magento_User::acl_users"/>
+        <add id="Qoliber_NebulaMenu::system_roles"
+             title="User Roles" translate="title" module="Magento_User"
+             sortOrder="40" parent="Magento_Backend::system"
+             action="adminhtml/user_role" resource="Magento_User::acl_roles"/>
+        <add id="Qoliber_NebulaMenu::system_integrations"
+             title="Integrations" translate="title" module="Magento_Integration"
+             sortOrder="50" parent="Magento_Backend::system"
+             action="adminhtml/integration" resource="Magento_Integration::integrations"/>
+    </menu>
+</config>

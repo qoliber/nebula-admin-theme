@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="admin_login"/>
+    <body>
+        <referenceContainer name="login.content">
+            <block class="Magento\TwoFactorAuth\Block\Provider\Google\Configure" name="content"
+                   template="Magento_TwoFactorAuth::tfa/provider/google_configure.phtml">
+                <block class="Magento\Framework\View\Element\Messages"
+                       name="messages" as="messages"/>
+            </block>
+            <block class="Magento\TwoFactorAuth\Block\ConfigureLater" name="configure-later"
+                   template="Magento_TwoFactorAuth::tfa/configure_later.phtml">
+                <arguments>
+                    <argument name="provider" xsi:type="string">google</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

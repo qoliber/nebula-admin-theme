@@ -1,0 +1,127 @@
+<?php
+/**
+ * Qoliber Nebula — Admin Header
+ * Replaces legacy header with Alpine.js dropdown
+ *
+ * @var \Magento\Backend\Block\Page\Header $block
+ */
+
+$part = $block->getShowPart();
+?>
+<style>
+    .nebula-accent-fg {
+        color: var(--nebula-button-primary-bg) !important;
+    }
+
+    .nebula-accent-soft {
+        color: color-mix(in srgb, var(--nebula-button-primary-bg) 72%, var(--color-nebula-100)) !important;
+    }
+
+    .dark .nebula-accent-soft {
+        color: color-mix(in srgb, var(--nebula-button-primary-bg) 84%, var(--color-nebula-200)) !important;
+    }
+
+    .nebula-accent-badge {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 26%, transparent) !important;
+        color: var(--nebula-button-primary-bg) !important;
+        border: 1px solid color-mix(in srgb, var(--nebula-button-primary-bg) 48%, transparent);
+    }
+
+    .dark .nebula-accent-badge {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 22%, var(--color-nebula-950)) !important;
+        color: var(--color-nebula-100) !important;
+        border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 52%, transparent);
+    }
+
+    .nebula-header-icon-trigger:hover,
+    .nebula-header-icon-trigger:focus-visible {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 16%, var(--color-nebula-50));
+        color: var(--nebula-button-primary-bg) !important;
+        outline: none;
+    }
+
+    .dark .nebula-header-icon-trigger:hover,
+    .dark .nebula-header-icon-trigger:focus-visible {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 24%, var(--color-nebula-950));
+        color: var(--color-white) !important;
+    }
+
+    .nebula-user-trigger:hover,
+    .nebula-user-trigger:focus-visible {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 14%, var(--color-nebula-50));
+        color: var(--nebula-button-primary-bg);
+        outline: none;
+    }
+
+    .dark .nebula-user-trigger:hover,
+    .dark .nebula-user-trigger:focus-visible {
+        background: color-mix(in srgb, var(--nebula-button-primary-bg) 22%, var(--color-nebula-950));
+        color: var(--color-nebula-100);
+    }
+</style>
+<?php if ($part === 'user'): ?>
+    <?php $user = $block->getUser(); ?>
+    <div class="flex items-center gap-6">
+        <!-- Dark Mode Toggle -->
+        <button @click="$store.nebula.toggleDark()"
+                class="nebula-header-icon-trigger nebula-accent-fg flex items-center justify-center h-9 w-9 rounded-lg transition cursor-pointer"
+                title="Toggle dark mode">
+            <i class="fa-solid text-sm" :class="$store.nebula.darkMode ? 'fa-sun' : 'fa-moon'"></i>
+        </button>
+
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                    @click.outside="open = false"
+                    class="nebula-user-trigger flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 transition">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-nebula-100 text-nebula-800 font-semibold text-xs">
+                    <?= $block->escapeHtml(mb_strtoupper(mb_substr($user->getFirstName(), 0, 1) . mb_substr($user->getLastName(), 0, 1))) ?>
+                </div>
+                <span class="font-medium"><?= $block->escapeHtml($user->getUserName()) ?></span>
+                <svg class="nebula-accent-fg h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                </svg>
+            </button>
+
+            <div x-show="open"
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-100"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-75"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <p class="text-sm font-medium text-gray-900"><?= $block->escapeHtml($user->getFirstName() . ' ' . $user->getLastName()) ?></p>
+                    <p class="text-xs text-gray-500 truncate"><?= $block->escapeHtml($user->getEmail()) ?></p>
+                </div>
+                <div class="py-1">
+                    <?php if ($block->getAuthorization()->isAllowed('Magento_Backend::myaccount')): ?>
+                        <a href="<?= $block->escapeUrl($block->getUrl('adminhtml/system_account/index')) ?>"
+                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                            <?= $block->escapeHtml(__('Account Settings')) ?>
+                        </a>
+                    <?php endif; ?>
+                    <a href="<?= $block->escapeUrl($block->getBaseUrl()) ?>"
+                       target="_blank"
+                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                        <?= $block->escapeHtml(__('View Storefront')) ?>
+                        <svg class="h-3 w-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="border-t border-gray-100 py-1">
+                    <a href="<?= $block->escapeUrl($block->getLogoutLink()) ?>"
+                       class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
+                        <?= $block->escapeHtml(__('Sign Out')) ?>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php elseif ($part === 'logo'): ?>
+    <?php // Logo is handled by sidebar_logo.phtml in Nebula?>
+<?php elseif ($part === 'other'): ?>
+    <?= $block->getChildHtml() ?>
+<?php endif; ?>

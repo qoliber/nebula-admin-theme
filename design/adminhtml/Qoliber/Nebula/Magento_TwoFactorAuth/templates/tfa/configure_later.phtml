@@ -1,0 +1,21 @@
+<?php
+/**
+ * Qoliber Nebula — Configure Later link
+ *
+ * @var \Magento\TwoFactorAuth\Block\ConfigureLater $block
+ */
+
+$postData = json_decode($block->getPostData(), true);
+$actionUrl = $postData['action'] ?? '';
+$provider = $postData['data']['provider'] ?? '';
+$formKey = $postData['data']['form_key'] ?? '';
+?>
+<div class="mt-4 text-center">
+    <form method="post" action="<?= $block->escapeUrl($actionUrl) ?>">
+        <input type="hidden" name="provider" value="<?= $block->escapeHtmlAttr($provider) ?>"/>
+        <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($formKey) ?>"/>
+        <button type="submit" class="text-sm text-gray-400 hover:text-gray-600 transition">
+            <?= $block->escapeHtml(__('Skip this configuration until next login.')) ?>
+        </button>
+    </form>
+</div>

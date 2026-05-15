@@ -1,0 +1,60 @@
+<?php
+/**
+ * Qoliber Nebula — Additional Cache Management
+ * No inline onclick — uses direct <a> links
+ *
+ * @var \Magento\Backend\Block\Cache\Additional $block
+ */
+
+$permissions = $block->getData('permissions');
+if (!$permissions || !$permissions->hasAccessToAdditionalActions()) {
+    return;
+}
+?>
+<div class="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-900"><?= $block->escapeHtml(__('Additional Cache Management')) ?></h2>
+    </div>
+    <div class="divide-y divide-gray-100">
+        <?php if ($permissions->hasAccessToFlushCatalogImages()): ?>
+            <div class="flex items-center justify-between px-5 py-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-700"><?= $block->escapeHtml(__('Flush Catalog Images Cache')) ?></p>
+                    <p class="text-xs text-gray-500 mt-0.5"><?= $block->escapeHtml(__('Pregenerated product images files')) ?></p>
+                </div>
+                <a href="<?= $block->escapeUrl($block->getCleanImagesUrl()) ?>"
+                   class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">
+                    <?= $block->escapeHtml(__('Flush')) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($permissions->hasAccessToFlushJsCss()): ?>
+            <div class="flex items-center justify-between px-5 py-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-700"><?= $block->escapeHtml(__('Flush JavaScript/CSS Cache')) ?></p>
+                    <p class="text-xs text-gray-500 mt-0.5"><?= $block->escapeHtml(__('Themes JavaScript and CSS files combined to one file')) ?></p>
+                </div>
+                <a href="<?= $block->escapeUrl($block->getCleanMediaUrl()) ?>"
+                   class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">
+                    <?= $block->escapeHtml(__('Flush')) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$block->isInProductionMode() && $permissions->hasAccessToFlushStaticFiles()): ?>
+            <div class="flex items-center justify-between px-5 py-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-700"><?= $block->escapeHtml(__('Flush Static Files Cache')) ?></p>
+                    <p class="text-xs text-gray-500 mt-0.5"><?= $block->escapeHtml(__('Preprocessed view files and static files')) ?></p>
+                </div>
+                <a href="<?= $block->escapeUrl($block->getCleanStaticFilesUrl()) ?>"
+                   class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">
+                    <?= $block->escapeHtml(__('Flush')) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <?= $block->getChildHtml() ?>
+    </div>
+</div>

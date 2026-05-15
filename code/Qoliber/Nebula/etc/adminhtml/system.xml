@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+<config
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd"
+>
+    <system>
+        <section
+            id="nebula"
+            translate="label"
+            type="text"
+            sortOrder="10"
+            showInDefault="1"
+            showInWebsite="1"
+            showInStore="1"
+        >
+            <label>Nebula</label>
+            <tab>advanced</tab>
+            <resource>Qoliber_Nebula::config</resource>
+            <group
+                id="theme"
+                translate="label"
+                type="text"
+                sortOrder="10"
+                showInDefault="1"
+                showInWebsite="1"
+                showInStore="1"
+            >
+                <label>Nebula Theme</label>
+                <field
+                    id="menu_position"
+                    translate="label comment"
+                    type="select"
+                    sortOrder="10"
+                    showInDefault="1"
+                    showInWebsite="1"
+                    showInStore="1"
+                >
+                    <label>Menu Position</label>
+                    <comment>Controls where the main navigation menu appears.</comment>
+                    <backend_model>Qoliber\Nebula\Model\Config\Backend\MenuPosition</backend_model>
+                    <source_model>Qoliber\Nebula\Model\Config\Source\MenuPosition</source_model>
+                </field>
+                <field
+                    id="skin"
+                    translate="label comment"
+                    type="select"
+                    sortOrder="20"
+                    showInDefault="1"
+                    showInWebsite="1"
+                    showInStore="1"
+                >
+                    <label>Color Scheme</label>
+                    <comment>Select a color scheme for the admin panel. Third-party modules can add custom schemes by
+                        placing JSON files in view/adminhtml/nebula/skin/.</comment>
+                    <source_model>Qoliber\NebulaSkin\Model\Source\SkinList</source_model>
+                </field>
+                <field
+                    id="enable_product_edit_tabs"
+                    translate="label comment"
+                    type="select"
+                    sortOrder="30"
+                    showInDefault="1"
+                    showInWebsite="1"
+                    showInStore="1"
+                >
+                    <label>Enable Product Edit Tabs</label>
+                    <comment>Enable the experimental tabbed Nebula layout for the Magento product edit page.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field
+                    id="enable_cms_page_edit_tabs"
+                    translate="label comment"
+                    type="select"
+                    sortOrder="35"
+                    showInDefault="1"
+                    showInWebsite="1"
+                    showInStore="1"
+                >
+                    <label>Enable CMS Page Edit Tabs</label>
+                    <comment>Enable the experimental tabbed Nebula layout for the Magento CMS page edit view.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field
+                    id="category_view_type"
+                    translate="label comment"
+                    type="select"
+                    sortOrder="40"
+                    showInDefault="1"
+                    showInWebsite="1"
+                    showInStore="1"
+                >
+                    <label>Category View Type</label>
+                    <comment>Select the layout style for the Magento category edit page.</comment>
+                    <source_model>Qoliber\Nebula\Model\Config\Source\CategoryViewType</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

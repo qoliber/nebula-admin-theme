@@ -1,0 +1,40 @@
+@import "quill/dist/quill.snow.css";
+
+.nebula-quill-field .ql-toolbar.ql-snow {
+    border: 1px solid #d1d5db;
+    border-bottom: 0;
+    border-radius: 0.5rem 0.5rem 0 0;
+    background: #ffffff;
+}
+
+.nebula-quill-field .ql-container.ql-snow {
+    min-height: 14rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: #ffffff;
+    font-size: 0.875rem;
+    color: #111827;
+}
+
+.nebula-quill-field .ql-editor {
+    min-height: 14rem;
+}
+
+.nebula-quill-field .ql-container.nebula-field-error {
+    border-color: #dc2626;
+}
+
+.nebula-quill-field .nebula-field-error-msg {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #dc2626;
+}
+
+.nebula-quill-field:focus-within .ql-toolbar.ql-snow,
+.nebula-quill-field:focus-within .ql-container.ql-snow {
+    border-color: #6366f1;
+}
+
+.nebula-quill-field:focus-within .ql-container.ql-snow {
+    box-shadow: 0 0 0 2px rgb(99 102 241 / 0.2);
+}

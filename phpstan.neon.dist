@@ -1,0 +1,163 @@
+includes:
+    # bitExpert/phpstan-magento teaches PHPStan about Magento: virtual factories,
+    # extension attributes, ObjectManager dynamic return types, DataObject /
+    # SessionManager magic methods, plus a handful of Magento-specific rules.
+    - dev-tools/vendor/bitexpert/phpstan-magento/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - code/Qoliber
+
+    excludePaths:
+        - code/Qoliber/*/Test/*
+        - code/Qoliber/*/docs/*
+        - code/Qoliber/*/dev/*
+
+    magento:
+        # phpstan.neon.dist sits in m2-nebula/, but the Magento install root is
+        # one level up (where vendor/ and generated/ live). The extension reads
+        # composer autoload + generated/code from this directory.
+        magentoRoot: %currentWorkingDirectory%/..
+
+    bootstrapFiles:
+        - %currentWorkingDirectory%/../vendor/autoload.php
+
+    ignoreErrors:
+        # bitExpert architectural rules — suppressed with rationale below. These
+        # are best-practice signals, not bugs. Address them in a dedicated
+        # refactor PR rather than blocking unrelated work.
+
+        # setTemplate() in block constructors: Nebula's blocks set their template
+        # in the constructor (the established Magento 2.x pattern) rather than
+        # via Context data injection. Swapping to `protected $_template = '...'`
+        # property is mechanical but invasive and adds no runtime value.
+        -
+            message: '#setTemplate\(\) are deprecated in Block classes, use constructor arguments instead#'
+            paths:
+                - code/Qoliber
+
+        # AbstractModel::load() deprecation: Nebula's data providers + EAV form
+        # path use `->load($id)` directly because the equivalent service contract
+        # either does not exist (e.g. UrlRewrite, EAV Attribute by entity id) or
+        # returns a Data interface that strips the legacy data bag we need for
+        # the form-render pipeline. Tracked as P2 architectural debt.
+        -
+            message: '#Use service contracts to persist entities in favour of#'
+            paths:
+                - code/Qoliber
+
+        # AbstractModel::getResource() deprecation: same family as load() above.
+        # The remaining call site reads metadata that the service contract path
+        # does not expose. Refactor when the upstream interface grows.
+        -
+            message: '#::getResource\(\) is deprecated\. Use Resource Models directly#'
+            paths:
+                - code/Qoliber
+
+        # Magento value objects use unbounded magic getters/setters. PHPStan
+        # treats `array<string, mixed>` returns as missing iterable type without
+        # value-type annotations, which we can't realistically add to vendor code.
+        - identifier: missingType.iterableValue
+
+        # Magento\Framework\View\Element\BlockInterface is the public contract;
+        # setData()/setForm()/etc. live on AbstractBlock+DataObject. Every
+        # concrete block carries them but the interface omits them.
+        -
+            message: '#Call to an undefined method Magento\\Framework\\View\\Element\\BlockInterface::#'
+            paths:
+                - code/Qoliber
+
+        # Service-data interfaces (*Api\Data\*Interface) inherit from DataObject
+        # at runtime; the interfaces themselves don't declare getData/setData
+        # and other magic getters but every concrete implementation carries
+        # them. bitExpert's DataObject reflection doesn't reach interfaces,
+        # only the concrete class hierarchy.
+        -
+            message: '#Call to an undefined method Magento\\[A-Za-z]+\\Api\\Data\\[A-Za-z]+Interface::#'
+            paths:
+                - code/Qoliber
+
+        # Polymorphic product types: AbstractType is the contract; concrete
+        # types (Bundle, Configurable) add type-specific methods that block
+        # rendering code calls after a type check. Type narrowing PHPStan
+        # can't see across `getTypeInstance()`.
+        -
+            message: '#Call to an undefined method Magento\\Catalog\\Model\\Product\\Type\\AbstractType::#'
+            paths:
+                - code/Qoliber
+
+        # Concrete EAV/catalog collections add domain-specific filter/select
+        # methods on top of AbstractDb/AbstractCollection. Nebula's data
+        # providers fetch from these but PHPStan resolves the parent type.
+        -
+            message: '#Call to an undefined method Magento\\Framework\\(Model\\ResourceModel\\Db\\(Collection\\)?AbstractCollection|Data\\Collection\\AbstractDb)::#'
+            paths:
+                - code/Qoliber
+
+        # RequestInterface::getControllerName lives on \Magento\Framework\App\Request\Http.
+        # Not caught by the *Api\Data\*Interface pattern above (different namespace).
+        -
+            message: '#Call to an undefined method Magento\\Framework\\App\\RequestInterface::#'
+            paths:
+                - code/Qoliber
+
+        # ResultPage::addBreadcrumb lives on the concrete backend ResultPage,
+        # not the base framework Page interface PHPStan resolves to.
+        -
+            message: '#Call to an undefined method Magento\\Framework\\View\\Result\\Page::#'
+            paths:
+                - code/Qoliber
+
+        # EAV source models implement either SourceInterface (no $store arg) or
+        # AbstractSource (accepts $store). PHPStan picks SourceInterface.
+        -
+            message: '#Method Magento\\Eav\\Model\\Entity\\Attribute\\Source\\SourceInterface::getAllOptions\(\) invoked with [12] parameter#'
+            paths:
+                - code/Qoliber
+
+        # AbstractAttribute::getSource() is declared non-nullable but subclasses
+        # routinely return null when source_model is unset. The defensive
+        # `=== null` checks across AttributeFormProvider, AttributeOptions,
+        # EavFieldTypeMapper, Attributes::getAttributeOptions guard real
+        # runtime behaviour PHPStan can't see through.
+        -
+            message: '#Strict comparison using === between Magento\\Eav\\Model\\Entity\\Attribute\\Source\\AbstractSource and null#'
+            paths:
+                - code/Qoliber
+        -
+            message: '#Using nullsafe method call on non-nullable type Magento\\Eav\\Model\\Entity\\Attribute\\Source\\AbstractSource#'
+            paths:
+                - code/Qoliber
+
+        # Magento attribute getSource() is intentionally treated as nullable
+        # across Nebula's eav-form path (see Attributes::getAttributeOptions,
+        # AttributeFormProvider::getData, AttributeOptions::getExistingOptions).
+        # The `if ($source)` guards mirror those `=== null` checks above.
+        -
+            message: '#If condition is always true.#'
+            paths:
+                - code/Qoliber/NebulaTheme/Model/DataProvider/AttributeFormProvider.php
+
+        # ConfigurableOptions:101 chains attribute source resolution defensively:
+        # `$attrObj->getSource()?->getOptionText($value) ?? ''` — PHPStan can't
+        # see through the magic-getter chain to infer the null path.
+        -
+            message: '#Expression on left side of \?\? is not nullable.#'
+            paths:
+                - code/Qoliber/NebulaTheme/ViewModel/ConfigurableOptions.php
+
+        # AttributeSetProvider:22 — entity-type getResource() returns AbstractDb
+        # but the concrete \Magento\Eav\Model\ResourceModel\Entity\Type adds
+        # getTypeId(). Same pattern as the AbstractCollection cluster above.
+        -
+            message: '#Call to an undefined method Magento\\Framework\\Model\\ResourceModel\\Db\\AbstractDb::#'
+            paths:
+                - code/Qoliber
+
+        # AbstractDb::addFieldToFilter accepts a wider input shape than the
+        # docblock declares — common pattern across all Magento collections.
+        -
+            message: '~Parameter \#2 \$condition of method Magento\\Framework\\Data\\Collection\\AbstractDb::addFieldToFilter\(\)~'
+            paths:
+                - code/Qoliber

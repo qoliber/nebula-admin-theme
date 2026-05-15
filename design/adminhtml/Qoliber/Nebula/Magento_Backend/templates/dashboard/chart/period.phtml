@@ -1,0 +1,24 @@
+<?php
+/**
+ * Qoliber Nebula — Chart period selector
+ * Skin- and dark-mode-compatible.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$viewModel = $block->getViewModel();
+?>
+<div class="nebula-dashboard-chart-period">
+    <label for="dashboard_chart_period" class="nebula-dashboard-chart-period__label"><?= $escaper->escapeHtml(__('Period:')) ?></label>
+    <select name="period" id="dashboard_chart_period" class="nebula-dashboard-chart-period__select">
+        <?php foreach ($viewModel->getDatePeriods() as $value => $label): ?>
+            <?php if ($value === 'custom') {
+                continue;
+            } ?>
+            <option value="<?= $escaper->escapeHtmlAttr($value) ?>"
+                <?php if ($block->getRequest()->getParam('period') === $value): ?> selected<?php endif; ?>>
+                <?= $escaper->escapeHtml($label) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</div>

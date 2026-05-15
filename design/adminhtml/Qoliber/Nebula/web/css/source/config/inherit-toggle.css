@@ -1,0 +1,28 @@
+/* --- Inherit checkbox --- */
+.nebula-config-inherit {
+  @apply pt-1.5;
+}
+.nebula-inherit-toggle {
+  @apply flex items-center gap-2 cursor-pointer whitespace-nowrap;
+}
+.nebula-inherit-checkbox {
+  @apply h-4 w-4 border-gray-300 accent-nebula-600 cursor-pointer;
+  border-radius: var(--nebula-radius-sm);
+}
+.nebula-inherit-label {
+  @apply text-xs text-gray-500 select-none;
+  color: var(--nebula-text-secondary);
+}
+
+.nebula-config-value small,
+.nebula-config-value small code,
+.nebula-config-value .addafter,
+.nebula-config-value .addafter small,
+.nebula-config-value .addafter code {
+  color: var(--nebula-text-secondary);
+}
+
+/* --- Config sections --- */
+.nebula-config-sections {
+  @apply space-y-0;
+}

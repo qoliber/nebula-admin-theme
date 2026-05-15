@@ -1,0 +1,59 @@
+{
+  "id": "store_listing",
+  "acl": "Magento_Backend::store",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "store.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 100,
+    "pageSizes": [50, 100, 200],
+    "defaultSort": {
+      "field": "website_id",
+      "direction": "asc"
+    },
+    "massActions": false,
+    "addButton": {
+      "label": "Create Website",
+      "url": "adminhtml/system_store/newWebsite"
+    }
+  },
+  "columns": {
+    "website_id": {
+      "label": "Website ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Website",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "renderer": "snippet.store_website_link",
+      "position": 20
+    },
+    "group_title": {
+      "label": "Store",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "renderer": "snippet.store_group_link",
+      "position": 30
+    },
+    "store_title": {
+      "label": "Store View",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "renderer": "snippet.store_view_link",
+      "position": 40
+    }
+  }
+}

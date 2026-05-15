@@ -1,0 +1,27 @@
+/* --- Login Split Layout --- */
+.nebula-split-layout {
+  @apply grid grid-cols-2 min-h-screen;
+}
+.nebula-split-branding {
+  @apply relative min-h-full;
+}
+.nebula-split-main {
+  @apply flex flex-col min-h-full;
+  background: var(--nebula-bg-primary);
+}
+.nebula-split-content {
+  @apply flex flex-col flex-1;
+}
+.nebula-split-footer {
+  @apply border-t;
+  border-color: var(--nebula-border-default);
+  background: var(--nebula-bg-primary);
+}
+@media (max-width: 1023px) {
+  .nebula-split-layout {
+    @apply grid-cols-1;
+  }
+  .nebula-split-branding {
+    @apply hidden;
+  }
+}

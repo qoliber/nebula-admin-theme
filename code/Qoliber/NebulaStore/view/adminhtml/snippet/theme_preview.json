@@ -1,0 +1,4 @@
+{
+  "id": "theme_preview",
+  "template": "Qoliber_NebulaStore::snippet/theme_preview.phtml"
+}

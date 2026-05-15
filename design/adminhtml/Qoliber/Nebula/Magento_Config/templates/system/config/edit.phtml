@@ -1,0 +1,21 @@
+<?php
+/**
+ * Qoliber Nebula — Config Edit Form
+ * The form wraps everything including a duplicate Save button at the bottom.
+ * The sticky toolbar Save button uses form="config-edit-form" to link here.
+ *
+ * @var \Magento\Config\Block\System\Config\Edit $block
+ */
+?>
+<form action="<?= $block->escapeUrl($block->getSaveUrl()) ?>"
+      method="post"
+      id="config-edit-form"
+      enctype="multipart/form-data"
+      @submit="$el.querySelectorAll('[disabled]').forEach(function(el) { el.disabled = false; })">
+
+    <?= $block->getBlockHtml('formkey') ?>
+
+    <div class="nebula-config-sections">
+        <?= $block->getChildHtml('form') ?>
+    </div>
+</form>

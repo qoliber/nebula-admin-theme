@@ -1,0 +1,83 @@
+{
+  "id": "catalog_rule_listing",
+  "acl": "Magento_CatalogRule::promo_catalog",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "catalog_rule.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "rule_id",
+      "direction": "asc"
+    },
+    "addButton": {
+      "label": "Add New Rule",
+      "url": "catalog_rule/promo_catalog/new"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "rule_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "is_active": {
+      "label": "Status",
+      "type": "badge",
+      "sortable": true,
+      "filter": "select",
+      "options": {
+        "1": {"label": "Enabled", "class": "success"},
+        "0": {"label": "Disabled", "class": "danger"}
+      },
+      "position": 30
+    },
+    "from_date": {
+      "label": "From Date",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 40
+    },
+    "to_date": {
+      "label": "To Date",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "sort_order": {
+      "label": "Priority",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "catalog_rule/promo_catalog/edit/id/{{rule_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

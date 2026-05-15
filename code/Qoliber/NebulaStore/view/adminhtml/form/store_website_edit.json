@@ -1,0 +1,64 @@
+{
+  "id": "store_website_edit",
+  "acl": "Magento_Backend::store",
+  "route": "adminhtml_system_store_editwebsite",
+  "dataSource": {
+    "provider": "store_website.form",
+    "config": {
+      "identifierParam": "website_id"
+    }
+  },
+  "settings": {
+    "title": "Website",
+    "identifierField": "website[website_id]",
+    "identifierParam": "website_id",
+    "backUrl": "adminhtml/system_store/index",
+    "saveUrl": "adminhtml/system_store/save"
+  },
+  "hiddenFields": {
+    "store_type": "website",
+    "store_action": "edit"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "website[website_id]": {
+          "type": "hidden",
+          "position": 1
+        },
+        "website[name]": {
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "website[code]": {
+          "label": "Code",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "website[sort_order]": {
+          "label": "Sort Order",
+          "type": "text",
+          "position": 30
+        },
+        "website[default_group_id]": {
+          "label": "Default Store",
+          "type": "select",
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getGroupValuesForForm",
+          "position": 40
+        },
+        "website[is_default]": {
+          "label": "Set as Default",
+          "type": "toggle",
+          "position": 50
+        }
+      }
+    }
+  }
+}

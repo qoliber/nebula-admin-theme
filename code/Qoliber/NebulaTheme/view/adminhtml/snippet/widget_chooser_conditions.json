@@ -1,0 +1,4 @@
+{
+  "id": "widget_chooser_conditions",
+  "template": "Qoliber_NebulaTheme::widget/chooser/conditions.phtml"
+}

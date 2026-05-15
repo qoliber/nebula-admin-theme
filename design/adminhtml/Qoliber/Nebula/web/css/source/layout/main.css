@@ -1,0 +1,192 @@
+/* --- Shared main area --- */
+.nebula-main {
+  @apply flex flex-col min-h-screen;
+  background: var(--nebula-page-bg);
+}
+.nebula-main-full {
+  @apply flex flex-col flex-1;
+  background: var(--nebula-page-bg);
+}
+.nebula-header {
+  @apply flex items-center justify-end border-b;
+  border-color: var(--nebula-border-default);
+  background: var(--nebula-header-bg);
+  gap: var(--nebula-spacing-sm);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xs);
+}
+.nebula-content {
+  @apply flex-1;
+  padding: var(--nebula-spacing-xl);
+  min-width: 0;
+  max-width: 100%;
+}
+.nebula-form-header {
+  /* Pull sticky header to container edges (counteracts container padding). */
+  /* Overridden to 0 on zero-padding pages via body-class rules below. */
+  margin-left: calc(-1 * var(--nebula-spacing-xl));
+  margin-right: calc(-1 * var(--nebula-spacing-xl));
+}
+.nebula-form-actions-bar {
+  @apply border-b;
+  border-color: var(--nebula-border-default);
+  background: color-mix(in srgb, var(--nebula-header-bg) 92%, transparent);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xl);
+}
+.nebula-form-actions-right {
+  @apply flex shrink-0 items-center;
+  gap: var(--nebula-spacing-sm);
+}
+.nebula-form-actions-divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--nebula-border-default);
+}
+.nebula-form-actions-bar .nebula-scope-switcher {
+  @apply shrink-0;
+}
+.nebula-form-actions-bar .nebula-scope-switcher > button {
+  min-height: 2.5rem;
+  border-color: var(--nebula-border-strong);
+  background: var(--nebula-bg-primary);
+  color: var(--nebula-text-secondary);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.nebula-form-actions-bar .nebula-scope-switcher > button:hover,
+.nebula-form-actions-bar .nebula-scope-switcher > button:focus-visible {
+  border-color: var(--nebula-border-strong);
+  background: var(--nebula-bg-hover);
+  color: var(--nebula-text-primary);
+  outline: none;
+}
+.nebula-form-actions-bar .nebula-scope-switcher .text-gray-400 {
+  color: var(--nebula-text-muted) !important;
+}
+.nebula-section-card {
+  @apply rounded-lg border shadow-sm mb-6;
+  background: var(--nebula-bg-primary);
+  border-color: var(--nebula-border-default);
+}
+.nebula-footer {
+  @apply border-t text-xs;
+  border-color: var(--nebula-border-default);
+  color: var(--nebula-text-muted);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xl);
+}
+.nebula-footer .footer-legal {
+  @apply flex items-center justify-between;
+}
+.nebula-footer .copyright {
+  @apply m-0;
+}
+
+/* --- Page actions (sticky toolbar) --- */
+.nebula-page-actions {
+  @apply sticky top-0 z-30 flex items-center border-b;
+  border-color: var(--nebula-border-default);
+  background: var(--nebula-header-bg);
+  gap: var(--nebula-spacing-lg);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-xl);
+}
+.nebula-page-actions:empty {
+  @apply hidden;
+}
+.nebula-page-actions .store-switcher,
+.nebula-page-actions .nebula-scope-switcher {
+  @apply shrink-0;
+  margin-right: 0;
+}
+.nebula-page-actions .page-actions-buttons {
+  @apply flex items-center ml-auto;
+  gap: var(--nebula-spacing-sm);
+}
+/* EAV form pages (product/category edit): hide legacy page actions bar and use form-shell spacing */
+body.catalog-product-edit .nebula-page-actions,
+body.catalog-category-edit .nebula-page-actions {
+  display: none;
+}
+body.catalog-product-edit .nebula-content,
+body.catalog-category-edit .nebula-content {
+  padding: calc(var(--nebula-spacing-unit) * 5) var(--nebula-spacing-xl)
+    var(--nebula-spacing-xl);
+}
+body.catalog-product-edit .nebula-form-header,
+body.catalog-category-edit .nebula-form-header {
+  margin-left: 0;
+  margin-right: 0;
+}
+body.catalog-product-edit .nebula-section-card,
+body.catalog-category-edit .nebula-section-card {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Ensure title/scope alignment wins against legacy action-bar rules on all admin pages */
+.nebula-page-actions,
+.page-main-actions {
+  justify-content: flex-start !important;
+}
+.page-main-actions > .page-title-wrapper {
+  flex: 0 0 auto !important;
+  min-width: 0;
+}
+.nebula-page-actions .page-title-wrapper,
+.page-main-actions .page-title-wrapper {
+  color: var(--nebula-text-primary);
+}
+.nebula-page-actions .page-title,
+.nebula-page-actions .page-title span,
+.page-main-actions .page-title,
+.page-main-actions .page-title span {
+  color: var(--nebula-text-primary) !important;
+}
+.nebula-page-actions .page-subtitle,
+.page-main-actions .page-subtitle {
+  color: var(--nebula-text-tertiary) !important;
+}
+.breadcrumbs,
+.breadcrumbs li,
+.breadcrumbs a,
+.page-title-breadcrumbs,
+.page-title-breadcrumbs a {
+  color: var(--nebula-text-tertiary);
+}
+.breadcrumbs strong,
+.page-title-breadcrumbs strong {
+  color: var(--nebula-text-primary);
+}
+.nebula-page-actions > .nebula-scope-switcher,
+.page-main-actions > .nebula-scope-switcher {
+  flex: 0 0 auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+.nebula-page-actions .page-actions-buttons,
+.page-main-actions .page-actions-buttons {
+  margin-left: auto !important;
+}
+.nebula-page-actions > .nebula-dashboard-refresh,
+.page-main-actions > .nebula-dashboard-refresh {
+  margin-left: auto !important;
+}
+
+.nebula-page-actions .nebula-dashboard-refresh.action-secondary,
+.page-main-actions .nebula-dashboard-refresh.action-secondary {
+  color: var(--nebula-text-primary);
+  border-color: var(--nebula-border-default);
+  background: var(--nebula-bg-secondary);
+}
+
+.nebula-page-actions .nebula-dashboard-refresh.action-secondary:hover,
+.nebula-page-actions .nebula-dashboard-refresh.action-secondary:focus-visible,
+.page-main-actions .nebula-dashboard-refresh.action-secondary:hover,
+.page-main-actions .nebula-dashboard-refresh.action-secondary:focus-visible {
+  color: var(--nebula-text-primary);
+  border-color: var(--nebula-border-strong);
+  background: var(--nebula-bg-hover);
+  outline: none;
+}
+
+.nebula-messages {
+  margin-bottom: var(--nebula-spacing-lg);
+}

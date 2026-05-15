@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+
+$value = $block->getData('value');
+if (!$value) {
+    return;
+}
+?>
+<img src="<?= $escaper->escapeUrl((string) $value) ?>" class="h-10 w-10 rounded object-cover" alt="">

@@ -1,0 +1,58 @@
+{
+  "id": "url_rewrite_edit",
+  "acl": "Magento_UrlRewrite::urlrewrite",
+  "route": "adminhtml_url_rewrite_edit",
+  "dataSource": {
+    "provider": "url_rewrite.form",
+    "config": {
+      "identifierParam": "id"
+    }
+  },
+  "settings": {
+    "title": "URL Rewrite",
+    "identifierField": "url_rewrite_id",
+    "identifierParam": "id",
+    "backUrl": "adminhtml/url_rewrite/index",
+    "saveUrl": "adminhtml/url_rewrite/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "store_id": {
+          "label": "Store",
+          "type": "select",
+          "required": true,
+          "optionsSource": "Magento\\Store\\Model\\System\\Store",
+          "optionsMethod": "getStoreValuesForForm",
+          "position": 10
+        },
+        "request_path": {
+          "label": "Request Path",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "target_path": {
+          "label": "Target Path",
+          "type": "text",
+          "required": true,
+          "position": 30
+        },
+        "redirect_type": {
+          "label": "Redirect Type",
+          "type": "select",
+          "optionsSource": "Magento\\UrlRewrite\\Model\\OptionProvider",
+          "position": 40
+        },
+        "description": {
+          "label": "Description",
+          "type": "textarea",
+          "position": 50
+        }
+      }
+    }
+  }
+}

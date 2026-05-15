@@ -1,0 +1,64 @@
+{
+  "id": "sales_rule_coupons",
+  "acl": "Magento_SalesRule::quote",
+  "dataSource": {
+    "provider": "sales_rule.coupons.grid"
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "created_at",
+      "direction": "desc"
+    },
+    "massActions": [
+      {
+        "id": "delete",
+        "label": "Delete",
+        "url": "sales_rule/promo_quote/couponsMassDelete",
+        "confirm": "Are you sure you want to delete the selected coupon(s)?"
+      },
+      {
+        "id": "export_csv",
+        "label": "Export CSV",
+        "url": "sales_rule/promo_quote/exportCouponsCsv"
+      },
+      {
+        "id": "export_xml",
+        "label": "Export XML",
+        "url": "sales_rule/promo_quote/exportCouponsXml"
+      }
+    ]
+  },
+  "columns": {
+    "code": {
+      "label": "Coupon Code",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 10
+    },
+    "created_at": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 20
+    },
+    "times_used": {
+      "label": "Used",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 30
+    },
+    "expiration_date": {
+      "label": "Expires",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 40
+    }
+  }
+}

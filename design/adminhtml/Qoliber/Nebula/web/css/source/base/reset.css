@@ -1,0 +1,69 @@
+/* ============================================================
+ * UTILITIES — things that can't be Tailwind classes
+ * ============================================================ */
+
+[x-cloak] {
+  display: none !important;
+}
+
+/*
+ * Global radius/shadow override — when skin sets these to 0/none,
+ * ALL elements respect it, even those using Tailwind utility classes directly.
+ */
+*,
+*::before,
+*::after {
+  --tw-radius-override: var(--nebula-radius-lg);
+}
+[class*="rounded-sm"] {
+  border-radius: var(--nebula-radius-sm) !important;
+}
+[class*="rounded-md"] {
+  border-radius: var(--nebula-radius-md) !important;
+}
+[class*="rounded-lg"] {
+  border-radius: var(--nebula-radius-lg) !important;
+}
+[class*="rounded-xl"] {
+  border-radius: var(--nebula-radius-xl) !important;
+}
+[class*="rounded-2xl"] {
+  border-radius: var(--nebula-radius-2xl) !important;
+}
+[class*="rounded-full"] {
+  border-radius: var(--nebula-radius-full) !important;
+}
+[class*="shadow-sm"] {
+  box-shadow: var(--nebula-shadow-sm) !important;
+}
+[class*="shadow-md"] {
+  box-shadow: var(--nebula-shadow-md) !important;
+}
+[class*="shadow-lg"] {
+  box-shadow: var(--nebula-shadow-lg) !important;
+}
+
+/* Font size overrides — skins can change all text sizes */
+[class*="text-xs"] {
+  font-size: var(--nebula-font-size-xs) !important;
+}
+[class*="text-sm"] {
+  font-size: var(--nebula-font-size-sm) !important;
+}
+[class*="text-base"] {
+  font-size: var(--nebula-font-size-base) !important;
+}
+[class*="text-lg"] {
+  font-size: var(--nebula-font-size-lg) !important;
+}
+[class*="text-xl"]:not([class*="text-2xl"]) {
+  font-size: var(--nebula-font-size-xl) !important;
+}
+[class*="text-2xl"] {
+  font-size: var(--nebula-font-size-2xl) !important;
+}
+
+/* Font family override */
+body {
+  font-family: var(--nebula-font-family);
+}

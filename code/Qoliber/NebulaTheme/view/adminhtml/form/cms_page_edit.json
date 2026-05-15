@@ -1,0 +1,124 @@
+{
+  "id": "cms_page_edit",
+  "acl": "Magento_Cms::save",
+  "route": "cms_page_edit",
+  "replaces": "cms_page_form",
+  "dataSource": {
+    "provider": "cms_page.form",
+    "config": {
+      "identifierParam": "page_id"
+    }
+  },
+  "settings": {
+    "title": "CMS Page",
+    "identifierField": "page_id",
+    "backUrl": "cms/page/index",
+    "deleteUrl": "cms/page/delete",
+    "saveUrl": "cms/page/save",
+    "layout": "two-column"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "open": true,
+      "row": "top",
+      "width": "3/4",
+      "fields": {
+        "title": {
+          "label": "Page Title",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "identifier": {
+          "label": "URL Key",
+          "type": "text",
+          "required": true,
+          "position": 20,
+          "note": "Relative URL of the page, e.g. 'about-us'"
+        },
+        "is_active": {
+          "label": "Enable Page",
+          "type": "toggle",
+          "position": 30
+        },
+        "store_id": {
+          "type": "multiselect",
+          "label": "Store View",
+          "optionsSource": "nebula.store.view",
+          "field_name": "store_id",
+          "required": true,
+          "position": 40
+        }
+      }
+    },
+    "content": {
+      "label": "Content",
+      "position": 40,
+      "open": true,
+      "fields": {
+        "content_heading": {
+          "label": "Content Heading",
+          "type": "text",
+          "position": 10
+        },
+        "content": {
+          "label": "Content",
+          "type": "wysiwyg",
+          "position": 20
+        }
+      }
+    },
+    "seo": {
+      "label": "Search Engine Optimization",
+      "position": 20,
+      "row": "seo",
+      "width": "1/2",
+      "fields": {
+        "meta_title": {
+          "label": "Meta Title",
+          "type": "text",
+          "position": 10
+        },
+        "meta_keywords": {
+          "label": "Meta Keywords",
+          "type": "textarea",
+          "position": 20
+        },
+        "meta_description": {
+          "label": "Meta Description",
+          "type": "textarea",
+          "position": 30
+        }
+      }
+    },
+    "seo_preview": {
+      "label": "Google Preview",
+      "position": 20,
+      "row": "seo",
+      "width": "1/2",
+      "renderer": "snippet.seo_preview",
+      "entity_type": "cms_page",
+      "title_field": "title",
+      "url_field": "identifier",
+      "url_placeholder": "page-url",
+      "entity_noun": "page",
+      "title_placeholder": "Page Title"
+    },
+    "design": {
+      "label": "Design",
+      "position": 10,
+      "row": "top",
+      "width": "1/4",
+      "fields": {
+        "page_layout": {
+          "label": "Layout",
+          "type": "select",
+          "optionsSource": "Magento\\Cms\\Model\\Page\\Source\\PageLayout",
+          "position": 10
+        }
+      }
+    }
+  }
+}

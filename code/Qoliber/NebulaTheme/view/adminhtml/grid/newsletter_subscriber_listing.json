@@ -1,0 +1,79 @@
+{
+  "id": "newsletter_subscriber_listing",
+  "acl": "Magento_Newsletter::subscriber",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "newsletter_subscriber.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "subscriber_id",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "subscriber_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "subscriber_email": {
+      "label": "Email",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "subscriber_status": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "1": "Subscribed",
+        "2": "Not Activated",
+        "3": "Unsubscribed",
+        "4": "Unconfirmed"
+      },
+      "position": 30
+    },
+    "store_id": {
+      "label": "Store",
+      "type": "text",
+      "sortable": true,
+      "filter": "select",
+      "filterOptionsSource": "Magento\\Store\\Model\\System\\Store",
+      "position": 40
+    },
+    "change_status_at": {
+      "label": "Changed",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "View Customer",
+          "url": "customer/index/edit/id/{{customer_id}}"
+        },
+        {
+          "label": "Unsubscribe",
+          "url": "newsletter/subscriber/unsubscribe/id/{{subscriber_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

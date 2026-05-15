@@ -1,0 +1,223 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\StockFields $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\StockFields) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\StockFields::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+$stockItem = $viewModel->getStockItem(($entity && $entity->getId()) ? (int) $entity->getId() : null);
+
+$qty = $stockItem ? (float) $stockItem->getQty() : 0;
+$isInStock = $stockItem ? (int) $stockItem->getIsInStock() : 1;
+$isQtyProduct = $formBlock ? $formBlock->isQtyProduct() : true;
+
+// Advanced inventory config — values come from the stock item; config defaults
+// from the StockFields ViewModel. Each entry: current value, useConfig flag,
+// and the resolved store-config default.
+$cfg = static fn (string $path): string => $viewModel->getConfigValue($path);
+$advancedConfig = json_encode([
+    'manageStock'        => ['value' => $stockItem ? (int) $stockItem->getManageStock() : 1, 'useConfig' => $stockItem ? (bool) $stockItem->getUseConfigManageStock() : true, 'configDefault' => (int) $cfg('cataloginventory/item_options/manage_stock')],
+    'minQty'             => ['value' => $stockItem ? (float) $stockItem->getMinQty() : 0, 'useConfig' => $stockItem ? (bool) $stockItem->getUseConfigMinQty() : true, 'configDefault' => (float) $cfg('cataloginventory/item_options/min_qty')],
+    'minSaleQty'         => ['value' => $stockItem ? (float) $stockItem->getMinSaleQty() : 1, 'useConfig' => $stockItem ? (bool) $stockItem->getUseConfigMinSaleQty() : true, 'configDefault' => (float) $cfg('cataloginventory/item_options/min_sale_qty')],
+    'maxSaleQty'         => ['value' => $stockItem ? (float) $stockItem->getMaxSaleQty() : 10000, 'useConfig' => $stockItem ? (bool) $stockItem->getUseConfigMaxSaleQty() : true, 'configDefault' => (float) $cfg('cataloginventory/item_options/max_sale_qty')],
+    'backorders'         => ['value' => $stockItem ? (int) $stockItem->getBackorders() : 0, 'useConfig' => $stockItem ? (bool) $stockItem->getUseConfigBackorders() : true, 'configDefault' => (int) $cfg('cataloginventory/item_options/backorders')],
+    'notifyStockQty'     => ['value' => $stockItem ? (float) $stockItem->getNotifyStockQty() : 1, 'useConfig' => $stockItem ? (bool) $stockItem->getUseConfigNotifyStockQty() : true, 'configDefault' => (float) $cfg('cataloginventory/item_options/notify_stock_qty')],
+    'enableQtyIncrements' => ['value' => $stockItem ? (int) $stockItem->getEnableQtyInc() : 0, 'useConfig' => $stockItem ? (bool) $stockItem->getUseConfigEnableQtyInc() : true, 'configDefault' => (int) $cfg('cataloginventory/item_options/enable_qty_increments')],
+], JSON_HEX_APOS | JSON_HEX_QUOT);
+
+$inputClass = 'block w-full rounded-lg border border-gray-300 py-2.5 px-3 text-sm text-gray-900 shadow-sm border border-gray-300 placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400';
+?>
+
+<div x-data="nebulaStockFields(<?= $escaper->escapeHtmlAttr($advancedConfig) ?>)">
+    <!-- Basic: Qty + Stock Status -->
+    <div class="grid grid-cols-2 gap-4">
+        <?php if ($isQtyProduct) : ?>
+        <div>
+            <label for="stock-qty" class="block text-sm font-medium text-gray-700 mb-1">
+                <?= $escaper->escapeHtml((string) __('Quantity')) ?>
+            </label>
+            <input type="number" id="stock-qty"
+                   name="product[quantity_and_stock_status][qty]"
+                   value="<?= $escaper->escapeHtmlAttr((string) $qty) ?>"
+                   step="any"
+                   class="<?= /* @noEscape */ $inputClass ?>">
+        </div>
+        <?php endif; ?>
+        <div>
+            <label for="stock-status" class="block text-sm font-medium text-gray-700 mb-1">
+                <?= $escaper->escapeHtml((string) __('Stock Status')) ?>
+            </label>
+            <select id="stock-status"
+                    name="product[quantity_and_stock_status][is_in_stock]"
+                    class="<?= /* @noEscape */ $inputClass ?>">
+                <option value="1" <?= $isInStock === 1 ? 'selected' : '' ?>><?= $escaper->escapeHtml((string) __('In Stock')) ?></option>
+                <option value="0" <?= $isInStock === 0 ? 'selected' : '' ?>><?= $escaper->escapeHtml((string) __('Out of Stock')) ?></option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Advanced Inventory -->
+    <div class="mt-4">
+        <button type="button" @click="showAdvanced = !showAdvanced"
+                class="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-500 transition">
+            <svg class="h-4 w-4 transition-transform" :class="showAdvanced ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+            <?= $escaper->escapeHtml((string) __('Advanced Inventory')) ?>
+        </button>
+
+        <div x-show="showAdvanced" x-collapse class="mt-4 rounded-lg border border-gray-200 bg-gray-50/50 p-5">
+            <div class="space-y-0 divide-y divide-gray-200">
+
+                <!-- Manage Stock -->
+                <div class="grid grid-cols-3 gap-4 items-center py-3">
+                    <label class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Manage Stock')) ?></label>
+                    <div>
+                        <select name="product[stock_data][manage_stock]" class="<?= /* @noEscape */ $inputClass ?>"
+                                :disabled="fields.manageStock.useConfig">
+                            <option value="1" :selected="fields.manageStock.value === 1"><?= $escaper->escapeHtml((string) __('Yes')) ?></option>
+                            <option value="0" :selected="fields.manageStock.value === 0"><?= $escaper->escapeHtml((string) __('No')) ?></option>
+                        </select>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        <input type="checkbox" name="product[stock_data][use_config_manage_stock]" value="1"
+                               x-model="fields.manageStock.useConfig"
+                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+                        <span class="text-gray-400" x-text="'(' + (fields.manageStock.configDefault ? '<?= $escaper->escapeJs((string) __('Yes')) ?>' : '<?= $escaper->escapeJs((string) __('No')) ?>') + ')'"></span>
+                    </label>
+                </div>
+
+                <!-- Out-of-Stock Threshold -->
+                <div class="grid grid-cols-3 gap-4 items-center py-3">
+                    <label class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Out-of-Stock Threshold')) ?></label>
+                    <div>
+                        <input type="number" name="product[stock_data][min_qty]"
+                               x-model="fields.minQty.value" step="any"
+                               :disabled="fields.minQty.useConfig"
+                               class="<?= /* @noEscape */ $inputClass ?>">
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        <input type="checkbox" name="product[stock_data][use_config_min_qty]" value="1"
+                               x-model="fields.minQty.useConfig"
+                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+                        <span class="text-gray-400" x-text="'(' + fields.minQty.configDefault + ')'"></span>
+                    </label>
+                </div>
+
+                <!-- Min Qty in Cart -->
+                <div class="grid grid-cols-3 gap-4 items-center py-3">
+                    <label class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Min Qty in Cart')) ?></label>
+                    <div>
+                        <input type="number" name="product[stock_data][min_sale_qty]"
+                               x-model="fields.minSaleQty.value" step="1" min="1"
+                               :disabled="fields.minSaleQty.useConfig"
+                               class="<?= /* @noEscape */ $inputClass ?>">
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        <input type="checkbox" name="product[stock_data][use_config_min_sale_qty]" value="1"
+                               x-model="fields.minSaleQty.useConfig"
+                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+                        <span class="text-gray-400" x-text="'(' + fields.minSaleQty.configDefault + ')'"></span>
+                    </label>
+                </div>
+
+                <!-- Max Qty in Cart -->
+                <div class="grid grid-cols-3 gap-4 items-center py-3">
+                    <label class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Max Qty in Cart')) ?></label>
+                    <div>
+                        <input type="number" name="product[stock_data][max_sale_qty]"
+                               x-model="fields.maxSaleQty.value" step="1" min="1"
+                               :disabled="fields.maxSaleQty.useConfig"
+                               class="<?= /* @noEscape */ $inputClass ?>">
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        <input type="checkbox" name="product[stock_data][use_config_max_sale_qty]" value="1"
+                               x-model="fields.maxSaleQty.useConfig"
+                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+                        <span class="text-gray-400" x-text="'(' + fields.maxSaleQty.configDefault + ')'"></span>
+                    </label>
+                </div>
+
+                <!-- Backorders -->
+                <div class="grid grid-cols-3 gap-4 items-center py-3">
+                    <label class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Backorders')) ?></label>
+                    <div>
+                        <select name="product[stock_data][backorders]" class="<?= /* @noEscape */ $inputClass ?>"
+                                :disabled="fields.backorders.useConfig">
+                            <option value="0" :selected="fields.backorders.value === 0"><?= $escaper->escapeHtml((string) __('No Backorders')) ?></option>
+                            <option value="1" :selected="fields.backorders.value === 1"><?= $escaper->escapeHtml((string) __('Allow Qty Below 0')) ?></option>
+                            <option value="2" :selected="fields.backorders.value === 2"><?= $escaper->escapeHtml((string) __('Allow Qty Below 0 and Notify')) ?></option>
+                        </select>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        <input type="checkbox" name="product[stock_data][use_config_backorders]" value="1"
+                               x-model="fields.backorders.useConfig"
+                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+                    </label>
+                </div>
+
+                <!-- Notify Below Qty -->
+                <div class="grid grid-cols-3 gap-4 items-center py-3">
+                    <label class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Notify Below Qty')) ?></label>
+                    <div>
+                        <input type="number" name="product[stock_data][notify_stock_qty]"
+                               x-model="fields.notifyStockQty.value" step="any"
+                               :disabled="fields.notifyStockQty.useConfig"
+                               class="<?= /* @noEscape */ $inputClass ?>">
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        <input type="checkbox" name="product[stock_data][use_config_notify_stock_qty]" value="1"
+                               x-model="fields.notifyStockQty.useConfig"
+                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+                        <span class="text-gray-400" x-text="'(' + fields.notifyStockQty.configDefault + ')'"></span>
+                    </label>
+                </div>
+
+                <!-- Qty Increments -->
+                <div class="grid grid-cols-3 gap-4 items-center py-3">
+                    <label class="text-sm font-medium text-gray-700"><?= $escaper->escapeHtml((string) __('Qty Increments')) ?></label>
+                    <div>
+                        <select name="product[stock_data][enable_qty_increments]" class="<?= /* @noEscape */ $inputClass ?>"
+                                :disabled="fields.enableQtyIncrements.useConfig">
+                            <option value="1" :selected="fields.enableQtyIncrements.value === 1"><?= $escaper->escapeHtml((string) __('Yes')) ?></option>
+                            <option value="0" :selected="fields.enableQtyIncrements.value === 0"><?= $escaper->escapeHtml((string) __('No')) ?></option>
+                        </select>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                        <input type="checkbox" name="product[stock_data][use_config_enable_qty_inc]" value="1"
+                               x-model="fields.enableQtyIncrements.useConfig"
+                               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                        <?= $escaper->escapeHtml((string) __('Use Config')) ?>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    if (window._nebulaStockFieldsRegistered) return;
+    window._nebulaStockFieldsRegistered = true;
+
+    Alpine.data('nebulaStockFields', (config) => ({
+        showAdvanced: false,
+        fields: config
+    }));
+});
+</script>

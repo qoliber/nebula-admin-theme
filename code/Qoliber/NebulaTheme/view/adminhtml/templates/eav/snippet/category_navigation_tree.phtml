@@ -1,0 +1,500 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\CategoryTree $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\CategoryTree) {
+    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\CategoryTree::class);
+}
+
+$entity = $block->getData('entity');
+$formBlock = $block->getData('form_block');
+
+$currentId = $entity ? (string) $entity->getId() : '';
+
+$items = $viewModel->getItems();
+$tree = $viewModel->getTree();
+
+// Always expand root/level-1 categories (Default Category etc.)
+$expandedIds = [];
+foreach ($items as $id => $item) {
+    if ($item['level'] <= 2) {
+        $expandedIds[$id] = true;
+    }
+}
+
+// Also expand parents of current category
+if ($currentId && isset($items[$currentId])) {
+    $current = $currentId;
+    while (isset($items[$current]) && isset($items[$items[$current]['parent_id']])) {
+        $current = $items[$current]['parent_id'];
+        $expandedIds[$current] = true;
+    }
+}
+
+$treeConfig = json_encode([
+    'tree'        => $tree,
+    'expandedIds' => (object) $expandedIds,
+    'currentId'   => $currentId,
+    'reorderUrl'  => $formBlock->getUrl('nebula/category/reorderChildren'),
+    'moveUrl'     => $formBlock->getUrl('catalog/category/move'),
+    'formKey'     => $formBlock->getFormKey(),
+], JSON_HEX_APOS | JSON_HEX_QUOT);
+?>
+
+<script>
+(function() {
+    if (window._nebulaCategoryNavTreeRegistered) return;
+    window._nebulaCategoryNavTreeRegistered = true;
+
+    var register = function() {
+        Alpine.data('nebulaCategoryNavTree', function(config) {
+            return {
+                expanded: config.expandedIds || {},
+                tree: config.tree || [],
+                currentId: config.currentId || '',
+                reorderUrl: config.reorderUrl || '',
+                moveUrl: config.moveUrl || '',
+                formKey: config.formKey || '',
+                _sortableInstances: [],
+                _sortSaving: false,
+                sortMode: false,
+                sortDirty: false,
+                _savedContainerOrder: null,
+                _pendingMoves: [],
+
+                init: function() {
+                    // Sortable is not activated on load — user must click Reorder.
+                },
+
+                toggleExpand: function(id) {
+                    this.expanded[id] = !this.expanded[id];
+                },
+
+                hasUnsavedChanges: function() {
+                    if (window.Nebula && typeof window.Nebula.hasUnsavedCategoryChanges === 'function') {
+                        return window.Nebula.hasUnsavedCategoryChanges();
+                    }
+
+                    return false;
+                },
+
+                closeCategoryDrawer: function() {
+                    var drawerRoot = document.querySelector('[data-nebula-category-drawer]');
+                    if (!drawerRoot || !window.Alpine || typeof Alpine.$data !== 'function') {
+                        return;
+                    }
+
+                    try {
+                        var drawerData = Alpine.$data(drawerRoot);
+                        if (drawerData && typeof drawerData.closeDrawer === 'function') {
+                            drawerData.closeDrawer();
+                        }
+                    } catch (e) {
+                        // Ignore drawer close failures
+                    }
+                },
+
+                confirmCategorySwitch: async function(url) {
+                    if (this.sortMode && this.sortDirty) {
+                        if (window.nebulaToast) window.nebulaToast('error', '<?= $escaper->escapeJs((string) __('Save or cancel the reorder first.')) ?>');
+                        return;
+                    }
+
+                    if (this.sortMode && !this.sortDirty) {
+                        this.disableSortMode();
+                    }
+
+                    if (!this.hasUnsavedChanges()) {
+                        this.closeCategoryDrawer();
+                        window.location.href = url;
+                        return;
+                    }
+
+                    var confirmed = await window.Nebula.confirm({ title: '<?= $escaper->escapeJs((string) __('Discard unsaved changes?')) ?>', message: '<?= $escaper->escapeJs((string) __('You have edits that will be lost if you leave this page.')) ?>', danger: true, confirmText: '<?= $escaper->escapeJs((string) __('Discard')) ?>', cancelText: '<?= $escaper->escapeJs((string) __('Stay')) ?>' });
+                    if (confirmed) {
+                        this.closeCategoryDrawer();
+                        window.location.href = url;
+                    }
+                },
+
+                expandAll: function() {
+                    var self = this;
+                    function walk(nodes) {
+                        nodes.forEach(function(n) {
+                            if (n.children && n.children.length) {
+                                self.expanded[n.id] = true;
+                                walk(n.children);
+                            }
+                        });
+                    }
+                    walk(this.tree);
+                },
+
+                collapseAll: function() {
+                    this.expanded = {};
+                },
+
+                // --- Sort mode --------------------------------------------------
+
+                enableSortMode: function() {
+                    this._savedContainerOrder = this._captureContainerOrder();
+                    this.sortMode = true;
+                    var self = this;
+                    this.$nextTick(function() { self._initAllSortables(); });
+                },
+
+                disableSortMode: function() {
+                    this._destroyAllSortables();
+                    this.sortMode = false;
+                    this.sortDirty = false;
+                    this._savedContainerOrder = null;
+                    this._pendingMoves = [];
+                },
+
+                cancelSort: function() {
+                    window.location.reload();
+                },
+
+                saveSort: function() {
+                    var self = this;
+                    self._sortSaving = true;
+                    self._savePendingChanges().then(function(success) {
+                        self._sortSaving = false;
+                        if (success) {
+                            self.disableSortMode();
+                        }
+                    });
+                },
+
+                _captureContainerOrder: function() {
+                    var state = {};
+                    document.querySelectorAll('[data-sort-container]').forEach(function(el) {
+                        var parentId = el.dataset.parentId;
+                        state[parentId] = Array.from(
+                            el.querySelectorAll(':scope > [data-cat-id]')
+                        ).map(function(child) { return child.dataset.catId; });
+                    });
+                    return state;
+                },
+
+                _savePendingChanges: function() {
+                    var self = this;
+
+                    // Step 1: replay cross-parent moves sequentially (order matters for path/level updates)
+                    var moveChain = self._pendingMoves.reduce(function(chain, move) {
+                        return chain.then(function(ok) {
+                            if (!ok) return false;
+                            return self._moveCategoryAsync(move.id, move.pid, move.aid);
+                        });
+                    }, Promise.resolve(true));
+
+                    return moveChain.then(function(movesOk) {
+                        if (!movesOk) {
+                            if (window.nebulaToast) window.nebulaToast('error', '<?= $escaper->escapeJs((string) __('Could not move category.')) ?>');
+                            window.location.reload();
+                            return false;
+                        }
+
+                        // Step 2: reorder all changed same-parent containers in parallel
+                        var current = self._captureContainerOrder();
+                        var original = self._savedContainerOrder || {};
+                        var saves = [];
+
+                        document.querySelectorAll('[data-sort-container]').forEach(function(el) {
+                            var parentId = el.dataset.parentId;
+                            var currentIds = current[parentId] || [];
+                            var originalIds = original[parentId] || [];
+                            if (JSON.stringify(currentIds) !== JSON.stringify(originalIds)) {
+                                saves.push(self._reorderSiblingsAsync(parentId, currentIds));
+                            }
+                        });
+
+                        if (saves.length === 0) {
+                            if (window.nebulaToast) window.nebulaToast('success', '<?= $escaper->escapeJs((string) __('Category order saved.')) ?>');
+                            return true;
+                        }
+
+                        return Promise.all(saves).then(function(results) {
+                            var allOk = results.every(Boolean);
+                            if (allOk) {
+                                if (window.nebulaToast) window.nebulaToast('success', '<?= $escaper->escapeJs((string) __('Category order saved.')) ?>');
+                            } else {
+                                if (window.nebulaToast) window.nebulaToast('error', '<?= $escaper->escapeJs((string) __('Some categories could not be saved.')) ?>');
+                            }
+                            return allOk;
+                        });
+                    });
+                },
+
+                _moveCategoryAsync: function(id, pid, aid) {
+                    var body = new URLSearchParams({ id: id, pid: pid, aid: aid, form_key: this.formKey });
+                    return fetch(this.moveUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                        body: body.toString()
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) { return !data.error; })
+                    .catch(function() { return false; });
+                },
+
+                _reorderSiblingsAsync: function(parentId, ids) {
+                    var url = this.reorderUrl + '?form_key=' + encodeURIComponent(this.formKey);
+                    return fetch(url, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        body: JSON.stringify({ parent_id: parentId, ids: ids })
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) { return !!data.success; })
+                    .catch(function() { return false; });
+                },
+
+                // --- Drag-to-reorder --------------------------------------------
+
+                _initAllSortables: function() {
+                    this._destroyAllSortables();
+                    var self = this;
+                    document.querySelectorAll('[data-sort-container]').forEach(function(el) {
+                        if (!window.Sortable) return;
+                        var instance = window.Sortable.create(el, {
+                            group: { name: 'cat-tree', pull: true, put: true },
+                            handle: '[data-cat-drag-handle]',
+                            draggable: '[data-cat-id]',
+                            animation: 150,
+                            ghostClass: 'opacity-40',
+                            onEnd: function(evt) { self._onSortEnd(evt); }
+                        });
+                        self._sortableInstances.push(instance);
+                    });
+                },
+
+                _destroyAllSortables: function() {
+                    this._sortableInstances.forEach(function(s) {
+                        if (s && typeof s.destroy === 'function') s.destroy();
+                    });
+                    this._sortableInstances = [];
+                },
+
+                _onSortEnd: function(evt) {
+                    if (!evt.item || !evt.from || !evt.to) return;
+                    var movedId = evt.item.dataset.catId;
+                    if (!movedId) return;
+
+                    this.sortDirty = true;
+
+                    var fromParentId = evt.from.dataset.parentId;
+                    var toParentId = evt.to.dataset.parentId;
+
+                    if (fromParentId !== toParentId) {
+                        var siblings = Array.from(evt.to.querySelectorAll(':scope > [data-cat-id]'));
+                        var newIdx = siblings.indexOf(evt.item);
+                        var aid = newIdx > 0 ? (siblings[newIdx - 1].dataset.catId || '0') : '0';
+                        this._pendingMoves.push({ id: movedId, pid: toParentId, aid: aid });
+                    }
+                    // Same-parent: handled by _savePendingChanges() on Save
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) { register(); }
+    else { document.addEventListener('alpine:init', register); }
+})();
+</script>
+
+<script>
+(function() {
+    if (window._nebulaCategoryDirtyStateRegistered) return;
+    window._nebulaCategoryDirtyStateRegistered = true;
+
+    window.Nebula = window.Nebula || {};
+
+    window.Nebula.serializeCategoryFormState = function(form) {
+        if (!form) {
+            return '';
+        }
+
+        try {
+            return JSON.stringify(Array.from(new FormData(form).entries()));
+        } catch (e) {
+            return '';
+        }
+    };
+
+    window.Nebula.captureInitialCategoryState = function() {
+        var form = document.querySelector('form[x-ref="nebulaEavForm"], form[x-ref="nebulaForm"]');
+        if (!form) {
+            return;
+        }
+
+        var serialized = window.Nebula.serializeCategoryFormState(form);
+        if (serialized !== '') {
+            form.dataset.nebulaInitialState = serialized;
+        }
+    };
+
+    window.Nebula.hasUnsavedCategoryChanges = function() {
+        var form = document.querySelector('form[x-ref="nebulaEavForm"], form[x-ref="nebulaForm"]');
+        if (!form) {
+            return false;
+        }
+
+        if (!form.dataset.nebulaInitialState) {
+            window.Nebula.captureInitialCategoryState();
+        }
+
+        var currentState = window.Nebula.serializeCategoryFormState(form);
+        if (currentState === '' || !form.dataset.nebulaInitialState) {
+            return false;
+        }
+
+        return currentState !== form.dataset.nebulaInitialState;
+    };
+
+    window.addEventListener('pageshow', function() {
+        window.Nebula.captureInitialCategoryState();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        window.Nebula.captureInitialCategoryState();
+    });
+})();
+</script>
+
+<div x-data="nebulaCategoryNavTree(<?= $escaper->escapeHtmlAttr($treeConfig) ?>)">
+    <div class="mb-3">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-gray-500 uppercase tracking-wide"><?= $escaper->escapeHtml((string) __('Category Tree')) ?></span>
+            <div class="flex items-center gap-1.5">
+                <button type="button"
+                        x-show="!sortMode"
+                        @click="enableSortMode()"
+                        title="<?= $escaper->escapeHtmlAttr((string) __('Reorder categories')) ?>"
+                        class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-100 transition">
+                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="9"  cy="5"  r="1.5"/>
+                        <circle cx="15" cy="5"  r="1.5"/>
+                        <circle cx="9"  cy="12" r="1.5"/>
+                        <circle cx="15" cy="12" r="1.5"/>
+                        <circle cx="9"  cy="19" r="1.5"/>
+                        <circle cx="15" cy="19" r="1.5"/>
+                    </svg>
+                    <?= $escaper->escapeHtml((string) __('Reorder')) ?>
+                </button>
+                <button type="button"
+                        x-show="sortMode && !sortDirty"
+                        @click="disableSortMode()"
+                        class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition">
+                    <?= $escaper->escapeHtml((string) __('Exit')) ?>
+                </button>
+                <div x-show="sortMode && sortDirty" class="flex items-center gap-1.5">
+                    <button type="button"
+                            @click="cancelSort()"
+                            class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-100 transition">
+                        <?= $escaper->escapeHtml((string) __('Cancel')) ?>
+                    </button>
+                    <button type="button"
+                            @click="saveSort()"
+                            :disabled="_sortSaving"
+                            class="inline-flex items-center rounded px-2 py-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 transition">
+                        <span x-text="_sortSaving ? '<?= $escaper->escapeJs((string) __('Saving…')) ?>' : '<?= $escaper->escapeJs((string) __('Save order')) ?>'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="<?= $escaper->escapeUrl($formBlock->getUrl('catalog/category/add')) ?>"
+               class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                <?= $escaper->escapeHtml((string) __('Root Category')) ?>
+            </a>
+            <?php if ($currentId) : ?>
+            <a href="<?= $escaper->escapeUrl($formBlock->getUrl('catalog/category/add', ['parent' => $currentId])) ?>"
+               class="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50">
+                <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                <?= $escaper->escapeHtml((string) __('Subcategory')) ?>
+            </a>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="rounded-lg border border-gray-200 bg-white p-3">
+        <?php
+        $renderNavNode = function (array $nodes, $block, $formBlock, string $currentId, int $depth = 0) use (&$renderNavNode, $escaper): void {
+            foreach ($nodes as $node) {
+                $hasChildren = !empty($node['children']);
+                $isCurrent = ($node['id'] === $currentId);
+                $editUrl = $formBlock->getUrl('catalog/category/edit', ['id' => $node['id']]);
+                $depthPaddingClass = match (true) {
+                    $depth <= 0 => 'pl-0',
+                    $depth === 1 => 'pl-3',
+                    $depth === 2 => 'pl-6',
+                    $depth === 3 => 'pl-9',
+                    default => 'pl-12',
+                };
+                ?>
+                <div class="<?= $escaper->escapeHtmlAttr($depthPaddingClass) ?>" data-cat-id="<?= $escaper->escapeHtmlAttr((string) $node['id']) ?>">
+                    <div class="flex items-center gap-1 py-px">
+                        <button type="button"
+                                data-cat-drag-handle
+                                title="<?= $escaper->escapeHtmlAttr((string) __('Drag to reorder')) ?>"
+                                :class="sortMode ? 'cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500' : 'opacity-0 pointer-events-none cursor-default'"
+                                class="flex-shrink-0 p-0.5 rounded transition-opacity">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="9"  cy="5"  r="1.5"/>
+                                <circle cx="15" cy="5"  r="1.5"/>
+                                <circle cx="9"  cy="12" r="1.5"/>
+                                <circle cx="15" cy="12" r="1.5"/>
+                                <circle cx="9"  cy="19" r="1.5"/>
+                                <circle cx="15" cy="19" r="1.5"/>
+                            </svg>
+                        </button>
+                        <?php if ($hasChildren) : ?>
+                            <button type="button"
+                                    @click="toggleExpand('<?= $escaper->escapeJs((string) $node['id']) ?>')"
+                                    aria-label="<?= $escaper->escapeHtmlAttr((string) __('Toggle child categories for %1', $node['name'])) ?>"
+                                    title="<?= $escaper->escapeHtmlAttr((string) __('Toggle child categories for %1', $node['name'])) ?>"
+                                    class="flex-shrink-0 text-gray-400 hover:text-gray-600 w-4 h-4 flex items-center justify-center transition">
+                                <svg class="h-3 w-3 transition-transform" :class="expanded['<?= $escaper->escapeJs((string) $node['id']) ?>'] ? 'rotate-90' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                            </button>
+                        <?php endif; ?>
+                        <?php if ($isCurrent) : ?>
+                            <span class="truncate rounded px-2 py-0.5 text-sm font-semibold text-indigo-700 bg-indigo-100 flex-1">
+                                <?= $escaper->escapeHtml($node['name']) ?>
+                            </span>
+                        <?php else : ?>
+                            <a href="<?= $escaper->escapeUrl($editUrl) ?>"
+                               @click.prevent="confirmCategorySwitch('<?= $escaper->escapeJs($editUrl) ?>')"
+                               class="truncate rounded px-2 py-0.5 text-sm hover:bg-gray-100 transition flex-1 <?= $node['is_active'] ? 'text-gray-700' : 'text-gray-400 line-through' ?>">
+                                <?= $escaper->escapeHtml($node['name']) ?>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($hasChildren) : ?>
+                        <div x-show="expanded['<?= $escaper->escapeJs((string) $node['id']) ?>']"
+                             x-collapse
+                             class="border-l border-gray-200 ml-2"
+                             data-sort-container
+                             data-parent-id="<?= $escaper->escapeHtmlAttr((string) $node['id']) ?>">
+                            <?php $renderNavNode($node['children'], $block, $formBlock, $currentId, $depth + 1); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <?php
+            }
+        };
+?>
+        <div data-sort-container data-parent-id="0">
+            <?php $renderNavNode($tree, $block, $formBlock, $currentId); ?>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Loads the compiled Nebula form bundle — registers the `nebulaForm` Alpine
+ * component, the Ctrl/Cmd-S save shortcut and the save-loader overlay. Core
+ * (Alpine, model store, fields, validator) is shipped by the NebulaComponent
+ * bundle loaded earlier in the theme, so this file only carries form logic.
+ *
+ * Source: `app/design/adminhtml/Qoliber/Nebula/web/ts/nebula-form.ts`.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ */
+$formJs = $block->getViewFileUrl('js/dist/nebula-form.js');
+?>
+<script src="<?= /* @noEscape */ $formJs ?>"></script>

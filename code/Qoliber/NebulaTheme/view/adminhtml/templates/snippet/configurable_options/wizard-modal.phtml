@@ -1,0 +1,89 @@
+<?php /** @var \Magento\Framework\View\Element\Template $block */ ?>
+
+<div x-show="wizardOpen" x-cloak
+     class="fixed inset-0 z-[9999] flex items-center justify-center"
+     @keydown.escape.window="wizardOpen = false">
+
+    <div x-show="wizardOpen"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="wizardOpen = false"></div>
+
+    <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="nebula-config-wizard-title"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         @click.stop>
+
+        <div class="sticky top-0 z-10 bg-white border-b border-gray-200 px-8 py-5 rounded-t-2xl shrink-0">
+            <div class="flex items-center justify-between mb-4">
+                <h2 id="nebula-config-wizard-title" class="text-lg font-bold text-gray-900">Configure Variations</h2>
+                <button @click="wizardOpen = false" type="button" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <template x-for="(stepName, i) in ['Select Attributes', 'Select Values', 'Summary']" :key="i">
+                    <div class="flex items-center gap-2">
+                        <div :class="currentStep > i ? 'bg-indigo-600 text-white' : currentStep === i ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-600' : 'bg-gray-100 text-gray-500'"
+                             class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200"
+                             x-text="i + 1"></div>
+                        <span class="text-sm font-medium transition-colors duration-200"
+                              :class="currentStep === i ? 'text-indigo-700' : currentStep > i ? 'text-indigo-600' : 'text-gray-500'"
+                              x-text="stepName"></span>
+                        <template x-if="i < 2">
+                            <div class="h-px w-8" :class="currentStep > i ? 'bg-indigo-400' : 'bg-gray-300'"></div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="px-8 py-6 overflow-y-auto flex-1">
+            <?php include $block->getTemplateFile('Qoliber_NebulaTheme::snippet/configurable_options/wizard-step-attributes.phtml'); ?>
+            <?php include $block->getTemplateFile('Qoliber_NebulaTheme::snippet/configurable_options/wizard-step-values.phtml'); ?>
+            <?php include $block->getTemplateFile('Qoliber_NebulaTheme::snippet/configurable_options/wizard-step-summary.phtml'); ?>
+        </div>
+
+        <div class="sticky bottom-0 bg-white border-t border-gray-200 px-8 py-4 rounded-b-2xl flex items-center justify-between shrink-0">
+            <button type="button" @click="currentStep > 0 ? currentStep-- : wizardOpen = false"
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition">
+                <span x-text="currentStep === 0 ? 'Cancel' : 'Back'"></span>
+            </button>
+            <div class="flex gap-3">
+                <template x-if="currentStep < 2">
+                    <button type="button" @click="nextStep()" :disabled="!canProceed"
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                            :class="canProceed ? '' : 'opacity-40 cursor-not-allowed'">
+                        Next
+                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </button>
+                </template>
+                <template x-if="currentStep === 2">
+                    <button type="button" @click="applyVariations()"
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
+                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                        Generate Variations
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>

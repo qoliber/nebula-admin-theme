@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="admin_login"/>
+    <body>
+        <referenceContainer name="login.content">
+            <block class="Magento\Backend\Block\Template" name="content"
+                   template="Magento_TwoFactorAuth::tfa/request_config.phtml">
+                <block class="Magento\Framework\View\Element\Messages"
+                       name="messages" as="messages"/>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

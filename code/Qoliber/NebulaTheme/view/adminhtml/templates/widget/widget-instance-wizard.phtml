@@ -1,0 +1,217 @@
+<?php
+/**
+ * @var \Magento\Backend\Block\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+/** @var \Qoliber\NebulaTheme\ViewModel\Widget\TypeListing $typeListing */
+$typeListing = $block->getData('widget_type_listing');
+/** @var \Qoliber\NebulaTheme\ViewModel\Widget\ParameterTranslator $paramTranslator */
+$paramTranslator = $block->getData('widget_param_translator');
+/** @var \Qoliber\NebulaTheme\ViewModel\Widget\ContainerCatalog $containerCatalog */
+$containerCatalog = $block->getData('widget_container_catalog');
+/** @var \Qoliber\NebulaTheme\ViewModel\Widget\PageGroupCatalog $pageGroupCatalog */
+$pageGroupCatalog = $block->getData('widget_page_group_catalog');
+/** @var \Qoliber\NebulaTheme\ViewModel\WidgetInstanceData $instanceData */
+$instanceData = $block->getData('widget_instance_data');
+/** @var \Qoliber\NebulaTheme\Model\Source\StoreView $storeViewSource */
+$storeViewSource = $block->getData('store_view_source');
+/** @var \Qoliber\NebulaTheme\Model\Registry\WidgetChooserRegistry $chooserRegistry */
+$chooserRegistry = $block->getData('widget_chooser_registry');
+
+$initial      = $instanceData->getInitialState();
+// Pre-populate friendly labels for chooser-type parameters so the wizard
+// shows "Home Page (home)" on edit instead of the raw "6" id. Walks each
+// translated parameter once; for chooser fields with a registered
+// chooser, calls the ViewModel's getByValue() and picks the most
+// human-readable field (title / label / name). Skips choosers without a
+// resolver (e.g. conditions — no single-row lookup makes sense there).
+$initial['parameter_labels'] = [];
+if ($initial['instance_type'] !== '') {
+    $typeParams = $paramTranslator->getParameters($initial['instance_type']);
+    foreach ($typeParams as $field) {
+        if (($field['type'] ?? '') !== 'chooser') {
+            continue;
+        }
+        $alias = (string) ($field['chooser'] ?? '');
+        if ($alias === '' || !$chooserRegistry->has($alias)) {
+            continue;
+        }
+        $value = (string) ($initial['parameters'][$field['name']] ?? '');
+        if ($value === '') {
+            continue;
+        }
+        $row = $chooserRegistry->resolveViewModel($alias)->getByValue($value);
+        if (!is_array($row)) {
+            continue;
+        }
+        // Each chooser ViewModel emits its own row shape — try the common
+        // human-readable keys in order, fall back to the raw value.
+        $label = (string) ($row['title'] ?? $row['label'] ?? $row['name'] ?? $value);
+        if (isset($row['identifier']) && $row['identifier'] !== '') {
+            $label .= ' (' . (string) $row['identifier'] . ')';
+        } elseif (isset($row['sku']) && $row['sku'] !== '') {
+            $label .= ' (' . (string) $row['sku'] . ')';
+        }
+        $initial['parameter_labels'][$field['name']] = $label;
+    }
+}
+
+$types                    = $typeListing->getWidgetTypes();
+$themes                   = $typeListing->getThemes();
+$typeCodeMap              = $typeListing->getTypeCodeMap();
+$paramsByType             = $paramTranslator->getAllParameters($types);
+$containersByType         = $containerCatalog->getAllContainers($types);
+$containerTemplatesByType = $containerCatalog->getAllContainerTemplates($types);
+$pageGroupOptions         = $pageGroupCatalog->getPageGroupOptions();
+$layoutHandleMap          = $pageGroupCatalog->getLayoutHandleMap();
+$pageLayoutOptions        = $pageGroupCatalog->getPageLayoutOptions();
+
+$saveUrl   = $block->getUrl('adminhtml/widget_instance/save');
+$backUrl   = $block->getUrl('adminhtml/widget_instance/index');
+$blocksUrl = $block->getUrl('adminhtml/widget_instance/blocks');
+$deleteUrl = $initial['instance_id'] !== null
+    ? $block->getUrl('adminhtml/widget_instance/delete', ['instance_id' => $initial['instance_id']])
+    : '';
+
+// Encoded with JSON_HEX_TAG so `<` becomes `<` — the JSON is safe to
+// embed inside a <script type="application/json"> block without risk of a
+// stray `</script>` (which could appear in a widget parameter description)
+// closing the wrapper. JSON_HEX_AMP keeps `&` from confusing some legacy
+// HTML sniffers; JSON_UNESCAPED_SLASHES is intentionally OFF so `/` becomes
+// `\/`, defense-in-depth against `</script>`.
+$alpineConfig = json_encode([
+    'initial'                  => $initial,
+    'paramsByType'             => $paramsByType,
+    // Discovered from the registry — no hardcoded list. 3rd-party modules
+    // that register their own chooser via di.xml show up here automatically;
+    // both modal and inline modes contribute aliases.
+    'availableChoosers'        => $chooserRegistry->aliases(),
+    'containersByType'         => $containersByType,
+    'containerTemplatesByType' => $containerTemplatesByType,
+    'pageGroupOptions'         => $pageGroupOptions,
+    'pageLayoutOptions'        => $pageLayoutOptions,
+    'typeCodeMap'              => $typeCodeMap,
+    'layoutHandleMap'          => $layoutHandleMap,
+    'blocksUrl'                => $blocksUrl,
+], JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP);
+
+// Reuse the same tree-shaped store-view source the CMS block / page forms
+// already use. The multiselect template mirrors its `value` array into
+// the wizard's state.store_ids so the form posts the same shape.
+$storeViewConfig = json_encode([
+    'fieldName' => 'store_ids',
+    'options'   => $storeViewSource->toOptionArray(),
+    'value'     => $initial['store_ids'],
+    'tree'      => true,
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+?>
+
+<div class="bg-gray-50 min-h-screen">
+    <form method="post" action="<?= $escaper->escapeUrl($saveUrl) ?>" id="nebula-widget-form">
+        <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+        <?php if ($initial['instance_id'] !== null): ?>
+            <input type="hidden" name="instance_id" value="<?= $escaper->escapeHtmlAttr((string) $initial['instance_id']) ?>"/>
+        <?php endif; ?>
+
+        <!--
+            The wizard config travels in a <script type="application/json">
+            block, not in the x-data attribute. Reason: the alpine config
+            is ~60KB and round-tripping that through HTML-attribute entity
+            encoding has historically masked subtle bugs (one malformed
+            sequence silently zeroes the parsed object). The JSON-block
+            form is plain UTF-8 text content — no encoding round-trip,
+            no parser quirks.
+        -->
+        <script type="application/json" id="nebula-wizard-config"><?= /* @noEscape */ $alpineConfig ?></script>
+
+        <div x-data="nebulaWidgetWizard(JSON.parse(document.getElementById('nebula-wizard-config').textContent))"
+             x-init="$watch('state.instance_type', () => loadFieldsForType())"
+             @chooser:selected.window="handleChooserSelected($event.detail)"
+             class="w-full px-6 py-8">
+
+            <!-- Sticky action header — mirrors the standard Nebula form-shell pattern:
+                 title on the left, action buttons right-aligned. Back / Delete /
+                 Save Widget. Delete renders only when editing an existing widget. -->
+            <div class="nebula-form-actions-bar sticky top-0 z-30 mb-6 shadow-sm backdrop-blur-sm">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-xl font-bold text-gray-900">
+                            <span x-show="state.instance_id">Edit Widget &mdash; </span>
+                            <span x-show="!state.instance_id">New Widget</span>
+                            <span x-text="state.title"></span>
+                        </h1>
+                    </div>
+                    <div class="nebula-form-actions-right flex shrink-0 items-center gap-3">
+                        <a href="<?= $escaper->escapeUrl($backUrl) ?>"
+                           class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+                            <?= $escaper->escapeHtml((string) __('Back')) ?>
+                        </a>
+
+                        <?php if ($deleteUrl !== ''): ?>
+                            <div class="nebula-form-actions-divider h-6 w-px shrink-0 bg-gray-200"></div>
+                            <button type="button"
+                                    @click="(async () => { if (await window.Nebula.confirm({ title: '<?= $escaper->escapeJs((string) __('Delete this widget?')) ?>', message: '<?= $escaper->escapeJs((string) __('This action cannot be undone. The widget will stop rendering on the storefront immediately.')) ?>', danger: true, confirmText: '<?= $escaper->escapeJs((string) __('Delete')) ?>' })) { const f = document.createElement('form'); f.method = 'POST'; f.action = '<?= $escaper->escapeJs($deleteUrl) ?>'; const k = document.createElement('input'); k.type = 'hidden'; k.name = 'form_key'; k.value = '<?= $escaper->escapeJs($block->getFormKey()) ?>'; f.appendChild(k); document.body.appendChild(f); f.submit(); } })()"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200 transition hover:bg-red-100">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                                <?= $escaper->escapeHtml((string) __('Delete')) ?>
+                            </button>
+                        <?php endif; ?>
+
+                        <button type="submit" :disabled="!isValid()"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            <?= $escaper->escapeHtml((string) __('Save')) ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 1: responsive three-card grid.
+                 The layout is owned by Nebula CSS so it stays stable on mobile
+                 without depending on Tailwind breakpoint utilities. -->
+            <div class="mt-6 nebula-widget-instance-layout">
+                <div class="nebula-widget-instance-layout__card">
+                    <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_column_type_theme.phtml'); ?>
+                </div>
+                <div class="nebula-widget-instance-layout__card">
+                    <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_column_parameters.phtml'); ?>
+                </div>
+                <div class="nebula-widget-instance-layout__card">
+                    <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_column_storefront.phtml'); ?>
+                </div>
+            </div>
+
+            <!-- Row 2: Layout Updates, full width — multi-row layout needs the breathing room. -->
+            <div class="mt-6">
+                <?php include $block->getTemplateFile('Qoliber_NebulaTheme::widget/wizard/_section_layout_updates.phtml'); ?>
+            </div>
+        </div>
+
+        <?php
+        // Modal-mode chooser snippets — each owns its own Alpine scope,
+        // listens for `open-chooser-<alias>` window events, dispatches
+        // `chooser:selected` on pick. Mounted as siblings of the wizard
+        // form so each modal can stack above the wizard backdrop.
+        //
+        // ViewModels are resolved via the registry's typed lookup
+        // (TMap → WidgetChooserViewModelInterface). Inline-mode choosers
+        // are NOT mounted here — they render inside the parameter row
+        // (see _column_parameters.phtml).
+        foreach ($chooserRegistry->modal() as $alias => $cfg) {
+            $chooserBlock = $block->getLayout()->createBlock(
+                \Magento\Framework\View\Element\Template::class,
+                'nebula.widget.chooser.' . $alias,
+                [
+                    'data' => [
+                        'template'                  => $cfg['template'],
+                        'widget_chooser_' . $alias  => $chooserRegistry->resolveViewModel($alias),
+                    ],
+                ],
+            );
+            echo $chooserBlock->toHtml();
+        }
+        ?>
+    </form>
+</div>

@@ -1,0 +1,13 @@
+<?php
+/**
+ * Qoliber Nebula — Sidebar toggle in header
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ */
+?>
+<button @click="$store.nebula.toggleSidebar()"
+    class="nebula-header-sidebar-toggle nebula-accent-fg flex items-center justify-center h-9 w-9 rounded-lg hover:text-white hover:bg-nebula-800 transition cursor-pointer"
+        title="<?= $block->escapeHtmlAttr(__('Toggle sidebar')) ?>">
+    <i class="fa-solid text-sm"
+       :class="$store.nebula.sidebarCollapsed ? 'fa-angles-right' : 'fa-angles-left'"></i>
+</button>

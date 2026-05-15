@@ -1,0 +1,81 @@
+/*
+ * "Use default value" inheritance treatment. The wrapper around the input
+ * gets `.nebula-config-inherited` (added via Alpine when the inherit
+ * checkbox is ticked, see Block/Config/Form/Field.php). Make it visually
+ * obvious that the field is inactive — stronger background, muted text,
+ * lowered opacity. Dark-mode-safe via the --nebula-* tokens.
+ */
+.nebula-config-inherited {
+  opacity: 0.55;
+}
+.nebula-config-inherited input,
+.nebula-config-inherited select,
+.nebula-config-inherited textarea {
+  background: var(--nebula-bg-tertiary) !important;
+  color: var(--nebula-text-secondary) !important;
+  border-color: var(--nebula-border-default) !important;
+  border-style: dashed !important;
+}
+.nebula-config-inherited input::placeholder,
+.nebula-config-inherited textarea::placeholder {
+  color: var(--nebula-text-tertiary, var(--nebula-text-secondary)) !important;
+  opacity: 0.7;
+}
+.nebula-config-inherited .nebula-config-note {
+  color: var(--nebula-text-tertiary, var(--nebula-text-secondary));
+}
+
+/*
+ * Dark mode: push the muted treatment further. The default --nebula-text-secondary
+ * still reads as "lit" against a dark background, weakening the inherited cue.
+ * Drop opacity, push text to the most-muted token, add transparency on inputs
+ * so the dashed border becomes the dominant visual cue.
+ */
+.dark .nebula-config-inherited {
+  opacity: 0.4;
+}
+.dark .nebula-config-inherited input,
+.dark .nebula-config-inherited select,
+.dark .nebula-config-inherited textarea {
+  color: var(--nebula-text-muted) !important;
+}
+.dark .nebula-config-inherited input::placeholder,
+.dark .nebula-config-inherited textarea::placeholder {
+  color: var(--nebula-text-muted) !important;
+  opacity: 0.5;
+}
+.dark .nebula-config-inherited .nebula-config-note {
+  color: var(--nebula-text-muted);
+}
+
+/*
+ * Multiselect (<select multiple>) needs extra rules — its `option:checked`
+ * children carry their own background highlight that the wrapper opacity
+ * doesn't fully erase, so the selected options keep popping as if active.
+ * Mute the option highlight in the inherited state, plus keep the dashed
+ * border on the multiselect box to reinforce the cue.
+ */
+.nebula-config-inherited select[multiple] option {
+  background: transparent !important;
+  color: var(--nebula-text-tertiary) !important;
+}
+.nebula-config-inherited select[multiple] option:checked {
+  background: var(--nebula-bg-secondary) !important;
+  color: var(--nebula-text-secondary) !important;
+  font-weight: 400 !important;
+}
+.dark .nebula-config-inherited select[multiple] option {
+  color: var(--nebula-text-muted) !important;
+}
+.dark .nebula-config-inherited select[multiple] option:checked {
+  background: var(--nebula-bg-tertiary) !important;
+  color: var(--nebula-text-muted) !important;
+}
+
+.nebula-config-value select[disabled] option:checked {
+  background: var(--nebula-bg-tertiary);
+  color: var(--nebula-text-secondary);
+}
+.nebula-config-value select[disabled][multiple] {
+  opacity: 1;
+}

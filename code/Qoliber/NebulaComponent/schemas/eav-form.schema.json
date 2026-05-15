@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nebula.qoliber.dev/schemas/eav-form.v1.json",
+  "title": "Nebula EAV Form Definition",
+  "description": "Declarative schema for a Nebula EAV admin form (type=eav). Files live at view/adminhtml/form/<id>.json and MUST set `type: \"eav\"` and `entity`. Inherits all shared form primitives (dataSource, settings, layout, fieldsets, field) by reference from form.schema.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "allOf": [
+    {"$ref": "#/$defs/baseOrOverlay"}
+  ],
+  "properties": {
+    "id": {
+      "title": "Form identifier",
+      "description": "Unique snake_case identifier. Base files MUST set this. Overlay files MUST omit it.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "type": {
+      "title": "Definition type marker",
+      "description": "Must be the literal string `eav` to select the EAV form runtime.",
+      "type": "string",
+      "const": "eav"
+    },
+    "entity": {
+      "title": "EAV entity code",
+      "description": "Magento EAV entity code: the attribute set to pull attributes from. E.g. catalog_product, catalog_category, customer.",
+      "type": "string",
+      "enum": ["catalog_product", "catalog_category", "customer", "customer_address", "order"]
+    },
+    "attributeSet": {
+      "title": "Attribute set override",
+      "description": "Optional attribute set code or id to override the entity default.",
+      "type": ["string", "integer"]
+    },
+    "acl": {
+      "title": "ACL resource",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_]+::[A-Za-z0-9_:-]+$"
+    },
+    "dataSource": {
+      "title": "Data source",
+      "description": "Form data provider. Same shape as non-EAV forms.",
+      "$ref": "https://nebula.qoliber.dev/schemas/form.v1.json#/$defs/dataSource"
+    },
+    "settings": {
+      "title": "Form settings",
+      "$ref": "https://nebula.qoliber.dev/schemas/form.v1.json#/$defs/formSettings"
+    },
+    "fieldsets": {
+      "title": "Fieldsets",
+      "description": "Rare in EAV forms; prefer `layout`. Use to add non-EAV fieldsets that live alongside the attribute tree.",
+      "$ref": "https://nebula.qoliber.dev/schemas/form.v1.json#/$defs/fieldsets"
+    },
+    "layout": {
+      "title": "Layout tree",
+      "description": "Tree of layout nodes. EAV forms typically pick attribute groups into sections via `groups` and individual fields by name.",
+      "$ref": "https://nebula.qoliber.dev/schemas/form.v1.json#/$defs/layout"
+    },
+    "excludeGroups": {
+      "title": "Exclude attribute groups",
+      "description": "Attribute group codes to strip from the EAV tree before merging with the declared layout.",
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "overrides": {
+      "title": "Attribute overrides",
+      "description": "Per-field overlays applied to attributes resolved from EAV.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "title": "Field overrides map",
+          "description": "Map of attribute_code -> partial field definition (merged into the EAV-resolved attribute).",
+          "type": "object",
+          "additionalProperties": {"$ref": "https://nebula.qoliber.dev/schemas/form.v1.json#/$defs/field"}
+        }
+      }
+    },
+    "hiddenFields": {
+      "title": "Hidden fields",
+      "type": "object",
+      "additionalProperties": {"type": ["string", "number", "boolean"]}
+    }
+  },
+  "$defs": {
+    "baseOrOverlay": {
+      "oneOf": [
+        {
+          "title": "Base EAV form",
+          "description": "A standalone EAV form. Must set id, type, entity.",
+          "type": "object",
+          "required": ["id", "type", "entity"]
+        },
+        {
+          "title": "EAV overlay fragment",
+          "description": "An overlay from another module. Must NOT set id/type/entity.",
+          "type": "object",
+          "not": {
+            "anyOf": [
+              {"required": ["id"]},
+              {"required": ["type"]},
+              {"required": ["entity"]}
+            ]
+          },
+          "anyOf": [
+            {"required": ["layout"]},
+            {"required": ["fieldsets"]},
+            {"required": ["settings"]},
+            {"required": ["overrides"]},
+            {"required": ["excludeGroups"]},
+            {"required": ["acl"]},
+            {"required": ["dataSource"]},
+            {"required": ["hiddenFields"]},
+            {"required": ["attributeSet"]}
+          ]
+        }
+      ]
+    }
+  }
+}

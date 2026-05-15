@@ -1,0 +1,70 @@
+<?php
+
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Qoliber\NebulaTheme\ViewModel\AttributeLabels $viewModel */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\AttributeLabels) {
+    // Defensive: snippet renderer should populate `view_model` from the
+    // SnippetViewModelRegistry binding. nebula:allow-object-manager
+    // dynamic-snippet-view-model fallback for misconfiguration.
+    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Qoliber\NebulaTheme\ViewModel\AttributeLabels::class);
+}
+
+$formBlock = $block->getData('form_block');
+$entityData = $formBlock ? $formBlock->getEntityData() : [];
+
+$stores = $viewModel->getStores();
+$storeLabels = $entityData['store_labels'] ?? [];
+$defaultLabel = $entityData['frontend_label'] ?? '';
+?>
+<div class="rounded-lg border border-gray-200 bg-white shadow-sm mb-6">
+    <div class="border-b border-gray-200 px-6 py-4">
+        <h2 class="text-base font-semibold text-gray-900">Manage Labels</h2>
+    </div>
+    <div class="px-6 py-4">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2 text-left font-medium text-gray-600">Store View</th>
+                    <th class="px-4 py-2 text-left font-medium text-gray-600">Label</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <tr>
+                    <td class="px-4 py-3 font-medium text-gray-900">
+                        Admin
+                        <span class="text-gray-400">(Default)</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="text"
+                               name="frontend_label[0]"
+                               value="<?= $escaper->escapeHtmlAttr($defaultLabel) ?>"
+                               class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                               required>
+                    </td>
+                </tr>
+                <?php foreach ($stores as $store) : ?>
+                    <?php if ((int)$store->getId() === 0) {
+                        continue;
+                    } ?>
+                    <tr>
+                        <td class="px-4 py-3 text-gray-900">
+                            <?= $escaper->escapeHtml($store->getName()) ?>
+                            <span class="text-gray-400">(<?= $escaper->escapeHtml($store->getCode()) ?>)</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <input type="text"
+                                   name="frontend_label[<?= (int)$store->getId() ?>]"
+                                   value="<?= $escaper->escapeHtmlAttr($storeLabels[$store->getId()] ?? '') ?>"
+                                   class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                   placeholder="<?= $escaper->escapeHtmlAttr($defaultLabel) ?>">
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>

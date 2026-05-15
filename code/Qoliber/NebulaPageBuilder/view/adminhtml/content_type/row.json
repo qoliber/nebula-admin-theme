@@ -1,0 +1,164 @@
+{
+  "name": "row",
+  "label": "Row",
+  "icon": "fa-solid fa-grip-lines",
+  "menuSection": "layout",
+  "sortOrder": 10,
+  "isContainer": true,
+  "parents": {
+    "defaultPolicy": "deny",
+    "allow": ["stage"]
+  },
+  "children": {
+    "defaultPolicy": "allow",
+    "deny": ["row"]
+  },
+  "appearances": {
+    "contained": {
+      "default": true,
+      "label": "Contained",
+      "masterTemplate": "master/row/contained.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "row",
+            "data-appearance": "contained"
+          },
+          "styles": {},
+          "staticStyles": {}
+        },
+        "inner": {
+          "tag": "div",
+          "styles": {
+            "background-color": {"source": "background_color"},
+            "background-image": {"source": "background_image", "converter": "backgroundImage"},
+            "background-position": {"source": "background_position"},
+            "background-size": {"source": "background_size"},
+            "background-repeat": {"source": "background_repeat"},
+            "background-attachment": {"source": "background_attachment"},
+            "text-align": {"source": "text_align"},
+            "border-style": {"source": "border_style", "converter": "borderStyle"},
+            "border-color": {"source": "border_color"},
+            "border-width": {"source": "border_width"},
+            "border-radius": {"source": "border_radius"},
+            "min-height": {"source": "min_height", "converter": "minHeight"},
+            "justify-content": {"source": "justify_content"},
+            "margin": {"source": "margins_and_padding", "converter": "margins"},
+            "padding": {"source": "margins_and_padding", "converter": "paddings"}
+          },
+          "attributes": {
+            "data-enable-parallax": "enable_parallax",
+            "data-parallax-speed": "parallax_speed",
+            "data-background-images": "background_images",
+            "data-background-type": "background_type"
+          },
+          "cssSource": "css_classes",
+          "staticStyles": {
+            "display": "flex",
+            "flex-direction": "column"
+          }
+        }
+      }
+    },
+    "full-width": {
+      "label": "Full Width",
+      "masterTemplate": "master/row/full-width.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "row",
+            "data-appearance": "full-width"
+          },
+          "styles": {
+            "background-color": {"source": "background_color"},
+            "background-image": {"source": "background_image", "converter": "backgroundImage"},
+            "background-position": {"source": "background_position"},
+            "background-size": {"source": "background_size"},
+            "background-repeat": {"source": "background_repeat"},
+            "background-attachment": {"source": "background_attachment"},
+            "text-align": {"source": "text_align"},
+            "border-style": {"source": "border_style", "converter": "borderStyle"},
+            "border-color": {"source": "border_color"},
+            "border-width": {"source": "border_width"},
+            "border-radius": {"source": "border_radius"},
+            "min-height": {"source": "min_height", "converter": "minHeight"},
+            "margin": {"source": "margins_and_padding", "converter": "margins"},
+            "padding": {"source": "margins_and_padding", "converter": "paddings"}
+          },
+          "attributes": {
+            "data-enable-parallax": "enable_parallax",
+            "data-parallax-speed": "parallax_speed",
+            "data-background-images": "background_images",
+            "data-background-type": "background_type"
+          },
+          "cssSource": "css_classes",
+          "staticStyles": {
+            "display": "flex",
+            "flex-direction": "column"
+          }
+        },
+        "inner": {
+          "tag": "div",
+          "cssClasses": ["row-full-width-inner"],
+          "styles": {},
+          "attributes": {}
+        }
+      }
+    },
+    "full-bleed": {
+      "label": "Full Bleed",
+      "masterTemplate": "master/row/full-bleed.phtml",
+      "elements": {
+        "main": {
+          "tag": "div",
+          "attributes": {
+            "data-content-type": "row",
+            "data-appearance": "full-bleed"
+          },
+          "styles": {
+            "background-color": {"source": "background_color"},
+            "background-image": {"source": "background_image", "converter": "backgroundImage"},
+            "background-position": {"source": "background_position"},
+            "background-size": {"source": "background_size"},
+            "background-repeat": {"source": "background_repeat"},
+            "background-attachment": {"source": "background_attachment"},
+            "text-align": {"source": "text_align"},
+            "border-style": {"source": "border_style", "converter": "borderStyle"},
+            "border-color": {"source": "border_color"},
+            "border-width": {"source": "border_width"},
+            "border-radius": {"source": "border_radius"},
+            "min-height": {"source": "min_height", "converter": "minHeight"},
+            "margin": {"source": "margins_and_padding", "converter": "margins"},
+            "padding": {"source": "margins_and_padding", "converter": "paddings"}
+          },
+          "attributes": {
+            "data-enable-parallax": "enable_parallax",
+            "data-parallax-speed": "parallax_speed",
+            "data-background-images": "background_images",
+            "data-background-type": "background_type"
+          },
+          "cssSource": "css_classes",
+          "staticStyles": {
+            "display": "flex",
+            "flex-direction": "column"
+          }
+        },
+        "inner": {
+          "tag": "div",
+          "styles": {},
+          "attributes": {}
+        }
+      }
+    }
+  },
+  "defaults": {
+    "appearance": "contained",
+    "min_height": "",
+    "background_color": "",
+    "background_type": "image",
+    "enable_parallax": "0",
+    "parallax_speed": "0.5"
+  }
+}

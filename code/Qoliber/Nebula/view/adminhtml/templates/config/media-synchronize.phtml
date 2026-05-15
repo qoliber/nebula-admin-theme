@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\Nebula\Block\Config\Form\Field\MediaSynchronize $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$config = json_encode([
+    'syncUrl' => $block->getSyncUrl(),
+    'statusUrl' => $block->getStatusUrl(),
+    'storageSelector' => '#system_media_storage_configuration_media_storage',
+    'databaseSelector' => '#system_media_storage_configuration_media_database',
+    'initiallyRunning' => $block->isInitiallyRunning(),
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+?>
+<div x-data="nebulaMediaSync(<?= $escaper->escapeHtmlAttr($config) ?>)" class="nebula-media-sync">
+    <button type="button"
+            @click="canSync && sync()"
+            :disabled="!canSync"
+            :class="canSync
+                ? 'bg-nebula-600 hover:bg-nebula-700 text-white cursor-pointer shadow-sm'
+                : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60'"
+            class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition">
+        <svg x-show="syncing" x-cloak
+             class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"/>
+        </svg>
+        <span x-text="syncing
+            ? '<?= $escaper->escapeJs((string) __('Synchronizing…')) ?>'
+            : '<?= $escaper->escapeJs((string) __('Synchronize')) ?>'"></span>
+    </button>
+
+    <p x-show="message" x-cloak class="nebula-config-note mt-2"
+       x-text="message"></p>
+</div>

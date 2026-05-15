@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<config
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd"
+>
+    <default>
+        <nebula>
+            <theme>
+                <menu_position>sidebar</menu_position>
+                <enable_product_edit_tabs>0</enable_product_edit_tabs>
+                <enable_cms_page_edit_tabs>0</enable_cms_page_edit_tabs>
+                <enable_category_refresh>0</enable_category_refresh>
+            </theme>
+        </nebula>
+    </default>
+</config>

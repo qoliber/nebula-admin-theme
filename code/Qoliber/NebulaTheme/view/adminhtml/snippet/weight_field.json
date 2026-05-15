@@ -1,0 +1,4 @@
+{
+  "id": "weight_field",
+  "template": "Qoliber_NebulaTheme::eav/snippet/weight_field.phtml"
+}

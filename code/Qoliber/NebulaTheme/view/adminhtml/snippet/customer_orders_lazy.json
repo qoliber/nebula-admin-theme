@@ -1,0 +1,4 @@
+{
+    "id": "customer_orders_lazy",
+    "template": "Qoliber_NebulaTheme::customer/snippet/orders_lazy.phtml"
+}

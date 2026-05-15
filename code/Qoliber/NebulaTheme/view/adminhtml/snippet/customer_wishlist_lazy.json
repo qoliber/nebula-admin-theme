@@ -1,0 +1,4 @@
+{
+    "id": "customer_wishlist_lazy",
+    "template": "Qoliber_NebulaTheme::customer/snippet/wishlist_lazy.phtml"
+}

@@ -1,0 +1,71 @@
+{
+  "id": "tax_rule_edit",
+  "acl": "Magento_Tax::manage_tax",
+  "route": "tax_rule_edit",
+  "replaces": ["content.tax_rule_edit", "tax-rule-edit", "tax-rate-form"],
+  "dataSource": {
+    "provider": "tax_rule.form",
+    "config": {
+      "identifierParam": "rule"
+    }
+  },
+  "settings": {
+    "title": "Tax Rule",
+    "identifierField": "tax_calculation_rule_id",
+    "backUrl": "tax/rule/index",
+    "deleteUrl": "tax/rule/delete",
+    "saveUrl": "tax/rule/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "Tax Rule Information",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "code": {
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "tax_rate": {
+          "label": "Tax Rate",
+          "type": "multiselect",
+          "required": true,
+          "optionsSource": "Magento\\Tax\\Model\\Rate\\Source",
+          "position": 20
+        },
+        "tax_customer_class": {
+          "label": "Customer Tax Class",
+          "type": "multiselect",
+          "required": true,
+          "optionsSource": "Magento\\Tax\\Model\\TaxClass\\Source\\Customer",
+          "position": 30
+        },
+        "tax_product_class": {
+          "label": "Product Tax Class",
+          "type": "multiselect",
+          "required": true,
+          "optionsSource": "Magento\\Tax\\Model\\TaxClass\\Source\\Product",
+          "position": 40
+        },
+        "priority": {
+          "label": "Priority",
+          "type": "text",
+          "required": true,
+          "position": 50
+        },
+        "position": {
+          "label": "Sort Order",
+          "type": "text",
+          "position": 60
+        },
+        "calculate_subtotal": {
+          "label": "Calculate Off Subtotal Only",
+          "type": "toggle",
+          "position": 70
+        }
+      }
+    }
+  }
+}

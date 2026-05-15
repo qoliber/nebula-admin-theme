@@ -1,0 +1,18 @@
+/* --- Config page tabs (rendered by Magento\Config\Block\System\Config\Tabs) --- */
+.admin__page-nav {
+  @apply list-none p-0 m-0;
+}
+.admin__page-nav-item {
+  @apply mb-0.5;
+}
+.admin__page-nav-link {
+  @apply block text-[13px] text-gray-700 no-underline transition;
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-md);
+}
+.admin__page-nav-link:hover {
+  @apply bg-gray-100 text-gray-900;
+}
+.admin__page-nav-item._active .admin__page-nav-link {
+  @apply bg-nebula-50 text-nebula-700 font-medium;
+}

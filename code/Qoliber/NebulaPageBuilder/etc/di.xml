@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Qoliber\NebulaPageBuilder\Api\MasterFormatRendererInterface"
+                type="Qoliber\NebulaPageBuilder\Model\MasterFormat\Renderer"/>
+    <preference for="Qoliber\NebulaPageBuilder\Api\MasterFormatParserInterface"
+                type="Qoliber\NebulaPageBuilder\Model\MasterFormat\Parser"/>
+
+    <type name="Qoliber\NebulaPageBuilder\Model\Converter\Pool">
+        <arguments>
+            <argument name="converters" xsi:type="array">
+                <item name="backgroundImage" xsi:type="object">Qoliber\NebulaPageBuilder\Model\Converter\BackgroundImage</item>
+                <item name="margins" xsi:type="object">Qoliber\NebulaPageBuilder\Model\Converter\Margins</item>
+                <item name="paddings" xsi:type="object">Qoliber\NebulaPageBuilder\Model\Converter\Paddings</item>
+                <item name="minHeight" xsi:type="object">Qoliber\NebulaPageBuilder\Model\Converter\MinHeight</item>
+                <item name="display" xsi:type="object">Qoliber\NebulaPageBuilder\Model\Converter\Display</item>
+                <item name="borderStyle" xsi:type="object">Qoliber\NebulaPageBuilder\Model\Converter\BorderStyle</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

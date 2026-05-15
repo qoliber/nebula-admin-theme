@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaGrid\Block\Grid $block */
+
+$columns = $block->getColumns();
+$gridId = $block->getGridId();
+$hasMassActions = $block->hasMassActions();
+
+$hasAnyFilter = false;
+foreach ($columns as $col) {
+    if (!empty($col['filter'])) {
+        $hasAnyFilter = true;
+        break;
+    }
+}
+?>
+
+<div class="rounded-lg border border-gray-200 bg-white shadow-sm"
+     x-data="nebulaGrid({formKey: '<?= $escaper->escapeJs($block->getFormKey()) ?>', filters: '<?= $escaper->escapeJs($block->getFiltersJson()) ?>'})"
+     id="nebula-grid-<?= $escaper->escapeHtmlAttr($gridId) ?>">
+
+    <?php include __DIR__ . '/grid/toolbar.phtml'; ?>
+
+    <div class="relative w-full overflow-x-auto"
+         x-data="{ loading: false }"
+         @click="if ($event.target.tagName === 'A' && $event.target.href) { loading = true; }">
+        <div x-show="loading" x-cloak class="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
+            <svg class="h-8 w-8 animate-spin text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+        <table class="w-full table-auto divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <?php include __DIR__ . '/grid/header.phtml'; ?>
+                <?php if ($hasAnyFilter) : ?>
+                    <?php include __DIR__ . '/grid/filters.phtml'; ?>
+                <?php endif; ?>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                <?php include __DIR__ . '/grid/body.phtml'; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php include __DIR__ . '/grid/pagination.phtml'; ?>
+    <?php include __DIR__ . '/grid/mass-action-modal.phtml'; ?>
+</div>

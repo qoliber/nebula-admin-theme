@@ -1,0 +1,4 @@
+{
+  "id": "website_checkboxes",
+  "template": "Qoliber_NebulaTheme::eav/snippet/website_checkboxes.phtml"
+}
