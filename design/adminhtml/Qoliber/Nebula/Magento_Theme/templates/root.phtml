@@ -76,8 +76,8 @@ $faUrl = $this->getViewFileUrl('css/fontawesome.min.css');
             </script>
         <?php endif; ?>
         <?= /* @noEscape */ $headContent ?>
-        <?= /* @noEscape */ $headCritical ?>
-        <?= /* @noEscape */ $headAssets ?>
+        <?= /* @noEscape */ $headCritical ?? '' ?>
+        <?= /* @noEscape */ $headAssets ?? '' ?>
         <?= /* @noEscape */ $headAdditional ?>
         <link rel="stylesheet" href="<?= /* @noEscape */ $faUrl ?>">
         <link rel="stylesheet" href="<?= /* @noEscape */ $cssUrl ?>">
