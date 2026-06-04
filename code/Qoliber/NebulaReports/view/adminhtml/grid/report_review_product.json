@@ -1,0 +1,72 @@
+{
+  "id": "report_review_product",
+  "acl": "Magento_Reports::review_product",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_review_product.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "review_cnt",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "entity_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Product",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "review_cnt": {
+      "label": "Reviews",
+      "type": "text",
+      "sortable": true,
+      "position": 30
+    },
+    "avg_rating": {
+      "label": "Average",
+      "type": "text",
+      "sortable": false,
+      "position": 40
+    },
+    "avg_rating_approved": {
+      "label": "Average (Approved)",
+      "type": "text",
+      "sortable": false,
+      "position": 50
+    },
+    "last_review": {
+      "label": "Last Review",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 60
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Show Reviews",
+          "url": "review/product/index/productId/{{entity_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

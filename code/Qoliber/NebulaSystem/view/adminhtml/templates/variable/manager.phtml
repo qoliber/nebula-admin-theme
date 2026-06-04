@@ -1,0 +1,337 @@
+<?php
+/**
+ * @var \Qoliber\NebulaSystem\Block\Adminhtml\Variable\Manager $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ */
+
+declare(strict_types=1);
+
+$variable = $block->getCurrentVariable();
+$isEditing = $block->isEditing();
+$openModal = $block->shouldOpenModal();
+$backUrl = $block->getBackUrl();
+$saveUrl = $block->getSaveUrl();
+$validationUrl = $block->getValidationUrl();
+$deleteUrl = $block->getDeleteUrl();
+$formKey = $block->getFormKey();
+$managerConfig = json_encode([
+    'open' => $openModal,
+    'isEditing' => $isEditing,
+    'backUrl' => $backUrl,
+    'validationUrl' => $validationUrl,
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+$deleteUrlJs = json_encode($deleteUrl, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+$formKeyJs = json_encode($formKey, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+$validationUrlJs = json_encode($validationUrl, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+?>
+<div x-data="nebulaVariableManager(JSON.parse($el.dataset.variableManagerConfig || '{}'))"
+     data-variable-manager-config="<?= $block->escapeHtmlAttr($managerConfig) ?>"
+     class="space-y-6">
+
+    <div class="flex items-center justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 dark:text-slate-100">
+                <?= $escaper->escapeHtml((string) __('Custom Variables')) ?>
+            </h1>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <?= $escaper->escapeHtml((string) __('Manage reusable text and HTML snippets for emails, CMS content, and configuration driven output.')) ?>
+            </p>
+        </div>
+        <button type="button"
+                @click="openForCreate()"
+                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            <?= $escaper->escapeHtml((string) __('Add New Variable')) ?>
+        </button>
+    </div>
+
+    <?= /* @noEscape */ $block->getGridHtml() ?>
+
+    <template x-teleport="body">
+        <div x-show="modalOpen" x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center"
+             @keydown.escape.window="if (modalOpen) { closeModal(); $event.stopPropagation(); }">
+            <div x-show="modalOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                 @click="closeModal()"></div>
+
+            <div x-show="modalOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="relative mx-4 flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-800"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="nebula-variable-modal-title">
+                <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+                    <div>
+                        <h2 id="nebula-variable-modal-title" class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                            <?= $escaper->escapeHtml($block->getEditTitle()) ?>
+                        </h2>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            <?php if ($isEditing): ?>
+                                <?= $escaper->escapeHtml((string) __('Editing variable code %1.', $variable->getCode())) ?>
+                            <?php else: ?>
+                                <?= $escaper->escapeHtml((string) __('Create a reusable custom variable without leaving the listing view.')) ?>
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                    <button type="button"
+                            @click="closeModal()"
+                            class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-700 dark:bg-slate-900/30">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button type="button"
+                                @click="goBack()"
+                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+                            </svg>
+                            <?= $escaper->escapeHtml((string) __('Back')) ?>
+                        </button>
+                        <button type="button"
+                                @click="resetForm()"
+                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/>
+                            </svg>
+                            <?= $escaper->escapeHtml((string) __('Reset')) ?>
+                        </button>
+                        <?php if ($deleteUrl !== ''): ?>
+                            <button type="button"
+                                    @click="confirmDelete()"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                </svg>
+                                <?= $escaper->escapeHtml((string) __('Delete')) ?>
+                            </button>
+                        <?php endif; ?>
+                        <div class="ml-auto flex flex-wrap items-center gap-3">
+                            <button type="button"
+                                    @click="submitForm('edit')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                <?= $escaper->escapeHtml((string) __('Save & Continue')) ?>
+                            </button>
+                            <button type="button"
+                                    @click="submitForm('')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                                <?= $escaper->escapeHtml((string) __('Save')) ?>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-6 py-6">
+                    <?= /* @noEscape */ $block->getFormHtml() ?>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
+<?php
+$scriptString = <<<JS
+(function () {
+    var register = function () {
+        Alpine.data('nebulaVariableManager', function (config) {
+            config = config || {};
+
+            return {
+                modalOpen: !!config.open,
+                backUrl: config.backUrl || '',
+                isEditing: !!config.isEditing,
+                init: function () {
+                    this.bindValidation();
+                },
+                openForCreate: function () {
+                    this.modalOpen = true;
+                    var form = document.getElementById('edit_form');
+                    if (form) {
+                        this.resetCreateForm(form);
+                    }
+                },
+                closeModal: function () {
+                    if (this.isEditing) {
+                        window.location.href = this.backUrl;
+                        return;
+                    }
+                    this.modalOpen = false;
+                },
+                goBack: function () {
+                    this.closeModal();
+                },
+                resetForm: function () {
+                    var form = document.getElementById('edit_form');
+                    if (!form) {
+                        return;
+                    }
+
+                    if (this.isEditing) {
+                        this.resetExistingForm(form);
+                    } else {
+                        this.resetCreateForm(form);
+                    }
+                },
+                resetExistingForm: function (form) {
+                    if (!form) {
+                        return;
+                    }
+
+                    form.reset();
+                    this.syncFormControls(form);
+                    this.clearValidationState(form);
+                },
+                resetCreateForm: function (form) {
+                    if (!form) {
+                        return;
+                    }
+
+                    [
+                        'variable[variable_id]',
+                        'variable[code]',
+                        'variable[name]',
+                        'variable[html_value]',
+                        'variable[plain_value]'
+                    ].forEach(function (fieldName) {
+                        var field = form.querySelector('[name="' + fieldName + '"]');
+                        if (field) {
+                            field.defaultValue = '';
+                            field.value = '';
+                        }
+                    });
+
+                    var useDefault = form.querySelector('#use_default_value');
+                    if (useDefault) {
+                        useDefault.defaultValue = '0';
+                        useDefault.value = '0';
+                    }
+
+                    form.reset();
+                    this.syncFormControls(form);
+                    this.clearValidationState(form);
+                },
+                syncFormControls: function (form) {
+                    Array.prototype.forEach.call(form.elements, function (element) {
+                        if (!element.name) {
+                            return;
+                        }
+
+                        element.dispatchEvent(new Event('input', { bubbles: true }));
+                        element.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                },
+                clearValidationState: function (form) {
+                    form.querySelectorAll('.mage-error').forEach(function (element) {
+                        element.classList.remove('mage-error');
+                    });
+
+                    form.querySelectorAll('[generated=true], .admin__field-error').forEach(function (element) {
+                        element.remove();
+                    });
+                },
+                submitForm: function (back) {
+                    var form = document.getElementById('edit_form');
+                    if (!form) {
+                        return;
+                    }
+
+                    if (window.Nebula && window.Nebula.validateForm && !window.Nebula.validateForm(form)) {
+                        return;
+                    }
+
+                    var backInput = form.querySelector('input[name="back"]');
+                    if (!backInput) {
+                        backInput = document.createElement('input');
+                        backInput.type = 'hidden';
+                        backInput.name = 'back';
+                        form.appendChild(backInput);
+                    }
+                    backInput.value = back || '';
+
+                    if (window.Nebula && window.Nebula.showSaveLoader) {
+                        window.Nebula.showSaveLoader();
+                    }
+
+                    form.submit();
+                },
+                confirmDelete: async function () {
+                    var deleteUrl = __DELETE_URL__;
+                    if (!deleteUrl || !window.Nebula || !window.Nebula.confirm) {
+                        return;
+                    }
+
+                    var confirmed = await window.Nebula.confirm({
+                        title: 'Delete this variable?',
+                        message: 'This action cannot be undone.',
+                        danger: true,
+                        confirmText: 'Delete'
+                    });
+
+                    if (!confirmed) {
+                        return;
+                    }
+
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = deleteUrl;
+
+                    var key = document.createElement('input');
+                    key.type = 'hidden';
+                    key.name = 'form_key';
+                    key.value = __FORM_KEY__;
+                    form.appendChild(key);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                bindValidation: function () {
+                    require(['jquery', 'mage/mage'], function ($) {
+                        var form = $('#edit_form');
+                        if (!form.length) {
+                            return;
+                        }
+
+                        form.mage('form').mage('validation', {
+                            validationUrl: __VALIDATION_URL__,
+                            highlight: function (element) {
+                                $(element).trigger('highlight.validate');
+                            }
+                        });
+                    });
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) {
+        register();
+    } else {
+        document.addEventListener('alpine:init', register);
+    }
+})();
+JS;
+$scriptString = strtr($scriptString, [
+    '__DELETE_URL__' => $deleteUrlJs,
+    '__FORM_KEY__' => $formKeyJs,
+    '__VALIDATION_URL__' => $validationUrlJs,
+]);
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>

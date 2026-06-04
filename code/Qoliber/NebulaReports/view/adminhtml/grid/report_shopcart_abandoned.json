@@ -1,0 +1,94 @@
+{
+  "id": "report_shopcart_abandoned",
+  "acl": "Magento_Reports::abandoned",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_shopcart_abandoned.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "updated_at",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "customer_name": {
+      "label": "Customer",
+      "type": "text",
+      "sortable": false,
+      "searchable": true,
+      "position": 10
+    },
+    "email": {
+      "label": "Email",
+      "type": "text",
+      "sortable": false,
+      "searchable": true,
+      "position": 20
+    },
+    "items_count": {
+      "label": "Products",
+      "type": "text",
+      "sortable": false,
+      "filter": "range",
+      "position": 30
+    },
+    "items_qty": {
+      "label": "Quantity",
+      "type": "text",
+      "sortable": false,
+      "filter": "range",
+      "position": 40
+    },
+    "subtotal": {
+      "label": "Subtotal",
+      "type": "price",
+      "sortable": false,
+      "position": 50
+    },
+    "coupon_code": {
+      "label": "Applied Coupon",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "position": 60
+    },
+    "created_at": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 70
+    },
+    "updated_at": {
+      "label": "Updated",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 80
+    },
+    "remote_ip": {
+      "label": "IP Address",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "position": 90
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "View Customer",
+          "url": "customer/index/edit/id/{{customer_id}}/active_tab/cart"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

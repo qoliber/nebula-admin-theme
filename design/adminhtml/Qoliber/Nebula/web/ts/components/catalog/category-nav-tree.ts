@@ -11,6 +11,7 @@
 interface TreeNode {
     id: string | number;
     name?: string;
+    is_active?: boolean;
     children?: TreeNode[];
 }
 
@@ -20,6 +21,7 @@ interface CategoryNavTreeConfig {
     currentId?: string;
     reorderUrl?: string;
     moveUrl?: string;
+    deleteBaseUrl?: string;
     formKey?: string;
 }
 
@@ -35,6 +37,7 @@ export function registerCategoryNavTree(): void {
             currentId: config.currentId ?? '',
             reorderUrl: config.reorderUrl ?? '',
             moveUrl: config.moveUrl ?? '',
+            deleteBaseUrl: config.deleteBaseUrl ?? '',
             formKey: config.formKey ?? '',
             _sortableInstances: [] as unknown[],
             _sortSaving: false,
@@ -42,6 +45,9 @@ export function registerCategoryNavTree(): void {
             sortDirty: false,
             _savedContainerOrder: null as ContainerOrderMap | null,
             _pendingMoves: [] as { id: string; pid: string; aid: string }[],
+            _deleteOpen: false,
+            _deleteTarget: null as { id: string; name: string } | null,
+            _deleteItems: [] as { id: string | number; name: string; depth: number; isActive: boolean }[],
 
             init(): void {
                 // Sortable is not activated on load — user must click Reorder.
@@ -166,8 +172,16 @@ export function registerCategoryNavTree(): void {
                     },
                     body: body.toString(),
                 })
-                    .then((r) => r.json() as Promise<{ error: boolean }>)
-                    .then((data) => !data.error)
+                    .then((r) => r.json() as Promise<{ error: boolean; messages?: string }>)
+                    .then((data) => {
+                        if (data.error && data.messages) {
+                            const tmp = document.createElement('div');
+                            tmp.innerHTML = data.messages;
+                            const text = (tmp.textContent ?? tmp.innerText ?? '').trim();
+                            if (text) window.nebulaToast?.('error', text);
+                        }
+                        return !data.error;
+                    })
                     .catch(() => false);
             },
 
@@ -205,7 +219,7 @@ export function registerCategoryNavTree(): void {
                     return;
                 }
 
-                const confirmed = await window.Nebula?.confirm({
+                const confirmed = await window.Nebula?.confirm?.({
                     title: 'Discard unsaved changes?',
                     message: 'You have edits that will be lost if you leave this page.',
                     danger: true,
@@ -226,10 +240,12 @@ export function registerCategoryNavTree(): void {
             },
 
             closeCategoryDrawer(): void {
-                const drawerRoot = document.querySelector('[data-nebula-category-drawer]');
+                const drawerRoot = document.querySelector<HTMLElement>('[data-nebula-category-drawer]');
                 if (!drawerRoot || !window.Alpine || typeof Alpine.$data !== 'function') return;
                 try {
-                    const drawerData = Alpine.$data(drawerRoot) as { closeDrawer?: () => void };
+                    const drawerData = Alpine.$data(
+                        drawerRoot as Parameters<typeof Alpine.$data>[0],
+                    ) as { closeDrawer?: () => void };
                     drawerData?.closeDrawer?.();
                 } catch {
                     // Ignore drawer close failures
@@ -248,7 +264,7 @@ export function registerCategoryNavTree(): void {
                         draggable: '[data-cat-id]',
                         animation: 150,
                         ghostClass: 'opacity-40',
-                        onEnd: (evt: SortableEvent) => this._onSortEnd(evt),
+                        onEnd: (evt) => this._onSortEnd(evt as unknown as SortableEvent),
                     });
                     (this._sortableInstances as unknown[]).push(instance);
                 });
@@ -266,20 +282,98 @@ export function registerCategoryNavTree(): void {
                 const movedId = (evt.item as HTMLElement).dataset['catId'];
                 if (!movedId) return;
 
-                this.sortDirty = true;
-
                 const fromParentId = (evt.from as HTMLElement).dataset['parentId'];
-                const toParentId = (evt.to as HTMLElement).dataset['parentId'];
+                const toParentId = (evt.to as HTMLElement).dataset['parentId'] ?? '';
 
                 if (fromParentId !== toParentId) {
+                    if (movedId === toParentId || this._isAncestorOf(movedId, toParentId)) {
+                        (evt.from as HTMLElement).insertBefore(
+                            evt.item as HTMLElement,
+                            (evt.from as HTMLElement).children[evt.oldIndex ?? 0] ?? null
+                        );
+                        window.nebulaToast?.('error', 'A category cannot be moved into one of its own subcategories.');
+                        return;
+                    }
                     const siblings = Array.from(
                         (evt.to as HTMLElement).querySelectorAll<HTMLElement>(':scope > [data-cat-id]')
                     );
                     const newIdx = siblings.indexOf(evt.item as HTMLElement);
                     const aid = newIdx > 0 ? (siblings[newIdx - 1]!.dataset['catId'] ?? '0') : '0';
-                    this._pendingMoves.push({ id: movedId, pid: toParentId ?? '', aid });
+                    this._pendingMoves.push({ id: movedId, pid: toParentId, aid });
                 }
+
+                this.sortDirty = true;
                 // Same-parent: handled by _savePendingChanges() on Save
+            },
+
+            _findNodeInTree(id: string | number, nodes?: TreeNode[]): TreeNode | null {
+                const list = nodes ?? this.tree;
+                for (const node of list) {
+                    if (String(node.id) === String(id)) return node;
+                    if (node.children?.length) {
+                        const found = this._findNodeInTree(id, node.children);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            },
+
+            _countDescendants(id: string | number): number {
+                const node = this._findNodeInTree(id);
+                if (!node) return 0;
+                const count = (n: TreeNode): number => {
+                    let total = 0;
+                    for (const child of n.children ?? []) {
+                        total += 1 + count(child);
+                    }
+                    return total;
+                };
+                return count(node);
+            },
+
+            _isAncestorOf(ancestorId: string | number, descendantId: string | number): boolean {
+                const ancestor = this._findNodeInTree(ancestorId);
+                if (!ancestor) return false;
+                const has = (n: TreeNode, targetId: string): boolean => {
+                    for (const child of n.children ?? []) {
+                        if (String(child.id) === targetId) return true;
+                        if (has(child, targetId)) return true;
+                    }
+                    return false;
+                };
+                return has(ancestor, String(descendantId));
+            },
+
+            confirmDeleteCategory(id: string, name: string): void {
+                const items: { id: string | number; name: string; depth: number; isActive: boolean }[] = [];
+                const flatten = (node: TreeNode, depth: number): void => {
+                    items.push({
+                        id: node.id,
+                        name: node.name ?? '',
+                        depth,
+                        isActive: node.is_active !== false,
+                    });
+                    for (const child of node.children ?? []) {
+                        flatten(child, depth + 1);
+                    }
+                };
+                const node = this._findNodeInTree(id);
+                if (node) flatten(node, 0);
+                this._deleteTarget = { id, name };
+                this._deleteItems = items;
+                this._deleteOpen = true;
+            },
+
+            _cancelDelete(): void {
+                this._deleteOpen = false;
+                this._deleteTarget = null;
+                this._deleteItems = [];
+            },
+
+            _executeDelete(): void {
+                if (this._deleteTarget) {
+                    window.location.href = (this.deleteBaseUrl as string) + 'id/' + this._deleteTarget.id + '/';
+                }
             },
         }));
     };

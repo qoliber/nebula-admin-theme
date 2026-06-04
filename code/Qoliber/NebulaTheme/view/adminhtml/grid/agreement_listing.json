@@ -1,0 +1,67 @@
+{
+  "id": "agreement_listing",
+  "acl": "Magento_CheckoutAgreements::checkoutagreement",
+  "dataSource": {
+    "provider": "agreement.grid"
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "agreement_id",
+      "direction": "desc"
+    },
+    "addButton": {
+      "label": "Add New Condition",
+      "url": "nebula/agreement/new"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "agreement_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "name": {
+      "label": "Condition",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "stores": {
+      "label": "Store View",
+      "type": "text",
+      "sortable": false,
+      "filter": "select",
+      "filterOptionsSource": "nebula.store.view",
+      "position": 30
+    },
+    "is_active": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "1": "Enabled",
+        "0": "Disabled"
+      },
+      "position": 40
+    },
+    "actions": {
+      "label": "Actions",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "nebula/agreement/edit/id/{{agreement_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

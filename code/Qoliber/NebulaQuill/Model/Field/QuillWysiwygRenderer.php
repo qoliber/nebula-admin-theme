@@ -32,12 +32,31 @@ class QuillWysiwygRenderer implements WysiwygRendererInterface
         }
 
         return '<div class="nebula-quill-field" x-data="nebulaField_quill(' . $json . ')">'
+            . '<div class="nebula-quill-actions">'
+            . '<button type="button" class="nebula-quill-toggle" @click="toggleSourceMode()" x-text="sourceMode ? \''
+            . $this->escaper->escapeJs((string) __('Show Editor'))
+            . '\' : \''
+            . $this->escaper->escapeJs((string) __('Show HTML'))
+            . '\'"></button>'
+            . '<div x-show="sourceMode" x-cloak class="nebula-quill-source-actions">'
+            . '<button type="button" class="nebula-quill-source-button" @click="openSourceWidgetPicker()">'
+            . $this->escaper->escapeHtml((string) __('Insert Widget...'))
+            . '</button>'
+            . '<button type="button" class="nebula-quill-source-button" @click="openSourceImagePicker()">'
+            . $this->escaper->escapeHtml((string) __('Insert Image...'))
+            . '</button>'
+            . '<button type="button" class="nebula-quill-source-button" @click="openSourceVariablePicker()">'
+            . $this->escaper->escapeHtml((string) __('Insert Variable...'))
+            . '</button>'
+            . '</div>'
+            . '</div>'
             . '<textarea id="' . $this->escaper->escapeHtmlAttr($fieldId) . '"'
             . ' x-ref="fallbackInput"'
+            . ' @input="handleSourceInput()"'
             . ' name="' . $this->escaper->escapeHtmlAttr($fieldName) . '"'
             . ' rows="5"'
             . $validateAttr
-            . ' class="' . $this->escaper->escapeHtmlAttr($inputClass) . '">'
+            . ' class="' . $this->escaper->escapeHtmlAttr(trim($inputClass . ' nebula-quill-source')) . '">'
             . $this->escaper->escapeHtml($value)
             . '</textarea>'
             . '<div x-ref="editorHost" class="nebula-quill-host" hidden></div>'

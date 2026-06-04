@@ -8,9 +8,10 @@ declare(strict_types=1);
 
 $viewModel = $block->getData('view_model');
 if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\AttributeOptions) {
-    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaTheme\ViewModel\AttributeOptions::class);
+    throw new \RuntimeException(
+        'Nebula snippet "attribute_options": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\AttributeOptions). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
 }
 
 $formBlock = $block->getData('form_block');

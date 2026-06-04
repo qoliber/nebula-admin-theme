@@ -1,3 +1,5 @@
+/* System config patches — legacy form, not NebulaForm */
+
 /* --- Field notes & warnings --- */
 .nebula-config-note {
   @apply mt-1.5 text-xs text-gray-500 leading-relaxed;

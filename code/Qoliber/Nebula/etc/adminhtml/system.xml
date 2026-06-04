@@ -81,6 +81,19 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field
+                    id="enable_cms_block_edit_tabs"
+                    translate="label comment"
+                    type="select"
+                    sortOrder="38"
+                    showInDefault="1"
+                    showInWebsite="1"
+                    showInStore="1"
+                >
+                    <label>Enable CMS Block Edit Tabs</label>
+                    <comment>Enable the tabbed Nebula layout for the Magento CMS block edit view.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field
                     id="category_view_type"
                     translate="label comment"
                     type="select"

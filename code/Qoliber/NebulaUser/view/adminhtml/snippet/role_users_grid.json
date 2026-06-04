@@ -1,0 +1,4 @@
+{
+    "id": "role_users_grid",
+    "template": "Qoliber_NebulaUser::snippet/role_users_grid.phtml"
+}

@@ -1,0 +1,101 @@
+{
+  "id": "cms_block_edit_tabs",
+  "acl": "Magento_Cms::save",
+  "dataSource": {
+    "provider": "cms_block.form",
+    "config": {
+      "identifierParam": "block_id"
+    }
+  },
+  "settings": {
+    "title": "CMS Block",
+    "identifierField": "block_id",
+    "backUrl": "cms/block/index",
+    "deleteUrl": "cms/block/delete",
+    "saveUrl": "cms/block/save"
+  },
+  "fieldsets": {
+    "general": {
+      "label": "General",
+      "position": 10,
+      "fields": {
+        "title": {
+          "label": "Block Title",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "identifier": {
+          "label": "Identifier",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "is_active": {
+          "label": "Enable Block",
+          "type": "toggle",
+          "position": 30
+        },
+        "store_id": {
+          "type": "multiselect",
+          "label": "Store View",
+          "optionsSource": "nebula.store.view",
+          "field_name": "store_id",
+          "required": true,
+          "position": 40
+        }
+      }
+    },
+    "content": {
+      "label": "Content",
+      "position": 20,
+      "fields": {
+        "content": {
+          "label": "Content",
+          "type": "wysiwyg",
+          "position": 10,
+          "full_width": true
+        }
+      }
+    }
+  },
+  "layout": [
+    {
+      "id": "cms_block_edit_tabs",
+      "type": "tabs",
+      "children": [
+        {
+          "id": "general_tab",
+          "label": "General",
+          "children": [
+            {
+              "id": "general_section",
+              "type": "section",
+              "label": "General",
+              "fields": [
+                "title",
+                "identifier",
+                "is_active",
+                "store_id"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "content_tab",
+          "label": "Content",
+          "children": [
+            {
+              "id": "content_section",
+              "type": "section",
+              "label": "Content",
+              "fields": [
+                "content"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

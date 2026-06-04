@@ -8,11 +8,26 @@
   background: var(--nebula-page-bg);
 }
 .nebula-header {
-  @apply flex items-center justify-end border-b;
+  @apply flex items-center justify-end border-b relative;
   border-color: var(--nebula-border-default);
   background: var(--nebula-header-bg);
   gap: var(--nebula-spacing-sm);
   padding: var(--nebula-spacing-md) var(--nebula-spacing-xs);
+}
+
+/* Centered date pill in the admin header — absolutely positioned so it sits
+   at the geometric centre of the bar without disrupting the flex layout
+   (sidebar toggle on the left, notifications + dark mode + user on the right). */
+.nebula-header-date {
+  @apply absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2 text-sm pointer-events-none select-none;
+  color: var(--nebula-text-tertiary);
+}
+.nebula-header-date__day {
+  font-weight: 600;
+  color: var(--nebula-text-secondary);
+}
+.nebula-header-date__sep {
+  color: var(--nebula-text-muted);
 }
 .nebula-content {
   @apply flex-1;
@@ -100,23 +115,16 @@
   @apply flex items-center ml-auto;
   gap: var(--nebula-spacing-sm);
 }
-/* EAV form pages (product/category edit): hide legacy page actions bar and use form-shell spacing */
-body.catalog-product-edit .nebula-page-actions,
-body.catalog-category-edit .nebula-page-actions {
-  display: none;
-}
-body.catalog-product-edit .nebula-content,
-body.catalog-category-edit .nebula-content {
+/* EAV form pages: form-shell spacing (toolbar is removed at layout level via nebula_eav_form handle) */
+body.nebula-eav-form .nebula-content {
   padding: calc(var(--nebula-spacing-unit) * 5) var(--nebula-spacing-xl)
     var(--nebula-spacing-xl);
 }
-body.catalog-product-edit .nebula-form-header,
-body.catalog-category-edit .nebula-form-header {
+body.nebula-eav-form .nebula-form-header {
   margin-left: 0;
   margin-right: 0;
 }
-body.catalog-product-edit .nebula-section-card,
-body.catalog-category-edit .nebula-section-card {
+body.nebula-eav-form .nebula-section-card {
   margin-left: 0;
   margin-right: 0;
 }
@@ -185,6 +193,28 @@ body.catalog-category-edit .nebula-section-card {
   border-color: var(--nebula-border-strong);
   background: var(--nebula-bg-hover);
   outline: none;
+}
+
+/* Primary button hover in the page actions bar — skin-aware color-mix replaces
+   the static bg-nebula-500 from vendor/buttons.css */
+.nebula-page-actions .action-primary:hover,
+.nebula-page-actions button.primary:hover,
+.nebula-page-actions button.action-primary:hover,
+.page-main-actions .action-primary:hover,
+.page-main-actions button.primary:hover,
+.page-main-actions button.action-primary:hover {
+  background-color: color-mix(in srgb, var(--nebula-button-primary-bg) 82%, var(--color-nebula-900));
+  color: var(--color-white);
+}
+
+.dark .nebula-page-actions .action-primary:hover,
+.dark .nebula-page-actions button.primary:hover,
+.dark .nebula-page-actions button.action-primary:hover,
+.dark .page-main-actions .action-primary:hover,
+.dark .page-main-actions button.primary:hover,
+.dark .page-main-actions button.action-primary:hover {
+  background-color: color-mix(in srgb, var(--nebula-button-primary-bg) 76%, var(--color-nebula-900));
+  color: var(--color-white);
 }
 
 .nebula-messages {

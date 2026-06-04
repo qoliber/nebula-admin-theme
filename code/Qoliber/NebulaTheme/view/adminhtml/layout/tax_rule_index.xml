@@ -4,12 +4,23 @@
     <body>
         <referenceBlock name="adminhtml.block.tax.rule.container" remove="true"/>
         <referenceContainer name="content" htmlTag="div">
-            <block class="Qoliber\NebulaGrid\Block\Grid"
-                   name="nebula.tax_rule_listing"
+            <block class="Qoliber\NebulaTheme\Block\Adminhtml\Tax\Rule\Manager"
+                   name="nebula.tax_rule_manager"
                    after="-">
-                <arguments>
-                    <argument name="grid_id" xsi:type="string">tax_rule_listing</argument>
-                </arguments>
+                <block class="Qoliber\NebulaGrid\Block\Grid"
+                       name="nebula.tax_rule_listing"
+                       as="grid">
+                    <arguments>
+                        <argument name="grid_id" xsi:type="string">tax_rule_listing</argument>
+                    </arguments>
+                </block>
+                <block class="Qoliber\NebulaForm\Block\Form"
+                       name="nebula.tax_rule_form"
+                       as="form">
+                    <arguments>
+                        <argument name="form_id" xsi:type="string">tax_rule_edit</argument>
+                    </arguments>
+                </block>
             </block>
         </referenceContainer>
     </body>

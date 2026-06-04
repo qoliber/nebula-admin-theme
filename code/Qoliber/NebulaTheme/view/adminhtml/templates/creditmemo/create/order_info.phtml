@@ -1,0 +1,139 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Sales\Block\Adminhtml\Order\View\Info $block */
+$order = $block->getOrder();
+$customerUrl = $block->getCustomerViewUrl();
+$confirmationEmailStatusMessage = $order->getEmailSent()
+    ? __('The order confirmation email was sent')
+    : __('The order confirmation email was not sent');
+$orderAdminDate = $block->formatDate(
+    $block->getOrderAdminDate($order->getCreatedAt()),
+    \IntlDateFormatter::MEDIUM,
+    true
+);
+$orderStoreDate = $block->formatDate(
+    $order->getCreatedAt(),
+    \IntlDateFormatter::MEDIUM,
+    true,
+    $block->getTimezoneForStore($order->getStore())
+);
+$allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub', 'sup', 'ul'];
+$groupName = $block->getCustomerGroupName();
+?>
+<section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <div class="mb-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <?= $block->escapeHtml(__('Order')) ?>
+            </h2>
+        </div>
+        <dl class="space-y-3 text-sm">
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Order Number')) ?></dt>
+                <dd class="mt-1 font-semibold text-gray-900">
+                    <a href="<?= $block->escapeUrl($block->getViewUrl($order->getId())) ?>" class="text-blue-600 hover:text-blue-800">
+                        <?= $block->escapeHtml($order->getRealOrderId()) ?>
+                    </a>
+                </dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Email Status')) ?></dt>
+                <dd class="mt-1 text-gray-700"><?= $block->escapeHtml($confirmationEmailStatusMessage) ?></dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Order Date')) ?></dt>
+                <dd class="mt-1 text-gray-700"><?= $block->escapeHtml($orderAdminDate) ?></dd>
+                <?php if ($orderAdminDate !== $orderStoreDate) : ?>
+                    <div class="mt-1 text-xs text-gray-500">
+                        <?= $block->escapeHtml(__('Store time (%1): %2', $block->getTimezoneForStore($order->getStore()), $orderStoreDate)) ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Status')) ?></dt>
+                <dd class="mt-1 text-gray-700"><?= $block->escapeHtml($order->getStatusLabel()) ?></dd>
+            </div>
+            <?php if (!$block->isSingleStoreMode()) : ?>
+                <div>
+                    <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Purchased From')) ?></dt>
+                    <dd class="mt-1 text-gray-700"><?= $block->escapeHtml($block->getOrderStoreName(), ['br']) ?></dd>
+                </div>
+            <?php endif; ?>
+        </dl>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <?= $block->escapeHtml(__('Account')) ?>
+            </h2>
+            <?php if ($customerUrl) : ?>
+                <a href="<?= $block->escapeUrl($customerUrl) ?>"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                    <?= $block->escapeHtml(__('Edit Customer')) ?>
+                </a>
+            <?php endif; ?>
+        </div>
+        <dl class="space-y-3 text-sm">
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Customer Name')) ?></dt>
+                <dd class="mt-1 text-gray-900"><?= $block->escapeHtml($order->getCustomerName()) ?></dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Email')) ?></dt>
+                <dd class="mt-1 text-gray-700">
+                    <a href="mailto:<?= $block->escapeHtmlAttr($order->getCustomerEmail()) ?>" class="text-blue-600 hover:text-blue-800">
+                        <?= $block->escapeHtml($order->getCustomerEmail()) ?>
+                    </a>
+                </dd>
+            </div>
+            <?php if ($groupName) : ?>
+                <div>
+                    <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml(__('Customer Group')) ?></dt>
+                    <dd class="mt-1 text-gray-700"><?= $block->escapeHtml($groupName) ?></dd>
+                </div>
+            <?php endif; ?>
+            <?php foreach ($block->getCustomerAccountData() as $data) : ?>
+                <div>
+                    <dt class="text-xs font-medium uppercase tracking-wide text-gray-400"><?= $block->escapeHtml($data['label']) ?></dt>
+                    <dd class="mt-1 text-gray-700"><?= $block->escapeHtml($data['value'], ['br']) ?></dd>
+                </div>
+            <?php endforeach; ?>
+            <?= $block->getChildHtml('extra_customer_info') ?>
+        </dl>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <?= $block->escapeHtml(__('Billing Address')) ?>
+            </h2>
+            <div class="text-sm text-blue-600 hover:text-blue-800"><?= /* @noEscape */ $block->getAddressEditLink($order->getBillingAddress()) ?></div>
+        </div>
+        <address class="text-sm not-italic leading-relaxed text-gray-700">
+            <?= $block->escapeHtml($block->getFormattedAddress($order->getBillingAddress()), $allowedAddressHtmlTags) ?>
+        </address>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <?= $block->escapeHtml(__('Shipping Address')) ?>
+            </h2>
+            <?php if (!$block->getOrder()->getIsVirtual()) : ?>
+                <div class="text-sm text-blue-600 hover:text-blue-800"><?= /* @noEscape */ $block->getAddressEditLink($order->getShippingAddress()) ?></div>
+            <?php endif; ?>
+        </div>
+        <?php if ($block->getOrder()->getIsVirtual()) : ?>
+            <p class="text-sm italic text-gray-400"><?= $block->escapeHtml(__('Virtual order. No shipping address.')) ?></p>
+        <?php else : ?>
+            <address class="text-sm not-italic leading-relaxed text-gray-700">
+                <?= $block->escapeHtml($block->getFormattedAddress($order->getShippingAddress()), $allowedAddressHtmlTags) ?>
+            </address>
+        <?php endif; ?>
+    </div>
+</section>

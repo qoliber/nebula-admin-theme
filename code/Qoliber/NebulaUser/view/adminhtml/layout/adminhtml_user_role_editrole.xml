@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Layout for the role edit page.
+ *
+ * The Nebula form block + the `replaces` block removals are injected by
+ * Qoliber\NebulaForm\Plugin\InjectFormLayout from the admin_role_edit form
+ * JSON definition. This stub only flattens the page layout — the stock vendor
+ * layout is `admin-2columns-left` to host the side Tabs block, which Nebula
+ * renders inline as fieldsets.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!--
+            Keep adminhtml.user.role.buttons alive (the EditRole controller
+            hard-references it via $layout->getBlock(...)->setRoleId($role->getId())
+            and would 500 if removed) but render nothing — Nebula's form-shell
+            provides the Save/Delete/Back action bar already.
+        -->
+        <referenceBlock name="adminhtml.user.role.buttons" display="false"/>
+    </body>
+</page>

@@ -3,12 +3,14 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name="adminhtml.system.store.container" remove="true"/>
+        <referenceContainer name="page.main.actions" remove="true"/>
         <referenceContainer name="content" htmlTag="div">
-            <block class="Qoliber\NebulaGrid\Block\Grid"
-                   name="nebula.store_listing"
+            <block class="Magento\Backend\Block\Template"
+                   name="nebula.stores_tree"
+                   template="Qoliber_NebulaStore::snippet/stores_tree.phtml"
                    after="-">
                 <arguments>
-                    <argument name="grid_id" xsi:type="string">store_listing</argument>
+                    <argument name="view_model" xsi:type="object">Qoliber\NebulaStore\ViewModel\StoresTree</argument>
                 </arguments>
             </block>
         </referenceContainer>

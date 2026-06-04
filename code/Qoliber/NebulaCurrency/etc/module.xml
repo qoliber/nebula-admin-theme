@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+    Qoliber_NebulaCurrency — Nebula-styled currency admin pages.
+
+    Ports two stock Magento admin pages to Nebula:
+      - Currency Rates    (adminhtml/system_currency/index)
+      - Currency Symbols  (adminhtml/system_currencysymbol/index)
+
+    Same POST endpoints, same payload shape — only the chrome is replaced.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Qoliber_NebulaCurrency">
+        <sequence>
+            <module name="Magento_Backend"/>
+            <module name="Magento_Directory"/>
+            <module name="Magento_CurrencySymbol"/>
+            <module name="Qoliber_NebulaTheme"/>
+            <module name="Qoliber_NebulaForm"/>
+        </sequence>
+    </module>
+</config>

@@ -1,0 +1,51 @@
+/* Header accent color utilities — driven by --nebula-button-primary-bg (skinnable) */
+
+.nebula-header .nebula-accent-fg {
+    color: var(--nebula-button-primary-bg);
+}
+
+.nebula-header .nebula-accent-soft {
+    color: color-mix(in srgb, var(--nebula-button-primary-bg) 72%, var(--color-nebula-100));
+}
+
+.dark .nebula-header .nebula-accent-soft {
+    color: color-mix(in srgb, var(--nebula-button-primary-bg) 84%, var(--color-nebula-200));
+}
+
+.nebula-header .nebula-accent-badge {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 26%, transparent);
+    color: var(--nebula-button-primary-bg);
+    border: 1px solid color-mix(in srgb, var(--nebula-button-primary-bg) 48%, transparent);
+}
+
+.dark .nebula-header .nebula-accent-badge {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 22%, var(--color-nebula-950));
+    color: var(--color-nebula-100);
+    border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 52%, transparent);
+}
+
+.nebula-header-icon-trigger:hover,
+.nebula-header-icon-trigger:focus-visible {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 16%, var(--color-nebula-50));
+    color: var(--nebula-button-primary-bg);
+    outline: none;
+}
+
+.dark .nebula-header-icon-trigger:hover,
+.dark .nebula-header-icon-trigger:focus-visible {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 24%, var(--color-nebula-950));
+    color: var(--color-white);
+}
+
+.nebula-user-trigger:hover,
+.nebula-user-trigger:focus-visible {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 14%, var(--color-nebula-50));
+    color: var(--nebula-button-primary-bg);
+    outline: none;
+}
+
+.dark .nebula-user-trigger:hover,
+.dark .nebula-user-trigger:focus-visible {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 22%, var(--color-nebula-950));
+    color: var(--color-nebula-100);
+}

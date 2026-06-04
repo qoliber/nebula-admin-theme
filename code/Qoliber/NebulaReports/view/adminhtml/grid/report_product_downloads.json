@@ -1,0 +1,56 @@
+{
+  "id": "report_product_downloads",
+  "acl": "Magento_Reports::downloads",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_product_downloads.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "purchases",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "name": {
+      "label": "Product",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 10
+    },
+    "link_title": {
+      "label": "Link",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "position": 20
+    },
+    "sku": {
+      "label": "SKU",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "purchases": {
+      "label": "Purchases",
+      "type": "text",
+      "sortable": true,
+      "position": 40
+    },
+    "downloads": {
+      "label": "Downloads",
+      "type": "text",
+      "sortable": true,
+      "position": 50
+    }
+  }
+}

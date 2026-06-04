@@ -1,4 +1,11 @@
+/* System config patches — legacy form, not NebulaForm */
+
 /* --- Time picker (inline selects) --- */
+/*
+ * select80wide is a Magento-generated class on time-picker selects. Magento's
+ * admin CSS applies display:block to all config selects; !important is needed
+ * to override that without knowing the exact competing selector specificity.
+ */
 .nebula-config-value select.select80wide {
   display: inline-block !important;
   width: 5rem !important;

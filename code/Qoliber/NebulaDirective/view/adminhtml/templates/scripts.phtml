@@ -1,0 +1,295 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaDirective\Block\Adminhtml\Assets $block */
+$configJson = $block->getConfigJson();
+$bundleJs  = $block->getViewFileUrl('js/dist/nebula-directive.js');
+$bundleCss = $block->getViewFileUrl('js/dist/nebula-directive.css');
+?>
+<link rel="stylesheet" href="<?= $block->escapeUrl($bundleCss) ?>">
+<script src="<?= /* @noEscape */ $bundleJs ?>"></script>
+
+<!-- Variable picker singleton -->
+<div
+    x-data="nebulaVariablePicker(<?= $block->escapeHtmlAttr($configJson) ?>)"
+    x-init="init()"
+    class="nebula-directive-picker"
+>
+    <div
+        x-show="isOpen"
+        x-cloak
+        class="fixed inset-0 z-[10000] flex items-center justify-center"
+        @keydown.escape.window="close()"
+    >
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
+
+        <div
+            class="relative z-10 mx-4 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            @click.stop
+        >
+            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                <h3 class="text-lg font-semibold text-gray-900"><?= $block->escapeHtml((string) __('Insert Variable')) ?></h3>
+                <div class="flex items-center gap-3">
+                    <button type="button" @click="close()" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+                        <?= $block->escapeHtml((string) __('Cancel')) ?>
+                    </button>
+                    <button
+                        type="button"
+                        @click="insertSelected()"
+                        :disabled="!selected"
+                        class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300"
+                    >
+                        <?= $block->escapeHtml((string) __('Insert Variable')) ?>
+                    </button>
+                </div>
+            </div>
+
+            <div class="border-b border-gray-200 px-6 py-3">
+                <div class="relative">
+                    <input
+                        x-model="search"
+                        type="search"
+                        placeholder="<?= $block->escapeHtmlAttr((string) __('Search by keyword')) ?>"
+                        class="block w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                    >
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                </div>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-auto">
+                <div x-show="loading" x-cloak class="px-6 py-4 text-sm text-indigo-600"><?= $block->escapeHtml((string) __('Loading variables…')) ?></div>
+
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-white">
+                        <tr class="border-b border-gray-200">
+                            <th class="w-10 px-4 py-3 text-left font-semibold text-gray-500"><?= $block->escapeHtml((string) __('Select')) ?></th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-500"><?= $block->escapeHtml((string) __('Variable Name')) ?></th>
+                            <th class="w-28 px-4 py-3 text-left font-semibold text-gray-500"><?= $block->escapeHtml((string) __('Type')) ?></th>
+                            <th class="w-64 px-4 py-3 text-left font-semibold text-gray-500"><?= $block->escapeHtml((string) __('Code')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="variable in filtered" :key="variable.code + '_' + variable.type">
+                            <tr
+                                @click="select(variable)"
+                                class="cursor-pointer border-b border-gray-100 transition"
+                                :class="selected && selected.code === variable.code && selected.type === variable.type
+                                    ? 'bg-indigo-50'
+                                    : 'hover:bg-gray-50'"
+                            >
+                                <td class="px-4 py-3">
+                                    <input
+                                        type="radio"
+                                        :checked="selected && selected.code === variable.code && selected.type === variable.type"
+                                        @click.stop="select(variable)"
+                                        class="h-4 w-4 cursor-pointer accent-indigo-600"
+                                    >
+                                </td>
+                                <td class="px-4 py-3 text-gray-900">
+                                    <span x-text="variable.group ? variable.group + ' / ' + variable.label : variable.label"></span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
+                                        :class="variable.type === 'custom' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'"
+                                        x-text="variable.type"
+                                    ></span>
+                                </td>
+                                <td class="px-4 py-3 font-mono text-xs text-gray-500" x-text="variable.code"></td>
+                            </tr>
+                        </template>
+                        <tr x-show="!loading && filtered.length === 0">
+                            <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400">
+                                <?= $block->escapeHtml((string) __('No variables found.')) ?>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Widget picker singleton -->
+<div
+    x-data="nebulaWidgetPicker(<?= $block->escapeHtmlAttr($configJson) ?>)"
+    x-init="init()"
+    class="nebula-directive-picker"
+    @chooser:selected.window="handleChooserSelected($event.detail)"
+>
+    <div
+        x-show="isOpen"
+        x-cloak
+        class="fixed inset-0 z-[10000] flex items-center justify-center"
+        @keydown.escape.window="close()"
+    >
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
+
+        <div
+            class="relative z-10 mx-4 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            @click.stop
+        >
+            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                <h3 class="text-lg font-semibold text-gray-900"><?= $block->escapeHtml((string) __('Insert Widget')) ?></h3>
+                <div class="flex items-center gap-3">
+                    <button type="button" @click="close()" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+                        <?= $block->escapeHtml((string) __('Cancel')) ?>
+                    </button>
+                    <button
+                        type="button"
+                        @click="insertSelected()"
+                        :disabled="!selectedType || loading"
+                        class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300"
+                    >
+                        <?= $block->escapeHtml((string) __('Insert Widget')) ?>
+                    </button>
+                </div>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-auto px-6 py-5 space-y-5">
+                <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                    <?= $block->escapeHtml((string) __('Inserting a widget does not create a widget instance.')) ?>
+                </div>
+
+                <div x-show="errorMessage" x-cloak class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" x-text="errorMessage"></div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $block->escapeHtml((string) __('Widget Type')) ?>
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                        x-model="selectedType"
+                        @change="onTypeChange()"
+                        class="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                    >
+                        <option value=""><?= $block->escapeHtml((string) __('-- Please Select --')) ?></option>
+                        <template x-for="type in types" :key="type.code">
+                            <option :value="type.code" x-text="type.name"></option>
+                        </template>
+                    </select>
+                    <p x-show="selectedType" x-cloak class="mt-1 text-xs text-gray-500" x-text="types.find((type) => type.code === selectedType)?.description || ''"></p>
+                </div>
+
+                <div x-show="loading" x-cloak class="text-sm text-indigo-600"><?= $block->escapeHtml((string) __('Loading widget options…')) ?></div>
+
+                <template x-if="params.length > 0">
+                    <div class="space-y-4">
+                        <template x-for="param in params" :key="param.name">
+                            <div x-show="isFieldVisible(param)">
+                                <label class="mb-1 block text-sm font-medium text-gray-700">
+                                    <span x-text="param.label"></span>
+                                    <span x-show="param.required" class="text-red-500">*</span>
+                                </label>
+
+                                <template x-if="param.type === 'select' && !param.multiple">
+                                    <select
+                                        :name="param.name"
+                                        x-init="$el.value = getFieldValue(param.name)"
+                                        x-effect="$el.value = getFieldValue(param.name)"
+                                        @change="setFieldValue(param.name, $event.target.value)"
+                                        class="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    >
+                                        <option value=""></option>
+                                        <template x-for="opt in param.options" :key="opt.value">
+                                            <option :value="opt.value" :selected="isSelectOptionSelected(param.name, opt.value)" x-text="opt.label"></option>
+                                        </template>
+                                    </select>
+                                </template>
+
+                                <template x-if="param.type === 'select' && param.multiple">
+                                    <div class="space-y-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5">
+                                        <template x-for="opt in param.options" :key="param.name + '_' + opt.value">
+                                            <label class="flex items-center gap-3 text-sm text-gray-900">
+                                                <input
+                                                    type="checkbox"
+                                                    :checked="isMultiValueChecked(param.name, opt.value)"
+                                                    @change="toggleMultiValue(param.name, opt.value, $event.target.checked)"
+                                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                >
+                                                <span x-text="opt.label"></span>
+                                            </label>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                <template x-if="param.type === 'boolean'">
+                                    <select
+                                        :name="param.name"
+                                        x-init="$el.value = getFieldValue(param.name)"
+                                        x-effect="$el.value = getFieldValue(param.name)"
+                                        @change="setFieldValue(param.name, $event.target.value)"
+                                        class="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    >
+                                        <option value="0" :selected="isSelectOptionSelected(param.name, '0')"><?= $block->escapeHtml((string) __('No')) ?></option>
+                                        <option value="1" :selected="isSelectOptionSelected(param.name, '1')"><?= $block->escapeHtml((string) __('Yes')) ?></option>
+                                    </select>
+                                </template>
+
+                                <template x-if="param.type === 'textarea'">
+                                    <textarea
+                                        :name="param.name"
+                                        x-model="values[param.name]"
+                                        rows="3"
+                                        class="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    ></textarea>
+                                </template>
+
+                                <template x-if="param.type === 'text'">
+                                    <input
+                                        type="text"
+                                        :name="param.name"
+                                        x-model="values[param.name]"
+                                        :placeholder="param.default"
+                                        class="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    >
+                                </template>
+
+                                <template x-if="param.type === 'chooser' && isChooserAvailable(param.chooser)">
+                                    <div class="flex items-center gap-3">
+                                        <input type="hidden" :name="param.name" :value="getFieldValue(param.name)">
+                                        <span
+                                            class="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700"
+                                            x-text="getChooserLabel(param) || '<?= $block->escapeJs((string) __('None selected')) ?>'"
+                                        ></span>
+                                        <button
+                                            type="button"
+                                            @click="openChooser(param)"
+                                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+                                        >
+                                            <span x-text="getFieldValue(param.name) ? '<?= $block->escapeJs((string) __('Change…')) ?>' : '<?= $block->escapeJs((string) __('Pick…')) ?>'"></span>
+                                        </button>
+                                    </div>
+                                </template>
+
+                                <template x-if="param.type === 'chooser' && !isChooserAvailable(param.chooser)">
+                                    <input
+                                        type="text"
+                                        :name="param.name"
+                                        x-model="values[param.name]"
+                                        :placeholder="param.default"
+                                        class="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    >
+                                </template>
+
+                                <template x-if="param.type === 'conditions'">
+                                    <div
+                                        class="rounded-lg border border-gray-200 bg-white p-3"
+                                        x-init="mountRuleEditor($el, param)"
+                                        x-html="renderRuleEditor(param.name)"
+                                    ></div>
+                                </template>
+
+                                <p x-show="param.description" x-cloak class="mt-1 text-xs text-gray-500" x-text="param.description"></p>
+                                <p x-show="param.note" x-cloak class="mt-1 text-xs text-gray-500" x-text="param.note"></p>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?= /* @noEscape */ $block->renderModalChoosers() ?>

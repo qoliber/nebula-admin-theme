@@ -14,6 +14,7 @@ const bundles = [
     { entry: 'ts/nebula-form.ts', out: 'nebula-form.js' },
     { entry: 'ts/pages/media.ts', out: 'nebula-media.js' },
     { entry: 'ts/pages/quill.ts', out: 'nebula-quill.js' },
+    { entry: 'ts/pages/directive.ts', out: 'nebula-directive.js' },
     { entry: 'ts/pages/bundle-options.ts', out: 'nebula-bundle-options.js' },
     { entry: 'ts/pages/custom-options.ts', out: 'nebula-custom-options.js' },
     { entry: 'ts/pages/customer-addresses.ts', out: 'nebula-customer-addresses.js' },

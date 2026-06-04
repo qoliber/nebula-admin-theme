@@ -17,7 +17,7 @@
     "massActions": false,
     "addButton": {
       "label": "Add New Tax Rate",
-      "url": "tax/rate/add"
+      "url": "nebula/taxrate/new"
     }
   },
   "columns": {
@@ -71,7 +71,7 @@
       "actions": [
         {
           "label": "Edit",
-          "url": "tax/rate/edit/rate/{{tax_calculation_rate_id}}"
+          "url": "nebula/taxrate/edit/rate/{{tax_calculation_rate_id}}"
         }
       ],
       "position": 999

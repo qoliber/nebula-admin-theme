@@ -9,8 +9,32 @@
                 <menu_position>sidebar</menu_position>
                 <enable_product_edit_tabs>0</enable_product_edit_tabs>
                 <enable_cms_page_edit_tabs>0</enable_cms_page_edit_tabs>
+                <enable_cms_block_edit_tabs>0</enable_cms_block_edit_tabs>
                 <enable_category_refresh>0</enable_category_refresh>
             </theme>
         </nebula>
+        <!--
+            Exclude the theme's build tooling from asset minification. The
+            Nebula theme keeps its Tailwind/Vite build under web/node_modules,
+            and Magento's static-content:deploy walks the whole web/ tree.
+            Production-mode deploy would otherwise hand Vite's multi-megabyte
+            Node bundles (e.g. vite/dist/node/chunks/dep-*.js) to JShrink,
+            which fails with "Unclosed string" on non-browser code. Matching
+            /node_modules/ anywhere in the path skips minification for those
+            files (the browser never references them), so the deploy completes.
+            See \Magento\Framework\View\Asset\Minification::isExcluded().
+        -->
+        <dev>
+            <js>
+                <minify_exclude>
+                    <nebula_node_modules>/node_modules/</nebula_node_modules>
+                </minify_exclude>
+            </js>
+            <css>
+                <minify_exclude>
+                    <nebula_node_modules>/node_modules/</nebula_node_modules>
+                </minify_exclude>
+            </css>
+        </dev>
     </default>
 </config>

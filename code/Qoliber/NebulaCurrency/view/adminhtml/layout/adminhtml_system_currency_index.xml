@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+    Currency Rates page (adminhtml/system_currency/index).
+
+    The page block is added by the controller via `_addContent()`, not via
+    layout XML — so there is nothing in layout to `remove`. The Nebula
+    template swap is performed by a DI preference (see etc/di.xml) which
+    re-routes the stock block FQDN to our subclass with a Nebula template.
+
+    This file exists only to keep the convention symmetric with other Nebula
+    pages and to ensure the `styles` handle is loaded.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <body/>
+</page>

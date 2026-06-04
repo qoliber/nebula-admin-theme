@@ -22,8 +22,13 @@
 /*
  * Semantic tokens (CSS variables only — for Magento-generated HTML we can't add classes to).
  * Templates should use Tailwind classes directly (bg-nebula-600, etc.)
+ *
+ * light-dark() tokens: the browser resolves to the correct value based on color-scheme.
+ * The JS toggle sets html.style.colorScheme = 'dark'|'light' for explicit preference;
+ * when no preference is stored, color-scheme: light dark below auto-follows the OS.
  */
 :root {
+  color-scheme: light dark;
   /* === PRIMARY ACTION === */
   --nebula-primary: var(--color-nebula-600);
   --nebula-primary-hover: var(--color-nebula-500);
@@ -55,6 +60,7 @@
   --nebula-radius-full: 9999px;
 
   /* === SHADOWS === */
+  /* light-dark() only handles <color> values; shadow shorthand uses a .dark override below */
   --nebula-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --nebula-shadow-md:
     0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -69,7 +75,9 @@
   --nebula-transition-speed: 200ms;
 
   /* === FORM INPUTS === */
-  --nebula-input-border: var(--color-gray-300, #d1d5db);
+  /* bg: white in light, gray-700 in dark — intentionally darker than page bg for contrast */
+  --nebula-input-bg: light-dark(#ffffff, #374151);
+  --nebula-input-border: light-dark(#d1d5db, #4b5563);
   --nebula-input-focus-border: var(--color-nebula-500);
   --nebula-input-focus-ring: color-mix(
     in oklab,
@@ -89,26 +97,29 @@
   --nebula-sidebar-active-bg: rgba(255, 255, 255, 0.15);
   --nebula-sidebar-hover-bg: rgba(255, 255, 255, 0.08);
 
-  /* === BACKGROUNDS (gradient-capable) === */
-  --nebula-header-bg: #ffffff;
-  --nebula-fieldset-header-bg: rgba(249, 250, 251, 0.8);
-  --nebula-button-bg: #ffffff;
+  /* === BACKGROUNDS (light-dark() — resolves via color-scheme) === */
+  --nebula-header-bg: light-dark(#ffffff, #1f2937);
+  --nebula-fieldset-header-bg: light-dark(rgba(249, 250, 251, 0.8), #1f2937);
+  --nebula-button-bg: light-dark(#ffffff, #374151);
   --nebula-button-primary-bg: var(--color-nebula-600);
-  --nebula-page-bg: #f9fafb;
+  --nebula-page-bg: light-dark(#f9fafb, #111827);
 
-  /* === SEMANTIC COLORS (skinnable neutrals) === */
-  --nebula-bg-primary: #ffffff;
-  --nebula-bg-secondary: #f9fafb;
-  --nebula-bg-tertiary: #f3f4f6;
-  --nebula-bg-hover: #f9fafb;
-  --nebula-text-primary: #111827;
-  --nebula-text-secondary: #374151;
-  --nebula-text-tertiary: #6b7280;
-  --nebula-text-muted: #9ca3af;
+  /* === SEMANTIC COLORS (light-dark() — resolves via color-scheme) === */
+  --nebula-bg-primary: light-dark(#ffffff, #1f2937);
+  --nebula-bg-secondary: light-dark(#f9fafb, #111827);
+  --nebula-bg-tertiary: light-dark(#f3f4f6, #374151);
+  --nebula-bg-hover: light-dark(#f9fafb, #374151);
+  --nebula-text-primary: light-dark(#111827, #f3f4f6);
+  --nebula-text-secondary: light-dark(#374151, #d1d5db);
+  --nebula-text-tertiary: light-dark(#6b7280, #9ca3af);
+  --nebula-text-muted: light-dark(#9ca3af, #6b7280);
   --nebula-text-inverted: #ffffff;
-  --nebula-border-light: #f3f4f6;
-  --nebula-border-default: #e5e7eb;
-  --nebula-border-strong: #d1d5db;
+  --nebula-border-light: light-dark(#f3f4f6, #374151);
+  --nebula-border-default: light-dark(#e5e7eb, #4b5563);
+  --nebula-border-strong: light-dark(#d1d5db, #6b7280);
+
+  /* === ADAPTIVE NEUTRAL (for color-mix hover derivation in Phase B/C) === */
+  --nebula-neutral-mix: light-dark(#171717, #f5f5f5);
 
   /* === CHART === */
   --nebula-chart-line: var(--color-nebula-500);
@@ -123,4 +134,14 @@
   --nebula-color-error-light: #fef2f2;
   --nebula-color-info: #3b82f6;
   --nebula-color-info-light: #eff6ff;
+}
+
+/*
+ * Shadows add visual noise in dark mode. light-dark() cannot handle box-shadow
+ * shorthand (it only resolves <color> values), so these stay class-driven.
+ */
+.dark {
+  --nebula-shadow-sm: none;
+  --nebula-shadow-md: none;
+  --nebula-shadow-lg: none;
 }

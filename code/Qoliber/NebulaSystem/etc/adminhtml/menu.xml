@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <remove id="Magento_ImportExport::system_convert_import"/>
+        <add id="Qoliber_NebulaSystem::system_convert_import"
+             title="Import" translate="title" module="Magento_ImportExport"
+             sortOrder="10" parent="Magento_Backend::system_convert"
+             action="nebulasystem/system/import" resource="Magento_ImportExport::import"/>
+
+        <remove id="Magento_ImportExport::system_convert_export"/>
+        <add id="Qoliber_NebulaSystem::system_convert_export"
+             title="Export" translate="title" module="Magento_ImportExport"
+             sortOrder="20" parent="Magento_Backend::system_convert"
+             action="nebulasystem/system/export" resource="Magento_ImportExport::export"/>
+
+        <remove id="Magento_TaxImportExport::system_convert_tax"/>
+        <add id="Qoliber_NebulaSystem::system_convert_tax"
+             title="Import/Export Tax Rates" translate="title" module="Magento_TaxImportExport"
+             sortOrder="30" parent="Magento_Backend::system_convert"
+             action="nebulasystem/system/tax_rates" resource="Magento_TaxImportExport::import_export"/>
+
+        <remove id="Magento_ImportExport::system_convert_history"/>
+        <add id="Qoliber_NebulaSystem::system_convert_history"
+             title="Import History" translate="title" module="Magento_ImportExport"
+             sortOrder="40" parent="Magento_Backend::system_convert"
+             action="nebulasystem/system/history" resource="Magento_ImportExport::history"/>
+
+        <remove id="Magento_Backup::system_tools_backup"/>
+        <add id="Qoliber_NebulaSystem::system_tools_backup"
+             title="Backups" translate="title" module="Magento_Backup"
+             sortOrder="30" parent="Magento_Backend::system_tools"
+             action="nebulasystem/system/backups" resource="Magento_Backup::backup"
+             dependsOnConfig="system/backup/functionality_enabled"/>
+
+        <remove id="Magento_User::system_acl_locks"/>
+        <add id="Qoliber_NebulaSystem::system_acl_locks"
+             title="Locked Users" translate="title" module="Magento_User"
+             sortOrder="20" parent="Magento_User::system_acl"
+             action="nebulasystem/system/locks" resource="Magento_User::locks"/>
+
+        <remove id="Magento_AdminNotification::system_adminnotification"/>
+        <add id="Qoliber_NebulaSystem::system_adminnotification"
+             title="Notifications" translate="title" module="Magento_AdminNotification"
+             sortOrder="10" parent="Magento_Backend::system_other_settings"
+             action="nebulasystem/notification/index" resource="Magento_AdminNotification::adminnotification"/>
+
+        <remove id="Magento_Variable::system_variable"/>
+        <add id="Qoliber_NebulaSystem::system_variable"
+             title="Custom Variables" translate="title" module="Magento_Variable"
+             sortOrder="20" parent="Magento_Backend::system_other_settings"
+             action="nebulasystem/variable/index" resource="Magento_Variable::variable"/>
+
+        <remove id="Magento_AsynchronousOperations::system_magento_logging_bulk_operations"/>
+        <add id="Qoliber_NebulaSystem::system_magento_logging_bulk_operations"
+             title="Bulk Actions" translate="title" module="Magento_AsynchronousOperations"
+             sortOrder="25" parent="Magento_AsynchronousOperations::system_magento_logging"
+             action="nebulasystem/system/bulk_actions" resource="Magento_Logging::system_magento_logging_bulk_operations"/>
+    </menu>
+</config>

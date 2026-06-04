@@ -1,0 +1,31 @@
+/* Notification bell component — header icon + dropdown */
+
+.nebula-notification-counter {
+    background: var(--nebula-button-primary-bg);
+    color: white; /* fallback for browsers without contrast-color() */
+    color: contrast-color(var(--nebula-button-primary-bg));
+    box-shadow: 0 0 0 2px light-dark(var(--color-nebula-100), var(--color-nebula-900));
+}
+
+.nebula-notification-pill {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 18%, var(--color-nebula-50));
+    color: color-mix(in srgb, var(--nebula-button-primary-bg) 88%, var(--color-nebula-900));
+}
+
+.dark .nebula-notification-pill {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 24%, var(--color-nebula-950));
+    color: var(--color-nebula-200);
+}
+
+.nebula-notification-trigger:hover,
+.nebula-notification-trigger:focus-visible {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 16%, var(--color-nebula-50));
+    color: var(--nebula-button-primary-bg);
+    outline: none;
+}
+
+.dark .nebula-notification-trigger:hover,
+.dark .nebula-notification-trigger:focus-visible {
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 24%, var(--color-nebula-950));
+    color: var(--color-white);
+}

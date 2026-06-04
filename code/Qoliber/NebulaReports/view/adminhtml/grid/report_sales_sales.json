@@ -1,0 +1,81 @@
+{
+  "id": "report_sales_sales",
+  "acl": "Magento_Reports::salesroot_sales",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_sales_sales.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 100,
+    "pageSizes": [50, 100, 200],
+    "defaultSort": {
+      "field": "period",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "period": {
+      "label": "Interval",
+      "type": "text",
+      "sortable": false,
+      "position": 10
+    },
+    "orders_count": {
+      "label": "Orders",
+      "type": "text",
+      "sortable": false,
+      "position": 20
+    },
+    "total_qty_ordered": {
+      "label": "Sales Items",
+      "type": "text",
+      "sortable": false,
+      "position": 30
+    },
+    "total_income_amount": {
+      "label": "Sales Total",
+      "type": "price",
+      "sortable": false,
+      "position": 40
+    },
+    "total_invoiced_amount": {
+      "label": "Invoiced",
+      "type": "price",
+      "sortable": false,
+      "position": 50
+    },
+    "total_refunded_amount": {
+      "label": "Refunded",
+      "type": "price",
+      "sortable": false,
+      "position": 60
+    },
+    "total_tax_amount": {
+      "label": "Sales Tax",
+      "type": "price",
+      "sortable": false,
+      "position": 70
+    },
+    "total_shipping_amount": {
+      "label": "Sales Shipping",
+      "type": "price",
+      "sortable": false,
+      "position": 80
+    },
+    "total_discount_amount": {
+      "label": "Sales Discount",
+      "type": "price",
+      "sortable": false,
+      "position": 90
+    },
+    "total_canceled_amount": {
+      "label": "Canceled",
+      "type": "price",
+      "sortable": false,
+      "position": 100
+    }
+  }
+}

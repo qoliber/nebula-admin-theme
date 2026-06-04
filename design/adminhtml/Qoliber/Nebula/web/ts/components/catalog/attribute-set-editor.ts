@@ -12,9 +12,9 @@ interface AttributeRow {
     attribute_id: number | string;
     code: string;
     label: string;
-    entity_id?: number | string;
-    is_user_defined?: boolean | number;
-    is_unassignable?: boolean;
+    entity_id?: number | string | undefined;
+    is_user_defined?: boolean | number | undefined;
+    is_unassignable?: boolean | undefined;
 }
 
 interface GroupRow {
@@ -56,7 +56,7 @@ interface SaveResponse {
 export function registerAttributeSetEditor(): void {
     const install = (): void => {
         window.Alpine?.data('attributeSetEditor', () => {
-            const root = (document.currentScript as HTMLElement | null)?.closest('[data-nebula-attribute-set]')
+            const root = (document.currentScript as HTMLElement | null)?.closest<HTMLElement>('[data-nebula-attribute-set]')
                 ?? document.querySelector<HTMLElement>('[data-nebula-attribute-set]');
             const rawConfig = root?.dataset.nebulaAttributeSet ?? '{}';
             const config = JSON.parse(rawConfig) as AttributeSetConfig;

@@ -339,6 +339,11 @@ class DoctorCommand extends Command
                     if ($collection === null) {
                         continue;
                     }
+                    // DI virtual type aliases (e.g. "cms_block.collection") contain no
+                    // backslash — they are resolved through di.xml and are always safe.
+                    if (!str_contains($collection, '\\')) {
+                        continue;
+                    }
                     $allowed = false;
                     foreach ($this->allowedCollectionNamespaces as $prefix) {
                         if (str_starts_with($collection, $prefix)) {

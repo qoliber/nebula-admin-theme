@@ -104,11 +104,11 @@ $routeFields = $block->getHiddenInputs();
 ?>
 
 <style>
-    /* Tree sidebar: hidden on tablet/mobile, visible on desktop */
+    /* Tree sidebar: hidden below 1280px, visible on wide desktop */
     .nebula-cat-sidebar { display: none; }
-    /* Browse Categories button: visible on tablet/mobile, hidden on desktop */
+    /* Browse Categories button: visible below 1280px, hidden on wide desktop */
     .nebula-cat-browse-btn { display: inline-flex; }
-    @media (min-width: 1024px) {
+    @media (min-width: 1280px) {
         .nebula-cat-sidebar { display: block; }
         .nebula-cat-browse-btn { display: none; }
     }
@@ -134,15 +134,42 @@ $routeFields = $block->getHiddenInputs();
         include $block->getTemplateFile('Qoliber_NebulaForm::form-shell.phtml');
         ?>
 
-        <div class="flex gap-6 w-full mt-0">
-            <!-- Category tree: desktop sidebar -->
-            <div class="nebula-cat-sidebar w-64 flex-shrink-0">
-                <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm p-4">
-                    <?php if ($sidebarHtml) : ?>
-                        <?= /* @noEscape */ $sidebarHtml ?>
-                    <?php else : ?>
-                        <div class="text-sm text-gray-500"><?= $escaper->escapeHtml((string) __('No category tree available.')) ?></div>
-                    <?php endif; ?>
+        <div class="flex gap-4 w-full mt-0">
+            <!-- Category tree: desktop sidebar (collapsible) -->
+            <div class="nebula-cat-sidebar flex-shrink-0">
+                <!-- Expanded state -->
+                <div x-show="!treeCollapsed" class="w-80">
+                    <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm p-4">
+                        <div class="flex justify-end -mt-1 -mr-1 mb-1">
+                            <button type="button"
+                                    @click="toggleTree()"
+                                    title="<?= $escaper->escapeHtmlAttr((string) __('Collapse category tree')) ?>"
+                                    class="inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition">
+                                <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+                                </svg>
+                                <span><?= $escaper->escapeHtml((string) __('Close')) ?></span>
+                            </button>
+                        </div>
+                        <?php if ($sidebarHtml) : ?>
+                            <?= /* @noEscape */ $sidebarHtml ?>
+                        <?php else : ?>
+                            <div class="text-sm text-gray-500"><?= $escaper->escapeHtml((string) __('No category tree available.')) ?></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <!-- Collapsed strip -->
+                <div x-show="treeCollapsed" style="display:none;" class="w-8">
+                    <div class="sticky top-20">
+                        <button type="button"
+                                @click="toggleTree()"
+                                title="<?= $escaper->escapeHtmlAttr((string) __('Expand category tree')) ?>"
+                                class="flex h-20 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition">
+                            <svg class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -262,24 +289,36 @@ $routeFields = $block->getHiddenInputs();
     window._nebulaCategoryDrawerRegistered = true;
     var register = function () {
         Alpine.data('nebulaCategoryDrawer', function (config) {
+            var sk = config.storageKey || null;
+            var treeSk = sk ? sk + '-tree-collapsed' : null;
             return {
                 drawerOpen: !!config.defaultOpen,
-                storageKey: config.storageKey || null,
+                storageKey: sk,
+                treeCollapsed: false,
                 init() {
-                    if (this.storageKey) {
+                    if (sk) {
                         try {
-                            var stored = window.localStorage.getItem(this.storageKey);
+                            var stored = window.localStorage.getItem(sk);
                             if (stored !== null) this.drawerOpen = (stored === 'open');
                         } catch (e) {}
                     }
+                    if (treeSk) {
+                        try { this.treeCollapsed = window.localStorage.getItem(treeSk) === 'true'; } catch (e) {}
+                    }
                     this.$watch('drawerOpen', (value) => {
-                        if (this.storageKey) {
-                            try { window.localStorage.setItem(this.storageKey, value ? 'open' : 'closed'); } catch (e) {}
+                        if (sk) {
+                            try { window.localStorage.setItem(sk, value ? 'open' : 'closed'); } catch (e) {}
+                        }
+                    });
+                    this.$watch('treeCollapsed', (value) => {
+                        if (treeSk) {
+                            try { window.localStorage.setItem(treeSk, value ? 'true' : 'false'); } catch (e) {}
                         }
                     });
                 },
                 toggleDrawer() { this.drawerOpen = !this.drawerOpen; },
-                closeDrawer() { this.drawerOpen = false; }
+                closeDrawer() { this.drawerOpen = false; },
+                toggleTree() { this.treeCollapsed = !this.treeCollapsed; }
             };
         });
     };

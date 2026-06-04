@@ -18,12 +18,12 @@
     "addButton": {
       "label": "Add Product",
       "options": [
-        { "label": "Simple Product", "url": "catalog/product/new/set/4/type/simple" },
-        { "label": "Configurable Product", "url": "catalog/product/new/set/4/type/configurable" },
-        { "label": "Virtual Product", "url": "catalog/product/new/set/4/type/virtual" },
-        { "label": "Grouped Product", "url": "catalog/product/new/set/4/type/grouped" },
-        { "label": "Bundle Product", "url": "catalog/product/new/set/4/type/bundle" },
-        { "label": "Downloadable Product", "url": "catalog/product/new/set/4/type/downloadable" }
+        { "label": "Simple Product", "url": "catalog/product/new/set/{{defaultAttributeSet}}/type/simple" },
+        { "label": "Configurable Product", "url": "catalog/product/new/set/{{defaultAttributeSet}}/type/configurable" },
+        { "label": "Virtual Product", "url": "catalog/product/new/set/{{defaultAttributeSet}}/type/virtual" },
+        { "label": "Grouped Product", "url": "catalog/product/new/set/{{defaultAttributeSet}}/type/grouped" },
+        { "label": "Bundle Product", "url": "catalog/product/new/set/{{defaultAttributeSet}}/type/bundle" },
+        { "label": "Downloadable Product", "url": "catalog/product/new/set/{{defaultAttributeSet}}/type/downloadable" }
       ]
     }
   },

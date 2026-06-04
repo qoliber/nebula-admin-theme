@@ -1,0 +1,289 @@
+<?php
+
+declare(strict_types=1);
+
+/* @var \Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Items $block */
+$creditmemo = $block->getCreditmemo();
+$order = $creditmemo->getOrder();
+$items = $block->getData('itemsToRenderViewModel')->getItems();
+$commentText = $creditmemo->getCommentText();
+$showReturnToStock = $block->canReturnToStock();
+$totalColumns = $showReturnToStock ? 9 : 8;
+$updateUrl = $block->getUpdateUrl();
+$canOnlineRefund = $creditmemo->canRefund()
+    && $creditmemo->getInvoice()
+    && (bool) $creditmemo->getInvoice()->getTransactionId();
+$orderTotalBarData = $block->getOrderTotalbarData();
+?>
+
+<?php if ($orderTotalBarData) : ?>
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <?php foreach ($orderTotalBarData as [$label, $value, $isStrong]) : ?>
+            <div class="rounded-xl border border-gray-200 bg-white p-5">
+                <div class="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    <?= $block->escapeHtml($label) ?>
+                </div>
+                <div class="mt-2 text-lg <?= $isStrong ? 'font-semibold text-gray-900' : 'font-medium text-gray-700' ?>">
+                    <?= /* @noEscape */ $value ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </section>
+<?php endif; ?>
+
+<section class="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <div class="border-b border-gray-100 px-5 py-4">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <h2 class="text-base font-semibold text-gray-900"><?= $block->escapeHtml(__('Items to Refund')) ?></h2>
+                <p class="mt-1 text-sm text-gray-500"><?= $block->escapeHtml(__('Adjust quantities and inventory return options before refunding.')) ?></p>
+            </div>
+            <?php if ($block->canEditQty()) : ?>
+                <button type="button"
+                        class="update-button inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        onclick="submitAndReloadArea($('creditmemo_item_container'),'<?= $block->escapeJs($updateUrl) ?>')">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.64 18.36A9 9 0 1020 12"/>
+                    </svg>
+                    <?= $block->escapeHtml(__('Update Qty\'s')) ?>
+                </button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <?php if (count($items)) : ?>
+        <div class="overflow-x-auto">
+            <table class="order-creditmemo-tables min-w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        <th class="px-5 py-3"><?= $block->escapeHtml(__('Product')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $block->escapeHtml(__('Price')) ?></th>
+                        <th class="px-5 py-3"><?= $block->escapeHtml(__('Qty')) ?></th>
+                        <?php if ($showReturnToStock) : ?>
+                            <th class="px-5 py-3 text-center"><?= $block->escapeHtml(__('Return to Stock')) ?></th>
+                        <?php endif; ?>
+                        <th class="px-5 py-3"><?= $block->escapeHtml(__('Qty to Refund')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $block->escapeHtml(__('Subtotal')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $block->escapeHtml(__('Tax Amount')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $block->escapeHtml(__('Discount Amount')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $block->escapeHtml(__('Row Total')) ?></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <?php foreach ($items as $item) : ?>
+                        <?php if ($item->getOrderItem()->getParentItem()) : ?>
+                            <?php continue; ?>
+                        <?php endif; ?>
+                        <?= $block->getItemHtml($item) ?>
+                        <?php $extraInfoHtml = trim((string) $block->getItemExtraInfoHtml($item->getOrderItem())); ?>
+                        <?php if ($extraInfoHtml !== '') : ?>
+                            <tr class="bg-gray-50">
+                                <td colspan="<?= (int) $totalColumns ?>" class="px-5 py-3 text-sm text-gray-600">
+                                    <?= /* @noEscape */ $extraInfoHtml ?>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php else : ?>
+        <div class="px-5 py-8 text-sm text-gray-500"><?= $block->escapeHtml(__('No items to refund.')) ?></div>
+    <?php endif; ?>
+</section>
+
+<input type="hidden" name="creditmemo[do_offline]" id="creditmemo_do_offline" value="0" />
+
+<section class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_26rem]">
+    <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <div class="mb-4">
+            <h2 class="text-base font-semibold text-gray-900"><?= $block->escapeHtml(__('Credit Memo Comments')) ?></h2>
+            <p class="mt-1 text-sm text-gray-500"><?= $block->escapeHtml(__('Add an internal note and choose whether to share it with the customer.')) ?></p>
+        </div>
+        <label for="creditmemo_comment_text" class="mb-2 block text-sm font-medium text-gray-700">
+            <?= $block->escapeHtml(__('Comment Text')) ?>
+        </label>
+        <textarea id="creditmemo_comment_text"
+                  class="admin__control-textarea block min-h-56 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  name="creditmemo[comment_text]"
+                  rows="8"
+                  cols="5"><?= $block->escapeHtml($commentText) ?></textarea>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <div class="mb-4">
+            <h2 class="text-base font-semibold text-gray-900"><?= $block->escapeHtml(__('Refund Totals')) ?></h2>
+            <p class="mt-1 text-sm text-gray-500"><?= $block->escapeHtml(__('Review totals, then choose the refund action.')) ?></p>
+        </div>
+
+        <?= $block->getChildHtml('creditmemo_totals') ?>
+
+        <div class="mt-4">
+            <button type="button"
+                    class="update-totals-button inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    onclick="submitAndReloadArea($('creditmemo_item_container'),'<?= $block->escapeJs($updateUrl) ?>')">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.64 18.36A9 9 0 1020 12"/>
+                </svg>
+                <?= $block->escapeHtml(__('Update Totals')) ?>
+            </button>
+        </div>
+
+        <div class="mt-5 space-y-3 border-t border-gray-200 pt-5">
+            <label class="flex items-start gap-3">
+                <input id="notify_customer"
+                       class="admin__control-checkbox mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                       name="creditmemo[comment_customer_notify]"
+                       value="1"
+                       type="checkbox" />
+                <span class="text-sm text-gray-700"><?= $block->escapeHtml(__('Append comments to the customer notification')) ?></span>
+            </label>
+
+            <?php if ($block->canSendCreditmemoEmail()) : ?>
+                <label class="flex items-start gap-3">
+                    <input id="send_email"
+                           class="admin__control-checkbox mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                           name="creditmemo[send_email]"
+                           value="1"
+                           type="checkbox" />
+                    <span class="text-sm text-gray-700"><?= $block->escapeHtml(__('Email copy of credit memo')) ?></span>
+                </label>
+            <?php endif; ?>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-3 border-t border-gray-200 pt-5">
+            <?= $block->getChildHtml('submit_before') ?>
+
+            <?php if ($canOnlineRefund) : ?>
+                <button type="button"
+                        class="submit-button inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        onclick="disableElements('submit-button');submitCreditMemoOffline()">
+                    <?= $block->escapeHtml(__('Refund Offline')) ?>
+                </button>
+                <button type="button"
+                        class="submit-button refund inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        onclick="disableElements('submit-button');submitCreditMemo()">
+                    <?= $block->escapeHtml(__('Refund')) ?>
+                </button>
+            <?php else : ?>
+                <button type="button"
+                        class="submit-button inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        onclick="disableElements('submit-button');submitCreditMemoOffline()">
+                    <?= $block->escapeHtml(__('Refund Offline')) ?>
+                </button>
+            <?php endif; ?>
+
+            <?= $block->getChildHtml('submit_after') ?>
+        </div>
+    </div>
+</section>
+
+<?php
+$scriptString = <<<script
+require(['jquery'], function(jQuery) {
+    var submitButtons = jQuery('.submit-button');
+    var updateButtons = jQuery('.update-button, .update-totals-button');
+    var fields = jQuery('.qty-input, .order-subtotal-table input[type="text"]');
+    var requiredFields = jQuery('input[required], textarea[required], select[required]');
+
+    function enableButtons(buttons) {
+        buttons.removeClass('disabled').prop('disabled', false);
+    }
+
+    function disableButtons(buttons) {
+        buttons.addClass('disabled').prop('disabled', true);
+    }
+
+    disableButtons(updateButtons);
+
+    function checkRequiredFieldsStatus() {
+        var allRequiredFieldsFilled = true;
+
+        requiredFields.each(function () {
+            var fieldValue = jQuery(this).val();
+            if (!fieldValue || fieldValue.trim() === '') {
+                allRequiredFieldsFilled = false;
+                return false;
+            }
+        });
+
+        if (allRequiredFieldsFilled) {
+            enableButtons(submitButtons);
+        } else {
+            disableButtons(submitButtons);
+        }
+    }
+
+    requiredFields.on('input change', function() {
+        checkRequiredFieldsStatus();
+    });
+
+    fields.on('change', checkButtonsRelation);
+    fields.each(function (i, elem) {
+        elem.baseValue = elem.value;
+    });
+
+    function checkButtonsRelation() {
+        var hasChanges = false;
+
+        fields.each(function (i, elem) {
+            if (elem.baseValue != elem.value) {
+                hasChanges = true;
+            }
+        });
+
+        if (hasChanges) {
+            enableButtons(updateButtons);
+            checkRequiredFieldsStatus();
+        } else {
+            disableButtons(updateButtons);
+            checkRequiredFieldsStatus();
+        }
+    }
+
+    submitCreditMemo = function() {
+        if (jQuery('#edit_form').valid()) {
+            var creditMemoOffline = jQuery('#creditmemo_do_offline');
+            if (creditMemoOffline.length) {
+                creditMemoOffline.prop('value', 0);
+            }
+            jQuery('#edit_form').triggerHandler('save');
+        } else {
+            disableButtons(submitButtons);
+        }
+    };
+
+    submitCreditMemoOffline = function() {
+        if (jQuery('#edit_form').valid()) {
+            var creditMemoOffline = jQuery('#creditmemo_do_offline');
+            if (creditMemoOffline.length) {
+                creditMemoOffline.prop('value', 1);
+            }
+            jQuery('#edit_form').triggerHandler('save');
+        } else {
+            disableButtons(submitButtons);
+        }
+    };
+
+    var sendEmailCheckbox = jQuery('#send_email');
+    if (sendEmailCheckbox.length) {
+        var notifyCustomerCheckbox = jQuery('#notify_customer');
+        sendEmailCheckbox.on('change', bindSendEmail);
+        bindSendEmail();
+    }
+
+    function bindSendEmail() {
+        if (sendEmailCheckbox.prop('checked') === true) {
+            notifyCustomerCheckbox.prop('disabled', false);
+        } else {
+            notifyCustomerCheckbox.prop('disabled', true);
+        }
+    }
+
+    window.bindSendEmail = bindSendEmail;
+    window.checkButtonsRelation = checkButtonsRelation;
+    checkRequiredFieldsStatus();
+});
+script;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>

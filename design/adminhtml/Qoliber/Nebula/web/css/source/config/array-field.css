@@ -1,0 +1,29 @@
+/* System config patches — legacy form, not NebulaForm */
+/* Array field (Magento_Config dynamic row table) */
+
+.nebula-config-array .nebula-action-delete {
+    color: var(--nebula-button-primary-bg);
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--nebula-button-primary-bg) 52%, transparent);
+}
+
+.nebula-config-array .nebula-action-delete:hover,
+.nebula-config-array .nebula-action-delete:focus-visible {
+    color: var(--color-white);
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 86%, var(--color-nebula-900));
+    border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 76%, var(--color-nebula-900));
+    outline: none;
+}
+
+.dark .nebula-config-array .nebula-action-delete {
+    color: var(--nebula-button-primary-bg);
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 20%, var(--color-nebula-950));
+    border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 58%, transparent);
+}
+
+.dark .nebula-config-array .nebula-action-delete:hover,
+.dark .nebula-config-array .nebula-action-delete:focus-visible {
+    color: var(--color-white);
+    background: color-mix(in srgb, var(--nebula-button-primary-bg) 84%, var(--color-nebula-900));
+    border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 72%, var(--color-nebula-900));
+}

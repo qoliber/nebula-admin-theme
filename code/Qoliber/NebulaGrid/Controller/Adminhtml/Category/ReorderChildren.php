@@ -31,7 +31,7 @@ class ReorderChildren extends Action implements HttpPostActionInterface
         $parentId = (int) ($body['parent_id'] ?? 0);
         $ids = array_values(array_filter(array_map('intval', (array) ($body['ids'] ?? []))));
 
-        if ($parentId <= 0 || empty($ids)) {
+        if ($parentId < 0 || empty($ids)) {
             return $result->setData(['success' => false, 'message' => 'Invalid parameters.']);
         }
 

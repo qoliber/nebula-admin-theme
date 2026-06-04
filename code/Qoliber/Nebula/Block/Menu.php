@@ -14,6 +14,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Route\ConfigInterface as RouteConfigInterface;
 use Magento\Framework\Locale\ResolverInterface as LocaleResolverInterface;
 use Qoliber\Nebula\Model\Config\Source\MenuPosition;
+use Qoliber\Nebula\Model\Menu\MenuIconRegistry;
 use Qoliber\NebulaMenu\Model\PinnedItems;
 
 class Menu extends \Magento\Backend\Block\Menu
@@ -27,6 +28,7 @@ class Menu extends \Magento\Backend\Block\Menu
         LocaleResolverInterface $localeResolver,
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly PinnedItems $pinnedItems,
+        private readonly MenuIconRegistry $iconRegistry,
         array $data = [],
         ?\Magento\Backend\Block\MenuItemChecker $menuItemChecker = null,
         ?\Magento\Backend\Block\AnchorRenderer $anchorRenderer = null,
@@ -77,37 +79,21 @@ class Menu extends \Magento\Backend\Block\Menu
     }
 
     /**
-     * Map menu item IDs to Font Awesome icon classes.
+     * Render the icon HTML for a menu item id. Falls through to the
+     * configured default when the id has no specific entry, so the sidebar
+     * never has visually empty slots. The `$extra` parameter carries slot-
+     * specific styling (sizing, opacity, alignment) so the registry can
+     * stay free of layout concerns.
      */
-    private const MENU_ICONS = [
-        'Magento_Backend::dashboard' => 'fa-solid fa-gauge-high',
-        'Magento_Sales::sales' => 'fa-solid fa-cart-shopping',
-        'Magento_Sales::sales_operation' => 'fa-solid fa-file-invoice-dollar',
-        'Magento_Catalog::catalog' => 'fa-solid fa-boxes-stacked',
-        'Magento_Catalog::catalog_products' => 'fa-solid fa-cube',
-        'Magento_Catalog::catalog_categories' => 'fa-solid fa-folder-tree',
-        'Magento_Catalog::inventory' => 'fa-solid fa-warehouse',
-        'Magento_Customer::customer' => 'fa-solid fa-users',
-        'Magento_Customer::customer_manage' => 'fa-solid fa-user',
-        'Magento_Backend::marketing' => 'fa-solid fa-bullhorn',
-        'Magento_CatalogRule::promo' => 'fa-solid fa-tags',
-        'Magento_Backend::content' => 'fa-solid fa-pen-nib',
-        'Magento_Backend::content_elements' => 'fa-solid fa-puzzle-piece',
-        'Magento_Backend::media' => 'fa-solid fa-images',
-        'Magento_Backend::design' => 'fa-solid fa-palette',
-        'Magento_Reports::report' => 'fa-solid fa-chart-line',
-        'Magento_Backend::stores' => 'fa-solid fa-store',
-        'Magento_Backend::stores_settings' => 'fa-solid fa-sliders',
-        'Magento_Tax::sales_tax' => 'fa-solid fa-receipt',
-        'Magento_CurrencySymbol::system_currency' => 'fa-solid fa-coins',
-        'Magento_Catalog::attributes' => 'fa-solid fa-list-check',
-        'Magento_Backend::system' => 'fa-solid fa-gear',
-        'Magento_Backend::system_tools' => 'fa-solid fa-screwdriver-wrench',
-        'Magento_ImportExport::system_convert' => 'fa-solid fa-arrows-rotate',
-        'Magento_User::acl' => 'fa-solid fa-shield-halved',
-        'Magento_Backend::system_other_settings' => 'fa-solid fa-ellipsis',
-        'Magento_Marketplace::partners' => 'fa-solid fa-handshake',
-    ];
+    public function renderIcon(string $itemId, string $extra = ''): string
+    {
+        return $this->iconRegistry->render($itemId, $extra);
+    }
+
+    public function hasIcon(string $itemId): bool
+    {
+        return $this->iconRegistry->hasIcon($itemId);
+    }
 
     /**
      * Get menu tree + pinned items data for the template.
@@ -285,7 +271,6 @@ class Menu extends \Magento\Backend\Block\Menu
                 'hasChildren' => $hasChildren,
                 'isActive' => $itemId === $activeId,
                 'isActiveParent' => in_array($itemId, $activeParents),
-                'icon' => self::MENU_ICONS[$itemId] ?? null,
                 'children' => [],
             ];
 

@@ -1,3 +1,5 @@
+/* System config patches — legacy form, not NebulaForm */
+
 /*
  * "Use default value" inheritance treatment. The wrapper around the input
  * gets `.nebula-config-inherited` (added via Alpine when the inherit

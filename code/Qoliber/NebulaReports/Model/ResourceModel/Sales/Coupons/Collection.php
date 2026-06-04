@@ -1,0 +1,66 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Qoliber\NebulaReports\Model\ResourceModel\Sales\Coupons;
+
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\Data\Collection\Db\FetchStrategyInterface;
+use Magento\Framework\Data\Collection\EntityFactory;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Sales\Model\ResourceModel\Report as SalesReportResource;
+use Magento\SalesRule\Model\ResourceModel\Report\RuleFactory;
+
+/**
+ * Nebula wrapper around the stock Coupons (SalesRule) report collection.
+ *
+ * The parent's constructor takes an extra `RuleFactory` argument before
+ * `?connection`, so we preserve that ordering.
+ */
+class Collection extends \Magento\SalesRule\Model\ResourceModel\Report\Collection
+{
+    private bool $appliedFilters = false;
+
+    private readonly RequestInterface $request;
+
+    public function __construct(
+        EntityFactory $entityFactory,
+        \Psr\Log\LoggerInterface $logger,
+        FetchStrategyInterface $fetchStrategy,
+        ManagerInterface $eventManager,
+        SalesReportResource $resource,
+        RuleFactory $ruleFactory,
+        ?AdapterInterface $connection = null,
+        ?RequestInterface $request = null
+    ) {
+        parent::__construct(
+            $entityFactory,
+            $logger,
+            $fetchStrategy,
+            $eventManager,
+            $resource,
+            $ruleFactory,
+            $connection
+        );
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->request = $request ?? $om->get(RequestInterface::class);
+    }
+
+    protected function _beforeLoad(): self
+    {
+        if (!$this->appliedFilters) {
+            $this->appliedFilters = true;
+
+            $period = (string) $this->request->getParam('period', 'day');
+            if (!in_array($period, ['day', 'month', 'year'], true)) {
+                $period = 'day';
+            }
+            $from = (string) $this->request->getParam('from', date('Y-m-d', strtotime('-30 days')));
+            $to   = (string) $this->request->getParam('to',   date('Y-m-d'));
+
+            $this->setPeriod($period)->setDateRange($from, $to);
+        }
+        return parent::_beforeLoad();
+    }
+}

@@ -29,6 +29,13 @@ use Qoliber\NebulaComponent\Api\GridDataProviderInterface;
  */
 class SalesRuleCouponsGridProvider implements GridDataProviderInterface
 {
+    /** @var int Upper bound for request-controlled page size (memory-exhaustion guard). */
+    private const MAX_PAGE_SIZE = 200;
+
+    /**
+     * @param \Magento\SalesRule\Model\ResourceModel\Coupon\CollectionFactory $couponCollectionFactory
+     * @param \Magento\Framework\App\RequestInterface $request
+     */
     public function __construct(
         private readonly CollectionFactory $couponCollectionFactory,
         private readonly RequestInterface $request
@@ -36,6 +43,8 @@ class SalesRuleCouponsGridProvider implements GridDataProviderInterface
     }
 
     /**
+     * Fetch the rule's generated coupon rows and total count for the request.
+     *
      * @param array<string, mixed> $config
      * @param array<string, mixed> $params
      * @return array{items: array<int, array<string, mixed>>, totalCount: int}
@@ -118,17 +127,18 @@ class SalesRuleCouponsGridProvider implements GridDataProviderInterface
             }
         }
 
-        // ---- sort ----
+        // ---- sort ---- only by a declared column, never an arbitrary field.
         $sort = (string) ($params['sort'] ?? '');
         $sortDir = (string) ($params['sortDir'] ?? 'asc');
-        if ($sort !== '') {
+        if ($sort !== '' && isset($columns[$sort])) {
             $collection->setOrder($sort, strtoupper($sortDir) === 'DESC' ? 'DESC' : 'ASC');
         }
 
         // ---- paging ----
-        $page = (int) ($params['page'] ?? 1);
+        $page = max(1, (int) ($params['page'] ?? 1));
         $pageSize = (int) ($params['pageSize'] ?? 20);
         if ($pageSize > 0) {
+            $pageSize = min($pageSize, self::MAX_PAGE_SIZE);
             $collection->setPageSize($pageSize);
             $collection->setCurPage($page);
         }

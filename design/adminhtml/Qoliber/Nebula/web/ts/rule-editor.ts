@@ -23,6 +23,7 @@ const OPERATORS_BY_INPUT: Record<RuleInputType, string[]> = {
     select: ['==', '!=', '<=>'],
     boolean: ['==', '!=', '<=>'],
     multiselect: ['{}', '!{}', '()', '!()'],
+    category: ['==', '!=', '()', '!()', '<=>'],
     grid: ['()', '!()'],
 };
 
@@ -132,7 +133,7 @@ interface RuleEditorState {
     init(): void;
     serialize(): SerializedPair[];
     renderTree(): string;
-    getValueMode(node: RuleNode): 'hidden' | 'select' | 'multiselect' | 'text';
+        getValueMode(node: RuleNode): 'hidden' | 'select' | 'multiselect' | 'text';
     _rerender(): void;
     _handleClick(e: Event): void;
     _handleChange(e: Event): void;
@@ -185,7 +186,7 @@ export function createRuleEditor(config: RuleEditorConfig = {}): RuleEditorState
             }
 
             const models = window.Alpine?.store('nebulaModels') as NebulaModelStore | undefined;
-            if (models) {
+            if (config.registerModel !== false && models) {
                 models.register('section:conditions', {
                     serialize: () => this.serialize(),
                 });
@@ -500,6 +501,9 @@ export function createRuleEditor(config: RuleEditorConfig = {}): RuleEditorState
         getValueMode(_node: RuleNode): 'hidden' | 'select' | 'multiselect' | 'text' {
             if (_node.operator === '<=>') return 'hidden';
             const t = _node.inputType;
+            if (t === 'category') {
+                return _node.operator === '()' || _node.operator === '!()' ? 'multiselect' : 'select';
+            }
             if (t === 'select' || t === 'boolean') return 'select';
             if (t === 'multiselect') return 'multiselect';
             return 'text';

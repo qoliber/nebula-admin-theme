@@ -1,0 +1,44 @@
+{
+  "id": "report_product_lowstock",
+  "acl": "Magento_Reports::lowstock",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_product_lowstock.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "qty",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "name": {
+      "label": "Product",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 10
+    },
+    "sku": {
+      "label": "SKU",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "qty": {
+      "label": "Stock Quantity",
+      "type": "text",
+      "sortable": false,
+      "filter": "range",
+      "position": 30
+    }
+  }
+}

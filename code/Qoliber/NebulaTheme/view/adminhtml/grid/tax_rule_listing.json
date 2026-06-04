@@ -14,6 +14,10 @@
       "field": "tax_calculation_rule_id",
       "direction": "asc"
     },
+    "addButton": {
+      "label": "Add New Tax Rule",
+      "url": "nebula/taxrule/new"
+    },
     "massActions": false
   },
   "columns": {
@@ -52,7 +56,7 @@
       "actions": [
         {
           "label": "Edit",
-          "url": "tax/rule/edit/rule/{{tax_calculation_rule_id}}"
+          "url": "nebula/taxrule/edit/rule/{{tax_calculation_rule_id}}"
         }
       ],
       "position": 999

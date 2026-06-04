@@ -1,0 +1,66 @@
+{
+  "id": "report_shopcart_product",
+  "acl": "Magento_Reports::product",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_shopcart_product.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "carts",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "product_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": false,
+      "position": 10
+    },
+    "name": {
+      "label": "Product",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "price": {
+      "label": "Price",
+      "type": "price",
+      "sortable": false,
+      "position": 30
+    },
+    "carts": {
+      "label": "Carts",
+      "type": "text",
+      "sortable": false,
+      "filter": "range",
+      "position": 40
+    },
+    "orders": {
+      "label": "Orders",
+      "type": "text",
+      "sortable": false,
+      "filter": "range",
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit Product",
+          "url": "catalog/product/edit/id/{{product_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

@@ -1,2 +1,92 @@
-"use strict";(()=>{function c(r){let s={};try{s=JSON.parse(r.filters??"{}")}catch{s={}}return{selected:[],loading:!1,confirmAction:null,pendingFilters:s,toggleSelectAll(e){if(!this.$root){this.selected=[];return}e?this.selected=Array.from(this.$root.querySelectorAll('tbody input[type="checkbox"][value]')).map(t=>t.value):this.selected=[]},applyAllFilters(){let e=new URL(window.location.href);Array.from(e.searchParams.keys()).forEach(t=>{t.startsWith("filters[")&&e.searchParams.delete(t)}),Object.entries(this.pendingFilters).forEach(([t,i])=>{i!==""&&i!==null&&i!==void 0&&e.searchParams.set("filters["+t+"]",String(i))}),e.searchParams.set("page","1"),window.location.href=e.toString()},confirmMassAction(e,t){this.selected.length!==0&&(this.confirmAction={url:e,label:t})},executeMassAction(){this.confirmAction&&(this.submitMassAction(this.confirmAction.url),this.confirmAction=null)},submitMassAction(e){if(this.selected.length!==0){this.loading=!0;try{let t=document.createElement("form");t.method="POST",t.action=e;let i=document.createElement("input");i.type="hidden",i.name="form_key",i.value=r.formKey,t.appendChild(i),this.selected.forEach(l=>{let n=document.createElement("input");n.type="hidden",n.name="ids[]",n.value=l,t.appendChild(n)}),document.body.appendChild(t),t.submit()}catch(t){console.error("Mass action error:",t),this.loading=!1}}}}}function o(){document.addEventListener("alpine:init",()=>{window.Alpine.data("nebulaGrid",r=>c(r))})}o();})();
+"use strict";
+(() => {
+  // ts/grid.ts
+  function createGrid(config) {
+    let pendingFilters = {};
+    try {
+      pendingFilters = JSON.parse(config.filters ?? "{}");
+    } catch {
+      pendingFilters = {};
+    }
+    return {
+      selected: [],
+      loading: false,
+      confirmAction: null,
+      pendingFilters,
+      toggleSelectAll(checked) {
+        if (!this.$root) {
+          this.selected = [];
+          return;
+        }
+        if (checked) {
+          this.selected = Array.from(
+            this.$root.querySelectorAll(
+              'tbody input[type="checkbox"][value]'
+            )
+          ).map((el) => el.value);
+        } else {
+          this.selected = [];
+        }
+      },
+      applyAllFilters() {
+        const url = new URL(window.location.href);
+        Array.from(url.searchParams.keys()).forEach((key) => {
+          if (key.startsWith("filters[")) {
+            url.searchParams.delete(key);
+          }
+        });
+        Object.entries(this.pendingFilters).forEach(([field, value]) => {
+          if (value !== "" && value !== null && value !== void 0) {
+            url.searchParams.set("filters[" + field + "]", String(value));
+          }
+        });
+        url.searchParams.set("page", "1");
+        window.location.href = url.toString();
+      },
+      confirmMassAction(url, label) {
+        if (this.selected.length === 0) return;
+        this.confirmAction = { url, label };
+      },
+      executeMassAction() {
+        if (!this.confirmAction) return;
+        this.submitMassAction(this.confirmAction.url);
+        this.confirmAction = null;
+      },
+      submitMassAction(url) {
+        if (this.selected.length === 0) return;
+        this.loading = true;
+        try {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = url;
+          const fkInput = document.createElement("input");
+          fkInput.type = "hidden";
+          fkInput.name = "form_key";
+          fkInput.value = config.formKey;
+          form.appendChild(fkInput);
+          this.selected.forEach((id) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "ids[]";
+            input.value = id;
+            form.appendChild(input);
+          });
+          document.body.appendChild(form);
+          form.submit();
+        } catch (e) {
+          console.error("Mass action error:", e);
+          this.loading = false;
+        }
+      }
+    };
+  }
+  function registerGrid() {
+    document.addEventListener("alpine:init", () => {
+      window.Alpine.data("nebulaGrid", (config) => createGrid(config));
+    });
+  }
+
+  // ts/nebula-grid.ts
+  registerGrid();
+})();
 //# sourceMappingURL=nebula-grid.js.map

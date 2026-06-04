@@ -11,17 +11,20 @@ declare(strict_types=1);
 $moduleRegistrations = [
     'code/Qoliber/Nebula/registration.php',
     'code/Qoliber/NebulaComponent/registration.php',
+    'code/Qoliber/NebulaCurrency/registration.php',
+    'code/Qoliber/NebulaDirective/registration.php',
     'code/Qoliber/NebulaForm/registration.php',
     'code/Qoliber/NebulaGrid/registration.php',
-    'code/Qoliber/NebulaMenu/registration.php',
     'code/Qoliber/NebulaMedia/registration.php',
-    'code/Qoliber/NebulaPageBuilder/registration.php',
+    'code/Qoliber/NebulaMenu/registration.php',
     'code/Qoliber/NebulaQuill/registration.php',
+    'code/Qoliber/NebulaReports/registration.php',
     'code/Qoliber/NebulaSkin/registration.php',
     'code/Qoliber/NebulaStore/registration.php',
+    'code/Qoliber/NebulaSystem/registration.php',
     'code/Qoliber/NebulaTheme/registration.php',
     'code/Qoliber/NebulaUiRemoval/registration.php',
-
+    'code/Qoliber/NebulaUser/registration.php',
     'design/adminhtml/Qoliber/Nebula/registration.php',
 ];
 

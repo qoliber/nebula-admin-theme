@@ -1,0 +1,6 @@
+/* Role resources tree — NebulaUser snippet */
+
+/* Search filter hide: !important overrides Alpine's x-show inline display value */
+[data-resource-node].is-filtered-out {
+    display: none !important;
+}

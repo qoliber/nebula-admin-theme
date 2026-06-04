@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Qoliber\NebulaComponent\ViewModel;
 
+use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Rule\Model\Condition\AbstractCondition;
 use Magento\Rule\Model\Condition\Combine as BaseCombine;
@@ -42,7 +43,8 @@ class RuleEditor implements ArgumentInterface
         private readonly \Magento\SalesRule\Model\Rule\Condition\CombineFactory $salesCombineFactory,
         private readonly \Magento\SalesRule\Model\Rule\Condition\Product\CombineFactory $salesProductCombineFactory,
         private readonly \Magento\CatalogRule\Model\Rule\Condition\ProductFactory $catalogProductConditionFactory,
-        private readonly \Magento\SalesRule\Model\Rule\Condition\ProductFactory $salesProductConditionFactory
+        private readonly \Magento\SalesRule\Model\Rule\Condition\ProductFactory $salesProductConditionFactory,
+        private readonly CategoryCollectionFactory $categoryCollectionFactory,
     ) {
     }
 
@@ -92,6 +94,10 @@ class RuleEditor implements ArgumentInterface
                 $decoded = json_decode($serialized, true, 512, JSON_THROW_ON_ERROR);
 
                 if (is_array($decoded) && $decoded !== []) {
+                    if (isset($decoded['1']) && is_array($decoded['1'])) {
+                        return $this->inflateFlatConditions($decoded, '1');
+                    }
+
                     return $decoded;
                 }
             } catch (\JsonException) {
@@ -105,6 +111,41 @@ class RuleEditor implements ArgumentInterface
             'value' => '1',
             'conditions' => [],
         ];
+    }
+
+    /**
+     * Magento widget conditions are stored as a flat keyed array like
+     * 1, 1--1, 1--1--1. Nebula's rule editor expects a nested tree.
+     *
+     * @param array<string, mixed> $flat
+     * @return array<string, mixed>
+     */
+    private function inflateFlatConditions(array $flat, string $path): array
+    {
+        $node = is_array($flat[$path] ?? null) ? $flat[$path] : [];
+        $prefix = $path . '--';
+        $children = [];
+
+        foreach ($flat as $key => $value) {
+            if (!is_string($key) || !str_starts_with($key, $prefix) || !is_array($value)) {
+                continue;
+            }
+
+            $remainder = substr($key, strlen($prefix));
+            if ($remainder === false || str_contains($remainder, '--')) {
+                continue;
+            }
+
+            $children[] = $this->inflateFlatConditions($flat, $key);
+        }
+
+        if ($children !== []) {
+            $node['conditions'] = $children;
+        } elseif (isset($node['aggregator']) || isset($node['value']) && !isset($node['attribute'])) {
+            $node['conditions'] = [];
+        }
+
+        return $node;
     }
 
     /**
@@ -187,6 +228,16 @@ class RuleEditor implements ArgumentInterface
      */
     private function describeAttribute(string $condClass, string $attrCode, string $label): array
     {
+        if ($attrCode === 'category_ids') {
+            return [
+                'value' => $attrCode,
+                'label' => $label,
+                'inputType' => 'category',
+                'options' => $this->getCategoryOptions(),
+                'conditionClass' => $condClass,
+            ];
+        }
+
         $inputType = 'string';
         $options = [];
 
@@ -218,6 +269,59 @@ class RuleEditor implements ArgumentInterface
             'options' => $options,
             'conditionClass' => $condClass,
         ];
+    }
+
+    /**
+     * @return array<int, array{value:string, label:string}>
+     */
+    private function getCategoryOptions(): array
+    {
+        $collection = $this->categoryCollectionFactory->create();
+        $collection->addAttributeToSelect('name');
+        $collection->addAttributeToFilter('level', ['gt' => 1]);
+        $collection->setOrder('path', 'ASC');
+
+        $namesById = [];
+
+        foreach ($collection as $category) {
+            $namesById[(string) $category->getId()] = trim((string) $category->getName());
+        }
+
+        $options = [];
+
+        foreach ($collection as $category) {
+            $name = trim((string) $category->getName());
+            if ($name === '') {
+                continue;
+            }
+
+            $segments = [];
+
+            foreach (explode('/', (string) $category->getPath()) as $pathId) {
+                if ($pathId === '1') {
+                    continue;
+                }
+
+                $segmentName = $namesById[$pathId] ?? '';
+                if ($segmentName === '') {
+                    continue;
+                }
+
+                $segments[] = $segmentName;
+            }
+
+            $label = implode(' / ', $segments);
+            if ($label === '') {
+                $label = $name;
+            }
+
+            $options[] = [
+                'value' => (string) $category->getId(),
+                'label' => $label . ' (#' . (string) $category->getId() . ')',
+            ];
+        }
+
+        return $options;
     }
 
     private function createCombine(string $ruleType): BaseCombine

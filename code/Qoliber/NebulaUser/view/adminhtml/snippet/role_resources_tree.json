@@ -1,0 +1,4 @@
+{
+    "id": "role_resources_tree",
+    "template": "Qoliber_NebulaUser::snippet/role_resources_tree.phtml"
+}

@@ -1,2 +1,329 @@
-"use strict";(()=>{function o(a,i=0){let e=[];return a.forEach(t=>{e.push({...t,depth:i}),Array.isArray(t.children)&&t.children.length>0&&e.push(...o(t.children,i+1))}),e}function h(a){return a.name.replace(/\.[^.]+$/,"").replace(/[-_]+/g," ").trim()}async function n(a){let i=await a.json();if(!a.ok||!i.success||!i.data)throw new Error(i.message??"Media request failed.");return i.data}function d(){let a=()=>{window.Alpine?.data("nebulaMediaPicker",i=>({isOpen:!1,loading:!1,errorMessage:"",tree:[],currentPath:{id:"__root__",name:"Media",relativePath:"/"},breadcrumbs:[],directories:[],files:[],selectedFile:null,selectedAlt:"",selectedWidth:"",selectedHeight:"",selectedAlignment:"left",createDirectoryName:"",treeOpen:!0,deleteDialogOpen:!1,deleteCandidate:null,resolver:null,scrollLockCount:0,get flatTree(){return o(this.tree)},init(){window.NebulaMedia={open:async e=>this.open(e)}},async open(e){this.isOpen=!0,this.errorMessage="",this.lockPageScroll();let t=this.currentPath.id==="__root__"?i.defaultPathId:this.currentPath.id;return(e?.resetSelection??!0)&&this.clearSelection(),await Promise.all([this.tree.length===0?this.reloadTree():Promise.resolve(),this.reloadContents(t)]),e?.selection&&this.selectVirtualFile(e.selection),await new Promise(s=>{this.resolver=s})},close(){this.isOpen=!1,this.closeDeleteDialog(),this.unlockPageScroll();let e=this.resolver;this.resolver=null,e&&e(null)},async reloadTree(){try{let e=new URL(i.treeUrl,window.location.origin),t=await fetch(e.toString(),{method:"GET",credentials:"same-origin",headers:{"X-Requested-With":"XMLHttpRequest"}}),s=await n(t);this.tree=s.tree}catch(e){this.errorMessage=e instanceof Error?e.message:"Unable to load folders."}},async reloadContents(e){this.loading=!0,this.errorMessage="";try{let t=new URL(i.contentsUrl,window.location.origin);e&&t.searchParams.set("path",e);let s=await fetch(t.toString(),{method:"GET",credentials:"same-origin",headers:{"X-Requested-With":"XMLHttpRequest"}}),r=await n(s);this.applyContents(r)}catch(t){this.errorMessage=t instanceof Error?t.message:"Unable to load media contents."}finally{this.loading=!1}},async openPath(e){await this.reloadContents(e)},applyContents(e){this.currentPath=e.currentPath,this.breadcrumbs=e.breadcrumbs,this.directories=e.directories,this.files=e.files,(!this.selectedFile||!this.files.some(t=>t.id===this.selectedFile?.id))&&(this.selectedFile=null,this.selectedAlt="",this.selectedWidth="",this.selectedHeight="")},clearSelection(){this.selectedFile=null,this.selectedAlt="",this.selectedWidth="",this.selectedHeight="",this.selectedAlignment="left"},openDeleteDialog(e){this.deleteCandidate=e,this.deleteDialogOpen=!0},closeDeleteDialog(){this.deleteDialogOpen=!1,this.deleteCandidate=null},lockPageScroll(){if(this.scrollLockCount>0){this.scrollLockCount+=1;return}document.documentElement.style.overflow="hidden",document.body.style.overflow="hidden",this.scrollLockCount=1},unlockPageScroll(){this.scrollLockCount!==0&&(this.scrollLockCount-=1,!(this.scrollLockCount>0)&&(document.documentElement.style.overflow="",document.body.style.overflow=""))},selectFile(e){this.selectedFile=e,this.selectedAlt=h(e),this.selectedWidth=String(e.width||""),this.selectedHeight=String(e.height||""),this.selectedAlignment="left"},selectVirtualFile(e){this.selectedFile={id:e.src,name:e.src.split("/").pop()??e.src,shortName:e.src.split("/").pop()??e.src,relativePath:e.src,url:e.src,thumbUrl:e.src,width:e.width??0,height:e.height??0,size:0,mimeType:"image"},this.selectedAlt=e.alt,this.selectedWidth=e.width===null?"":String(e.width),this.selectedHeight=e.height===null?"":String(e.height),this.selectedAlignment=e.alignment},async handleUpload(e){let t=e.target,s=t.files?.item(0);if(t.value="",!!s){if(this.currentPath.id==="__root__"){this.errorMessage="Select an allowed folder such as /wysiwyg before uploading.";return}this.loading=!0,this.errorMessage="";try{let r=new FormData;r.append("image",s),r.append("form_key",i.formKey),r.append("path",this.currentPath.id);let c=await fetch(i.uploadUrl,{method:"POST",body:r,credentials:"same-origin",headers:{"X-Requested-With":"XMLHttpRequest"}}),l=await n(c);this.applyContents(l.contents),this.selectFile(l.file)}catch(r){this.errorMessage=r instanceof Error?r.message:"Unable to upload the image."}finally{this.loading=!1}}},async createDirectory(){let e=this.createDirectoryName.trim();if(e!==""){if(this.currentPath.id==="__root__"){this.errorMessage="Select an allowed folder such as /wysiwyg before creating a subfolder.";return}this.loading=!0,this.errorMessage="";try{let t=new FormData;t.append("form_key",i.formKey),t.append("path",this.currentPath.id),t.append("name",e);let s=await fetch(i.createDirectoryUrl,{method:"POST",body:t,credentials:"same-origin",headers:{"X-Requested-With":"XMLHttpRequest"}}),r=await n(s);this.tree=r.tree,this.applyContents(r.contents),this.createDirectoryName=""}catch(t){this.errorMessage=t instanceof Error?t.message:"Unable to create the folder."}finally{this.loading=!1}}},async confirmDeleteFile(){let e=this.deleteCandidate;if(e){this.loading=!0,this.errorMessage="";try{let t=new FormData;t.append("form_key",i.formKey),t.append("path",this.currentPath.id),t.append("file",e.id);let s=await fetch(i.deleteFileUrl,{method:"POST",body:t,credentials:"same-origin",headers:{"X-Requested-With":"XMLHttpRequest"}}),r=await n(s);this.selectedFile?.id===e.id&&this.clearSelection(),this.applyContents(r.contents),this.closeDeleteDialog()}catch(t){this.errorMessage=t instanceof Error?t.message:"Unable to delete the image."}finally{this.loading=!1}}},insertSelected(){if(!this.selectedFile||!this.resolver)return;let e=this.resolver;this.resolver=null,this.isOpen=!1,this.closeDeleteDialog(),this.unlockPageScroll(),e({src:this.selectedFile.url,alt:this.selectedAlt.trim(),width:this.selectedWidth===""?null:Number(this.selectedWidth),height:this.selectedHeight===""?null:Number(this.selectedHeight),alignment:this.selectedAlignment})}}))};window.Alpine&&a(),document.addEventListener("alpine:init",a)}d();})();
+"use strict";
+(() => {
+  // ts/components/media/picker.ts
+  function flattenTree(nodes, depth = 0) {
+    const flattened = [];
+    nodes.forEach((node) => {
+      flattened.push({
+        ...node,
+        depth
+      });
+      if (Array.isArray(node.children) && node.children.length > 0) {
+        flattened.push(...flattenTree(node.children, depth + 1));
+      }
+    });
+    return flattened;
+  }
+  function buildDisplayAlt(file) {
+    return file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+  }
+  async function parseResponse(response) {
+    const payload = await response.json();
+    if (!response.ok || !payload.success || !payload.data) {
+      throw new Error(payload.message ?? "Media request failed.");
+    }
+    return payload.data;
+  }
+  function registerMediaPicker() {
+    const install = () => {
+      window.Alpine?.data("nebulaMediaPicker", (config) => ({
+        isOpen: false,
+        loading: false,
+        errorMessage: "",
+        tree: [],
+        currentPath: { id: "__root__", name: "Media", relativePath: "/" },
+        breadcrumbs: [],
+        directories: [],
+        files: [],
+        selectedFile: null,
+        selectedAlt: "",
+        selectedWidth: "",
+        selectedHeight: "",
+        selectedAlignment: "left",
+        createDirectoryName: "",
+        treeOpen: true,
+        deleteDialogOpen: false,
+        deleteCandidate: null,
+        resolver: null,
+        scrollLockCount: 0,
+        get flatTree() {
+          return flattenTree(this.tree);
+        },
+        init() {
+          window.NebulaMedia = {
+            open: async (options) => this.open(options)
+          };
+        },
+        async open(options) {
+          this.isOpen = true;
+          this.errorMessage = "";
+          this.lockPageScroll();
+          const initialPathId = this.currentPath.id === "__root__" ? config.defaultPathId : this.currentPath.id;
+          if (options?.resetSelection ?? true) {
+            this.clearSelection();
+          }
+          await Promise.all([
+            this.tree.length === 0 ? this.reloadTree() : Promise.resolve(),
+            this.reloadContents(initialPathId)
+          ]);
+          if (options?.selection) {
+            this.selectVirtualFile(options.selection);
+          }
+          return await new Promise((resolve) => {
+            this.resolver = resolve;
+          });
+        },
+        close() {
+          this.isOpen = false;
+          this.closeDeleteDialog();
+          this.unlockPageScroll();
+          const resolver = this.resolver;
+          this.resolver = null;
+          if (resolver) {
+            resolver(null);
+          }
+        },
+        async reloadTree() {
+          try {
+            const url = new URL(config.treeUrl, window.location.origin);
+            const response = await fetch(url.toString(), {
+              method: "GET",
+              credentials: "same-origin",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest"
+              }
+            });
+            const data = await parseResponse(response);
+            this.tree = data.tree;
+          } catch (error) {
+            this.errorMessage = error instanceof Error ? error.message : "Unable to load folders.";
+          }
+        },
+        async reloadContents(pathId) {
+          this.loading = true;
+          this.errorMessage = "";
+          try {
+            const url = new URL(config.contentsUrl, window.location.origin);
+            if (pathId) {
+              url.searchParams.set("path", pathId);
+            }
+            const response = await fetch(url.toString(), {
+              method: "GET",
+              credentials: "same-origin",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest"
+              }
+            });
+            const data = await parseResponse(response);
+            this.applyContents(data);
+          } catch (error) {
+            this.errorMessage = error instanceof Error ? error.message : "Unable to load media contents.";
+          } finally {
+            this.loading = false;
+          }
+        },
+        async openPath(pathId) {
+          await this.reloadContents(pathId);
+        },
+        applyContents(data) {
+          this.currentPath = data.currentPath;
+          this.breadcrumbs = data.breadcrumbs;
+          this.directories = data.directories;
+          this.files = data.files;
+          if (!this.selectedFile || !this.files.some((file) => file.id === this.selectedFile?.id)) {
+            this.selectedFile = null;
+            this.selectedAlt = "";
+            this.selectedWidth = "";
+            this.selectedHeight = "";
+          }
+        },
+        clearSelection() {
+          this.selectedFile = null;
+          this.selectedAlt = "";
+          this.selectedWidth = "";
+          this.selectedHeight = "";
+          this.selectedAlignment = "left";
+        },
+        openDeleteDialog(file) {
+          this.deleteCandidate = file;
+          this.deleteDialogOpen = true;
+        },
+        closeDeleteDialog() {
+          this.deleteDialogOpen = false;
+          this.deleteCandidate = null;
+        },
+        lockPageScroll() {
+          if (this.scrollLockCount > 0) {
+            this.scrollLockCount += 1;
+            return;
+          }
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+          this.scrollLockCount = 1;
+        },
+        unlockPageScroll() {
+          if (this.scrollLockCount === 0) {
+            return;
+          }
+          this.scrollLockCount -= 1;
+          if (this.scrollLockCount > 0) {
+            return;
+          }
+          document.documentElement.style.overflow = "";
+          document.body.style.overflow = "";
+        },
+        selectFile(file) {
+          this.selectedFile = file;
+          this.selectedAlt = buildDisplayAlt(file);
+          this.selectedWidth = String(file.width || "");
+          this.selectedHeight = String(file.height || "");
+          this.selectedAlignment = "left";
+        },
+        selectVirtualFile(selection) {
+          this.selectedFile = {
+            id: selection.src,
+            name: selection.src.split("/").pop() ?? selection.src,
+            shortName: selection.src.split("/").pop() ?? selection.src,
+            relativePath: selection.src,
+            url: selection.src,
+            thumbUrl: selection.src,
+            width: selection.width ?? 0,
+            height: selection.height ?? 0,
+            size: 0,
+            mimeType: "image"
+          };
+          this.selectedAlt = selection.alt;
+          this.selectedWidth = selection.width === null ? "" : String(selection.width);
+          this.selectedHeight = selection.height === null ? "" : String(selection.height);
+          this.selectedAlignment = selection.alignment;
+        },
+        async handleUpload(event) {
+          const input = event.target;
+          const file = input.files?.item(0);
+          input.value = "";
+          if (!file) {
+            return;
+          }
+          if (this.currentPath.id === "__root__") {
+            this.errorMessage = "Select an allowed folder such as /wysiwyg before uploading.";
+            return;
+          }
+          this.loading = true;
+          this.errorMessage = "";
+          try {
+            const formData = new FormData();
+            formData.append("image", file);
+            formData.append("form_key", config.formKey);
+            formData.append("path", this.currentPath.id);
+            const response = await fetch(config.uploadUrl, {
+              method: "POST",
+              body: formData,
+              credentials: "same-origin",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest"
+              }
+            });
+            const data = await parseResponse(response);
+            this.applyContents(data.contents);
+            this.selectFile(data.file);
+          } catch (error) {
+            this.errorMessage = error instanceof Error ? error.message : "Unable to upload the image.";
+          } finally {
+            this.loading = false;
+          }
+        },
+        async createDirectory() {
+          const name = this.createDirectoryName.trim();
+          if (name === "") {
+            return;
+          }
+          if (this.currentPath.id === "__root__") {
+            this.errorMessage = "Select an allowed folder such as /wysiwyg before creating a subfolder.";
+            return;
+          }
+          this.loading = true;
+          this.errorMessage = "";
+          try {
+            const formData = new FormData();
+            formData.append("form_key", config.formKey);
+            formData.append("path", this.currentPath.id);
+            formData.append("name", name);
+            const response = await fetch(config.createDirectoryUrl, {
+              method: "POST",
+              body: formData,
+              credentials: "same-origin",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest"
+              }
+            });
+            const data = await parseResponse(response);
+            this.tree = data.tree;
+            this.applyContents(data.contents);
+            this.createDirectoryName = "";
+          } catch (error) {
+            this.errorMessage = error instanceof Error ? error.message : "Unable to create the folder.";
+          } finally {
+            this.loading = false;
+          }
+        },
+        async confirmDeleteFile() {
+          const file = this.deleteCandidate;
+          if (!file) {
+            return;
+          }
+          this.loading = true;
+          this.errorMessage = "";
+          try {
+            const formData = new FormData();
+            formData.append("form_key", config.formKey);
+            formData.append("path", this.currentPath.id);
+            formData.append("file", file.id);
+            const response = await fetch(config.deleteFileUrl, {
+              method: "POST",
+              body: formData,
+              credentials: "same-origin",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest"
+              }
+            });
+            const data = await parseResponse(response);
+            if (this.selectedFile?.id === file.id) {
+              this.clearSelection();
+            }
+            this.applyContents(data.contents);
+            this.closeDeleteDialog();
+          } catch (error) {
+            this.errorMessage = error instanceof Error ? error.message : "Unable to delete the image.";
+          } finally {
+            this.loading = false;
+          }
+        },
+        insertSelected() {
+          if (!this.selectedFile || !this.resolver) {
+            return;
+          }
+          const resolver = this.resolver;
+          this.resolver = null;
+          this.isOpen = false;
+          this.closeDeleteDialog();
+          this.unlockPageScroll();
+          resolver({
+            src: this.selectedFile.url,
+            alt: this.selectedAlt.trim(),
+            width: this.selectedWidth === "" ? null : Number(this.selectedWidth),
+            height: this.selectedHeight === "" ? null : Number(this.selectedHeight),
+            alignment: this.selectedAlignment
+          });
+        }
+      }));
+    };
+    if (window.Alpine) {
+      install();
+    }
+    document.addEventListener("alpine:init", install);
+  }
+
+  // ts/pages/media.ts
+  registerMediaPicker();
+})();
 //# sourceMappingURL=nebula-media.js.map

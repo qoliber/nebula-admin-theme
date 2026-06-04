@@ -11,20 +11,47 @@ use Qoliber\NebulaComponent\Api\GridDataProviderInterface;
 use Qoliber\NebulaComponent\Exception\UnknownAliasException;
 use Qoliber\NebulaGrid\Api\CollectionRegistryInterface;
 
+/**
+ * Generic grid data provider backed by a Magento resource collection.
+ *
+ * Resolves a DI-declared collection alias to an FQCN, applies whitelisted
+ * filters/sort/pagination from the request, and returns the grid payload.
+ */
 class CollectionProvider implements GridDataProviderInterface
 {
+    /**
+     * Upper bound for request-controlled page size; prevents memory-exhaustion
+     * via an arbitrarily large ?pageSize value.
+     *
+     * @var int
+     */
+    private const MAX_PAGE_SIZE = 200;
+
+    /**
+     * ObjectManager::create() is used to instantiate per-call collections
+     * because collections carry stateful filter/page cursors and must not be
+     * shared. The class name is NOT taken from JSON: it comes from
+     * $collectionRegistry->resolve($alias), where the alias was declared in DI
+     * (etc/di.xml) at compile time.
+     *
+     * @param \Magento\Framework\ObjectManagerInterface $objectManager
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Qoliber\NebulaGrid\Api\CollectionRegistryInterface $collectionRegistry
+     */
     public function __construct(
-        // ObjectManager::create() is used to instantiate per-call collections
-        // because collections carry stateful filter/page cursors and must not
-        // be shared. The class name is NOT taken from JSON anymore: it comes
-        // from $collectionRegistry->resolve($alias), where the alias was
-        // declared in DI (etc/di.xml) at compile time.
         private readonly ObjectManagerInterface $objectManager,
         private readonly LoggerInterface $logger,
         private readonly CollectionRegistryInterface $collectionRegistry
     ) {
     }
 
+    /**
+     * Fetch the grid rows and total count for the given definition and request.
+     *
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $params
+     * @return array{items: array<int, array<string, mixed>>, totalCount: int}
+     */
     public function getData(array $config, array $params = []): array
     {
         $alias = (string) ($config['collection'] ?? '');
@@ -98,6 +125,12 @@ class CollectionProvider implements GridDataProviderInterface
                 continue;
             }
 
+            // Ignore any filter on a column not declared in the grid definition:
+            // a request must not be able to filter on arbitrary DB columns.
+            if (!isset($columns[$field])) {
+                continue;
+            }
+
             // Select filter: exact match
             $filterType = $columns[$field]['filter'] ?? 'text';
             if ($filterType === 'select') {
@@ -121,15 +154,18 @@ class CollectionProvider implements GridDataProviderInterface
             }
         }
 
+        // Only sort by a column the grid actually declares — never by an
+        // arbitrary request-supplied identifier.
         $sort = $params['sort'] ?? '';
         $sortDir = $params['sortDir'] ?? 'asc';
-        if (!empty($sort)) {
+        if ($sort !== '' && isset($columns[$sort])) {
             $collection->setOrder($sort, strtoupper($sortDir) === 'DESC' ? 'DESC' : 'ASC');
         }
 
-        $page = (int) ($params['page'] ?? 1);
+        $page = max(1, (int) ($params['page'] ?? 1));
         $pageSize = (int) ($params['pageSize'] ?? 20);
         if ($pageSize > 0) {
+            $pageSize = min($pageSize, self::MAX_PAGE_SIZE);
             $collection->setPageSize($pageSize);
             $collection->setCurPage($page);
         }

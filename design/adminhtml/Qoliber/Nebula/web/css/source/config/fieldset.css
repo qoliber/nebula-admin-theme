@@ -1,3 +1,5 @@
+/* System config patches — legacy form, not NebulaForm */
+
 /* --- Fieldset card --- */
 .nebula-fieldset-card {
   @apply border mb-4 overflow-hidden transition-all;

@@ -1,0 +1,96 @@
+{
+  "id": "admin_user_edit",
+  "acl": "Magento_User::user",
+  "route": "adminhtml_user_edit",
+  "replaces": ["adminhtml.user.edit.tabs", "adminhtml.user.edit", "adminhtml.user.roles.grid.js"],
+  "dataSource": {
+    "provider": "admin_user.form",
+    "config": {
+      "identifierParam": "user_id"
+    }
+  },
+  "settings": {
+    "title": "Admin User",
+    "identifierField": "user_id",
+    "backUrl": "adminhtml/user/index",
+    "saveUrl": "adminhtml/user/save"
+  },
+  "fieldsets": {
+    "user_info": {
+      "label": "User Information",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "username": {
+          "label": "User Name",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "firstname": {
+          "label": "First Name",
+          "type": "text",
+          "required": true,
+          "position": 20
+        },
+        "lastname": {
+          "label": "Last Name",
+          "type": "text",
+          "required": true,
+          "position": 30
+        },
+        "email": {
+          "label": "Email",
+          "type": "text",
+          "required": true,
+          "position": 40
+        },
+        "password": {
+          "label": "Password",
+          "type": "password",
+          "position": 50,
+          "note": "Leave empty to keep the current password (required on create)."
+        },
+        "password_confirmation": {
+          "label": "Password Confirmation",
+          "type": "password",
+          "position": 60
+        },
+        "interface_locale": {
+          "label": "Interface Locale",
+          "type": "select",
+          "optionsSource": "Magento\\Config\\Model\\Config\\Source\\Locale",
+          "position": 70
+        },
+        "is_active": {
+          "label": "This account is",
+          "type": "toggle",
+          "position": 80
+        },
+        "current_password": {
+          "label": "Your Current Password",
+          "type": "password",
+          "required": true,
+          "position": 90,
+          "note": "Enter your current admin password to confirm these changes."
+        }
+      }
+    },
+    "user_role": {
+      "label": "User Role",
+      "position": 20,
+      "open": true,
+      "fields": {
+        "user_role": {
+          "label": "Assigned Role",
+          "type": "select",
+          "submitName": "roles[]",
+          "optionsSource": "Magento\\Authorization\\Model\\ResourceModel\\Role\\Grid\\Collection",
+          "optionsMethod": "toOptionArray",
+          "position": 10,
+          "note": "Pick a single admin role. The selected role determines which ACL resources the user can access."
+        }
+      }
+    }
+  }
+}

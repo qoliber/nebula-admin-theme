@@ -1,0 +1,166 @@
+<?php
+/**
+ * @var \Qoliber\NebulaTheme\Block\Adminhtml\Review\Rating\Form $block
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ */
+
+declare(strict_types=1);
+
+$style = <<<'CSS'
+.nebula-rating-legacy-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.nebula-rating-legacy-form .entry-edit.form-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.nebula-rating-legacy-form .admin__fieldset.fieldset {
+    margin: 0;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    background: rgb(255 255 255);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.nebula-rating-legacy-form .admin__legend.legend {
+    float: none;
+    width: auto;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    border: 0;
+}
+
+.nebula-rating-legacy-form .admin__legend.legend span {
+    display: block;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    color: rgb(15 23 42);
+    background: transparent;
+}
+
+.nebula-rating-legacy-form .admin__legend.legend + br {
+    display: none;
+}
+
+.nebula-rating-legacy-form .field-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.nebula-rating-legacy-form .field-row:last-child {
+    margin-bottom: 0;
+}
+
+.nebula-rating-legacy-form .field-row > label {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    color: rgb(31 41 55);
+}
+
+.nebula-rating-legacy-form .field-row input[type="text"],
+.nebula-rating-legacy-form .field-row select {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid rgb(203 213 225);
+    border-radius: 0.75rem;
+    background: rgb(255 255 255);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: rgb(15 23 42);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.nebula-rating-legacy-form .field-row input[type="text"]:focus,
+.nebula-rating-legacy-form .field-row select:focus {
+    outline: none;
+    border-color: rgb(99 102 241);
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+}
+
+.nebula-rating-legacy-form .field-row select[multiple] {
+    min-height: 12rem;
+    padding: 1rem;
+}
+
+.nebula-rating-legacy-form .tree-store-scope {
+    margin-top: 0.25rem;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 0.75rem;
+    background: rgb(248 250 252);
+    padding: 1rem 1.125rem;
+}
+
+.nebula-rating-legacy-form .tree-store-scope .tree-store-scope {
+    margin-top: 0.75rem;
+}
+
+.nebula-rating-legacy-form .tree-store-scope label,
+.nebula-rating-legacy-form .tree-store-scope span {
+    color: rgb(51 65 85);
+}
+
+.nebula-rating-legacy-form .field-row input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgb(148 163 184);
+    accent-color: rgb(79 70 229);
+}
+
+.nebula-rating-legacy-form .field-row .required {
+    color: rgb(220 38 38);
+}
+
+.nebula-rating-legacy-form .messages {
+    display: none;
+}
+
+.dark .nebula-rating-legacy-form .admin__fieldset.fieldset {
+    border-color: rgb(51 65 85);
+    background: rgb(15 23 42 / 0.55);
+    box-shadow: none;
+}
+
+.dark .nebula-rating-legacy-form .admin__legend.legend span,
+.dark .nebula-rating-legacy-form .field-row > label {
+    color: rgb(226 232 240);
+}
+
+.dark .nebula-rating-legacy-form .field-row input[type="text"],
+.dark .nebula-rating-legacy-form .field-row select {
+    border-color: rgb(71 85 105);
+    background: rgb(15 23 42);
+    color: rgb(226 232 240);
+}
+
+.dark .nebula-rating-legacy-form .tree-store-scope {
+    border-color: rgb(51 65 85);
+    background: rgb(15 23 42);
+}
+
+.dark .nebula-rating-legacy-form .tree-store-scope label,
+.dark .nebula-rating-legacy-form .tree-store-scope span {
+    color: rgb(203 213 225);
+}
+CSS;
+?>
+<div class="nebula-rating-legacy-form">
+    <div class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-100">
+        <?= $block->escapeHtml(__('Please specify a rating title for a store, or we will use the default value.')) ?>
+    </div>
+
+    <?= /* @noEscape */ $block->getFormHtml() ?>
+</div>
+<?= /* @noEscape */ $secureRenderer->renderTag('style', [], $style, false) ?>

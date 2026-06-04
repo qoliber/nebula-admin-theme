@@ -4,11 +4,12 @@
     <body>
         <referenceBlock name="design_config_listing" remove="true"/>
         <referenceContainer name="content" htmlTag="div">
-            <block class="Qoliber\NebulaGrid\Block\Grid"
-                   name="nebula.design_config_listing"
+            <block class="Magento\Backend\Block\Template"
+                   name="nebula.design_config_tree"
+                   template="Qoliber_NebulaStore::snippet/design_config_tree.phtml"
                    after="-">
                 <arguments>
-                    <argument name="grid_id" xsi:type="string">design_config_listing</argument>
+                    <argument name="view_model" xsi:type="object">Qoliber\NebulaStore\ViewModel\DesignConfigTree</argument>
                 </arguments>
             </block>
         </referenceContainer>

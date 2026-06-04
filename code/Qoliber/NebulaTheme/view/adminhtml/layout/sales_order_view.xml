@@ -3,7 +3,10 @@
       layout="admin-1column"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceBlock name="sales_order_edit" remove="true"/>
+        <referenceBlock name="page.title" remove="true"/>
+        <referenceContainer name="page.main.actions" remove="true"/>
+        <referenceBlock name="page.actions.toolbar" remove="true"/>
+        <referenceBlock name="sales_order_edit" template="Qoliber_NebulaTheme::blank.phtml"/>
         <referenceBlock name="order_history" remove="true"/>
         <referenceBlock name="order_tab_info" remove="true"/>
         <referenceBlock name="order_items" remove="true"/>

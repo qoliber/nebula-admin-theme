@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Qoliber\NebulaTheme\Block;
 
+use Magento\Framework\AuthorizationInterface;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Helper\Reorder as ReorderHelper;
 
 class OrderView extends Template
 {
@@ -20,6 +22,8 @@ class OrderView extends Template
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly FormKey $formKey,
         private readonly PriceCurrencyInterface $priceCurrency,
+        private readonly AuthorizationInterface $authorization,
+        private readonly ReorderHelper $reorderHelper,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -50,7 +54,7 @@ class OrderView extends Template
 
     public function formatPrice(float|string|null $price): string
     {
-        return $this->priceCurrency->format((float) $price, true, 2);
+        return $this->priceCurrency->format((float) $price, false, 2);
     }
 
     public function getBackUrl(): string
@@ -61,6 +65,20 @@ class OrderView extends Template
     public function getInvoiceUrl(): string
     {
         return $this->getUrl('sales/order_invoice/start', ['order_id' => $this->getOrder()?->getEntityId()]);
+    }
+
+    public function canSendEmail(): bool
+    {
+        $order = $this->getOrder();
+
+        return $order !== null
+            && !$order->isCanceled()
+            && $this->authorization->isAllowed('Magento_Sales::email');
+    }
+
+    public function getEmailUrl(): string
+    {
+        return $this->getUrl('sales/order/email', ['order_id' => $this->getOrder()?->getEntityId()]);
     }
 
     public function getShipUrl(): string
@@ -86,6 +104,21 @@ class OrderView extends Template
     public function getUnholdUrl(): string
     {
         return $this->getUrl('sales/*/unhold', ['order_id' => $this->getOrder()?->getEntityId()]);
+    }
+
+    public function canReorder(): bool
+    {
+        $order = $this->getOrder();
+
+        return $order !== null
+            && $this->authorization->isAllowed('Magento_Sales::reorder')
+            && $this->reorderHelper->isAllowed($order->getStore())
+            && $order->canReorderIgnoreSalable();
+    }
+
+    public function getReorderUrl(): string
+    {
+        return $this->getUrl('sales/order_create/reorder', ['order_id' => $this->getOrder()?->getEntityId()]);
     }
 
     public function getCommentUrl(): string

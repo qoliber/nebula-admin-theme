@@ -143,9 +143,16 @@ $renderField = static function (string $fieldKey, array $field) use ($block, $is
 
     $fKey = $fieldKey;
     $fieldType = (string) ($field['type'] ?? 'text');
-    $partial = __DIR__ . '/field/' . ($field['type'] ?? 'text') . '.phtml';
-    if (!file_exists($partial)) {
-        $partial = __DIR__ . '/field/text.phtml';
+    // A module may contribute a field template for a type NebulaForm doesn't
+    // ship (e.g. NebulaPageBuilder -> pagebuilder). Try that first, then the
+    // built-in partial, then text as the universal fallback.
+    $override = $block->getFieldTemplateOverride($fieldType);
+    $partial = $override !== '' ? (string) $block->getTemplateFile($override) : '';
+    if ($partial === '' || !file_exists($partial)) {
+        $partial = __DIR__ . '/field/' . $fieldType . '.phtml';
+        if (!file_exists($partial)) {
+            $partial = __DIR__ . '/field/text.phtml';
+        }
     }
 
     $fieldName = $field['submitName'] ?? $block->getFieldNamer()->name($fieldKey, $block->getFieldPrefix());
@@ -390,11 +397,17 @@ include $block->getTemplateFile('Qoliber_NebulaForm::form-shell.phtml');
                     ?>
                 <?php else : ?>
                     <?php
-                    $partial = __DIR__ . '/field/' . ($field['type'] ?? 'text') . '.phtml';
-                    if (!file_exists($partial)) {
-                        $partial = __DIR__ . '/field/text.phtml';
+                    $fieldType = (string) ($field['type'] ?? 'text');
+                    // Module-contributed field template (e.g. pagebuilder) first,
+                    // then the built-in partial, then text as the fallback.
+                    $override = $block->getFieldTemplateOverride($fieldType);
+                    $partial = $override !== '' ? (string) $block->getTemplateFile($override) : '';
+                    if ($partial === '' || !file_exists($partial)) {
+                        $partial = __DIR__ . '/field/' . $fieldType . '.phtml';
+                        if (!file_exists($partial)) {
+                            $partial = __DIR__ . '/field/text.phtml';
+                        }
                     }
-                    $fieldType = $field['type'] ?? 'text';
                     $fieldName = $field['submitName'] ?? $block->getFieldNamer()->name($fKey, $block->getFieldPrefix());
                     $fieldId = $block->getFieldNamer()->domId($fKey);
                     $fieldValue = $block->getFieldValue($fKey);

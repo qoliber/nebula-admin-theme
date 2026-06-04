@@ -3,12 +3,20 @@
 declare(strict_types=1);
 
 use Magento\Catalog\Model\Category;
-use Magento\Catalog\Model\CategoryFactory;
 
 /** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Qoliber\NebulaTheme\ViewModel\CategorySortbyFields $viewModel */
 
 $entity = $block->getData('entity');
 $formBlock = $block->getData('form_block');
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\CategorySortbyFields) {
+    throw new \RuntimeException(
+        'Nebula snippet "category_sortby_fields": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\CategorySortbyFields). Check the SnippetViewModelRegistry binding.'
+    );
+}
 
 $storeId = 0;
 if ($entity instanceof Category) {
@@ -17,22 +25,9 @@ if ($entity instanceof Category) {
     $storeId = (int) ($formBlock->getFieldValue('store_id') ?? 0);
 }
 
-$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-$categoryFactory = $objectManager->get(CategoryFactory::class);
-
-$configCategory = $categoryFactory->create();
-$configCategory->setStoreId($storeId);
-
-$allOptions = [];
-foreach ($configCategory->getAvailableSortByOptions() as $value => $label) {
-    $optionValue = (string) $value;
-    $optionLabel = (string) $label;
-
-    $allOptions[] = [
-        'value' => $optionValue,
-        'label' => $optionLabel,
-    ];
-}
+$sortByConfig = $viewModel->getSortByConfig($storeId);
+$allOptions = $sortByConfig['options'];
+$configDefaultValue = $sortByConfig['configDefault'];
 
 $rawAvailable = $entity instanceof Category ? $entity->getData('available_sort_by') : [];
 $currentAvailable = [];
@@ -43,7 +38,6 @@ if (is_array($rawAvailable)) {
 }
 
 $currentDefault = $entity instanceof Category ? trim((string) $entity->getData('default_sort_by')) : '';
-$configDefaultValue = (string) $configCategory->getDefaultSortBy();
 
 $fieldConfig = json_encode([
     'availableSortBy' => [

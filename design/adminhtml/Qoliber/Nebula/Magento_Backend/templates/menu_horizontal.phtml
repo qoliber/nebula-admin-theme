@@ -10,9 +10,8 @@ $data = $block->getNebulaMenuData();
 $items = $data['items'];
 $activeParents = $data['activeParents'];
 ?>
-<div x-data="nebulaTopMenu()" class="nebula-topbar-menu flex flex-row items-center gap-1 flex-nowrap px-3 py-2">
+<div x-data="nebulaMenuTop()" class="nebula-topbar-menu flex flex-row items-center gap-1 flex-nowrap px-3 py-2">
     <?php foreach ($items as $item): ?>
-        <?php $icon = $item['icon'] ?? 'fa-solid fa-circle'; ?>
         <?php $isActive = ($item['isActive'] || $item['isActiveParent']); ?>
         <?php if ($item['hasChildren']): ?>
             <div class="relative shrink-0" x-data="{ open: false, tip: false }" @click.outside="open = false; tip = false">
@@ -27,7 +26,7 @@ $activeParents = $data['activeParents'];
                                <?= $isActive
                                    ? 'bg-white/15 text-white'
                                    : 'text-nebula-300 hover:bg-white/10 hover:text-white' ?>">
-                    <i class="<?= htmlspecialchars($icon, ENT_QUOTES) ?> text-sm"></i>
+                    <?= /* @noEscape */ $block->renderIcon($item['id'], 'text-sm') ?>
                 </button>
 
                 <div x-show="tip && !open"
@@ -87,7 +86,7 @@ $activeParents = $data['activeParents'];
                       <?= $item['isActive']
                           ? 'bg-white/15 text-white'
                           : 'text-nebula-300 hover:bg-white/10 hover:text-white' ?>">
-                    <i class="<?= htmlspecialchars($icon, ENT_QUOTES) ?> text-sm"></i>
+                    <?= /* @noEscape */ $block->renderIcon($item['id'], 'text-sm') ?>
                 </a>
                 <div x-show="tip"
                      x-cloak
@@ -100,8 +99,3 @@ $activeParents = $data['activeParents'];
     <?php endforeach; ?>
 </div>
 
-<script>
-    function nebulaTopMenu() {
-        return {};
-    }
-</script>

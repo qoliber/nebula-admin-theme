@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!--
+        Grid collection aliases for the admin users & admin roles listings.
+        Referenced from JSON grid definitions as `"collection": "admin_user.collection"`
+        and `"collection": "admin_role.collection"`.
+    -->
+    <type name="Qoliber\NebulaGrid\Model\Registry\CollectionRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="admin_user.collection" xsi:type="string">Magento\User\Model\ResourceModel\User\Collection</item>
+                <item name="admin_role.collection" xsi:type="string">Magento\Authorization\Model\ResourceModel\Role\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Form data providers for the admin-user and admin-role edit forms.
+        Referenced from JSON form definitions as `"provider": "admin_user.form"`
+        and `"provider": "admin_role.form"`.
+    -->
+    <type name="Qoliber\NebulaComponent\Model\Registry\DataProviderRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="admin_user.form" xsi:type="string">Qoliber\NebulaUser\Model\DataProvider\AdminUserProvider</item>
+                <item name="admin_role.form" xsi:type="string">Qoliber\NebulaUser\Model\DataProvider\AdminRoleProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Snippet ViewModel registry — binds the role-edit snippet IDs to the
+        ViewModels that supply data to their phtml templates. The SectionRenderer
+        injects the resolved instance as `view_model` block data when rendering
+        the snippet from a form fieldset's `renderer` declaration.
+    -->
+    <type name="Qoliber\NebulaComponent\Model\SnippetViewModelRegistry">
+        <arguments>
+            <argument name="viewModels" xsi:type="array">
+                <item name="role_resources_tree" xsi:type="object">Qoliber\NebulaUser\ViewModel\RoleResourcesTree</item>
+                <item name="role_users_grid"     xsi:type="object">Qoliber\NebulaUser\ViewModel\RoleUsersGrid</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

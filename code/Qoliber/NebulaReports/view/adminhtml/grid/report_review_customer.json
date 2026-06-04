@@ -1,0 +1,47 @@
+{
+  "id": "report_review_customer",
+  "acl": "Magento_Reports::review_customer",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_review_customer.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "review_cnt",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "customer_name": {
+      "label": "Customer",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 10
+    },
+    "review_cnt": {
+      "label": "Reviews",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 20
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Show Reviews",
+          "url": "review/product/index/customerId/{{customer_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

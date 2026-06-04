@@ -1,2 +1,275 @@
-"use strict";(()=>{function l(o){return{options:o.existingOptions??[],searchUrl:o.searchUrl,formKey:o.formKey,wizardOpen:!1,wizardStep:0,wizardOption:{title:"",type:"select",required:!0},wizardSelections:[],wizardSearchOpen:!1,wizardSearchQuery:"",wizardSearchResults:[],wizardSearching:!1,optionTypes:[{value:"select",label:"Drop-down"},{value:"radio",label:"Radio Buttons"},{value:"checkbox",label:"Checkbox"},{value:"multi",label:"Multi Select"}],inlineSearchOpen:!1,inlineSearchOptionIndex:-1,inlineSearchQuery:"",inlineSearchResults:[],inlineSearching:!1,init(){let e=window.Alpine.store("nebulaModels");e&&e.register("section:bundleOptions",this)},destroy(){let e=window.Alpine.store("nebulaModels");e&&e.unregister("section:bundleOptions")},serialize(){let e=[];return e.push({name:"affect_bundle_product_selections",value:"1"}),this.options.forEach((i,t)=>{let n="bundle_options[bundle_options]["+String(t)+"]";e.push({name:n+"[title]",value:i.title}),e.push({name:n+"[type]",value:i.type}),e.push({name:n+"[required]",value:i.required?"1":"0"}),e.push({name:n+"[position]",value:i.position}),e.push({name:n+"[option_id]",value:i.option_id!==void 0?i.option_id:""}),e.push({name:n+"[delete]",value:i.delete||""}),i.selections.forEach((r,a)=>{let s=n+"[bundle_selections]["+String(a)+"]";e.push({name:s+"[product_id]",value:r.product_id}),e.push({name:s+"[selection_qty]",value:r.qty}),e.push({name:s+"[selection_price_value]",value:r.price}),e.push({name:s+"[selection_price_type]",value:r.price_type!==void 0?r.price_type:0}),e.push({name:s+"[is_default]",value:r.is_default?"1":"0"}),e.push({name:s+"[selection_can_change_qty]",value:r.can_change_qty?"1":"0"}),e.push({name:s+"[position]",value:r.position}),e.push({name:s+"[selection_id]",value:r.selection_id!==void 0?r.selection_id:""}),e.push({name:s+"[delete]",value:r.delete??""})})}),e},getTypeBadgeClass(e){return{select:"bg-blue-100 text-blue-700",radio:"bg-purple-100 text-purple-700",checkbox:"bg-green-100 text-green-700",multi:"bg-amber-100 text-amber-700"}[e]??"bg-gray-100 text-gray-700"},getTypeLabel(e){let i=this.optionTypes.find(t=>t.value===e);return i?i.label:e},getTypeIcon(e){return'<svg class="h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">'+({select:'<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"/>',radio:'<path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>',checkbox:'<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>',multi:'<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/>'}[e]??"")+"</svg>"},openWizard(){this.wizardStep=0,this.wizardOption={title:"",type:"select",required:!0},this.wizardSelections=[],this.wizardOpen=!0},get wizardCanProceed(){return this.wizardStep===0?this.wizardOption.title.trim().length>0:this.wizardStep===1?this.wizardSelections.length>0:!0},wizardNext(){this.wizardCanProceed&&this.wizardStep<1&&this.wizardStep++},wizardApply(){let e=this.wizardSelections.map((i,t)=>({selection_id:"",product_id:i.id,name:i.name,sku:i.sku,price:i.price??0,price_type:0,qty:i.qty??1,is_default:t===0,can_change_qty:!0,position:t,thumbnail:i.thumbnail??"",delete:""}));this.options.push({option_id:"",title:this.wizardOption.title,type:this.wizardOption.type,required:this.wizardOption.required,position:this.options.length,selections:e,delete:""}),this.wizardOpen=!1},openWizardSearch(){this.inlineSearchOpen=!1,this.wizardSearchOpen=!0,this.wizardSearchQuery="",this.wizardSearchResults=[],this.$nextTick?.(()=>{let e=document.querySelector('[x-ref="wizardSearchInput"]');e&&e.focus()})},wizardSearch(){if(this.wizardSearchQuery.length<2){this.wizardSearchResults=[];return}this.wizardSearching=!0;let e=this.wizardSelections.map(t=>String(t.id)).join(","),i=this.searchUrl+"?q="+encodeURIComponent(this.wizardSearchQuery)+"&exclude="+encodeURIComponent(e)+"&limit=20&form_key="+encodeURIComponent(this.formKey);fetch(i,{headers:{"X-Requested-With":"XMLHttpRequest"},credentials:"same-origin"}).then(t=>t.json()).then(t=>{this.wizardSearchResults=t.items??[],this.wizardSearching=!1}).catch(()=>{this.wizardSearching=!1})},wizardAddProduct(e){this.wizardSelections.push({id:e.id,name:e.name,sku:e.sku,price:e.price??0,qty:1,thumbnail:e.thumbnail??""}),this.wizardSearchResults=this.wizardSearchResults.filter(i=>i.id!==e.id)},wizardRemoveProduct(e){this.wizardSelections.splice(e,1)},openInlineSearch(e){this.inlineSearchOptionIndex=e,this.inlineSearchOpen=!0,this.inlineSearchQuery="",this.inlineSearchResults=[],this.$nextTick?.(()=>{let i=document.querySelector('[x-ref="inlineSearchInput"]');i&&i.focus()})},inlineSearch(){if(this.inlineSearchQuery.length<2){this.inlineSearchResults=[];return}this.inlineSearching=!0;let e=this.options[this.inlineSearchOptionIndex],i=e?e.selections.map(n=>String(n.product_id)).join(","):"",t=this.searchUrl+"?q="+encodeURIComponent(this.inlineSearchQuery)+"&exclude="+encodeURIComponent(i)+"&limit=20&form_key="+encodeURIComponent(this.formKey);fetch(t,{headers:{"X-Requested-With":"XMLHttpRequest"},credentials:"same-origin"}).then(n=>n.json()).then(n=>{this.inlineSearchResults=n.items??[],this.inlineSearching=!1}).catch(()=>{this.inlineSearching=!1})},inlineAddProduct(e){let i=this.options[this.inlineSearchOptionIndex];i&&(i.selections.push({selection_id:"",product_id:e.id,name:e.name,sku:e.sku,price:0,price_type:0,qty:1,is_default:!1,can_change_qty:!0,position:i.selections.length,thumbnail:e.thumbnail??"",delete:""}),this.inlineSearchResults=this.inlineSearchResults.filter(t=>t.id!==e.id))},removeOption(e){let i=this.options[e];i&&(i.option_id?i.delete="1":this.options.splice(e,1))},removeSelection(e,i){let t=this.options[e];if(!t)return;let n=t.selections[i];n&&(n.selection_id?n.delete="1":t.selections.splice(i,1))},toggleDefault(e,i){let t=this.options[e];if(!t)return;if(!(t.type==="checkbox"||t.type==="multi"))t.selections.forEach((r,a)=>{r.is_default=a===i});else{let r=t.selections[i];r&&(r.is_default=!r.is_default)}},get visibleOptions(){return this.options.filter(e=>e.delete!=="1")}}}function d(){window.Alpine.data("nebulaBundleOptions",o=>l(o))}window.Alpine?d():document.addEventListener("alpine:init",d);})();
+"use strict";
+(() => {
+  // ts/pages/bundle-options.ts
+  function createBundleOptions(config) {
+    return {
+      options: config.existingOptions ?? [],
+      searchUrl: config.searchUrl,
+      formKey: config.formKey,
+      wizardOpen: false,
+      wizardStep: 0,
+      wizardOption: { title: "", type: "select", required: true },
+      wizardSelections: [],
+      wizardSearchOpen: false,
+      wizardSearchQuery: "",
+      wizardSearchResults: [],
+      wizardSearching: false,
+      optionTypes: [
+        { value: "select", label: "Drop-down" },
+        { value: "radio", label: "Radio Buttons" },
+        { value: "checkbox", label: "Checkbox" },
+        { value: "multi", label: "Multi Select" }
+      ],
+      inlineSearchOpen: false,
+      inlineSearchOptionIndex: -1,
+      inlineSearchQuery: "",
+      inlineSearchResults: [],
+      inlineSearching: false,
+      init() {
+        const models = window.Alpine.store("nebulaModels");
+        if (models) models.register("section:bundleOptions", this);
+      },
+      destroy() {
+        const models = window.Alpine.store("nebulaModels");
+        if (models) models.unregister("section:bundleOptions");
+      },
+      serialize() {
+        const pairs = [];
+        pairs.push({ name: "affect_bundle_product_selections", value: "1" });
+        this.options.forEach((option, oi) => {
+          const prefix = "bundle_options[bundle_options][" + String(oi) + "]";
+          pairs.push({ name: prefix + "[title]", value: option.title });
+          pairs.push({ name: prefix + "[type]", value: option.type });
+          pairs.push({ name: prefix + "[required]", value: option.required ? "1" : "0" });
+          pairs.push({ name: prefix + "[position]", value: option.position });
+          pairs.push({ name: prefix + "[option_id]", value: option.option_id !== void 0 ? option.option_id : "" });
+          pairs.push({ name: prefix + "[delete]", value: option.delete || "" });
+          option.selections.forEach((sel, si) => {
+            const sp = prefix + "[bundle_selections][" + String(si) + "]";
+            pairs.push({ name: sp + "[product_id]", value: sel.product_id });
+            pairs.push({ name: sp + "[selection_qty]", value: sel.qty });
+            pairs.push({ name: sp + "[selection_price_value]", value: sel.price });
+            pairs.push({
+              name: sp + "[selection_price_type]",
+              value: sel.price_type !== void 0 ? sel.price_type : 0
+            });
+            pairs.push({ name: sp + "[is_default]", value: sel.is_default ? "1" : "0" });
+            pairs.push({
+              name: sp + "[selection_can_change_qty]",
+              value: sel.can_change_qty ? "1" : "0"
+            });
+            pairs.push({ name: sp + "[position]", value: sel.position });
+            pairs.push({
+              name: sp + "[selection_id]",
+              value: sel.selection_id !== void 0 ? sel.selection_id : ""
+            });
+            pairs.push({ name: sp + "[delete]", value: sel.delete ?? "" });
+          });
+        });
+        return pairs;
+      },
+      getTypeBadgeClass(type) {
+        const classes = {
+          select: "bg-blue-100 text-blue-700",
+          radio: "bg-purple-100 text-purple-700",
+          checkbox: "bg-green-100 text-green-700",
+          multi: "bg-amber-100 text-amber-700"
+        };
+        return classes[type] ?? "bg-gray-100 text-gray-700";
+      },
+      getTypeLabel(type) {
+        const found = this.optionTypes.find((t) => t.value === type);
+        return found ? found.label : type;
+      },
+      getTypeIcon(type) {
+        const icons = {
+          select: '<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"/>',
+          radio: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>',
+          checkbox: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>',
+          multi: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/>'
+        };
+        return '<svg class="h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">' + (icons[type] ?? "") + "</svg>";
+      },
+      openWizard() {
+        this.wizardStep = 0;
+        this.wizardOption = { title: "", type: "select", required: true };
+        this.wizardSelections = [];
+        this.wizardOpen = true;
+      },
+      get wizardCanProceed() {
+        if (this.wizardStep === 0) return this.wizardOption.title.trim().length > 0;
+        if (this.wizardStep === 1) return this.wizardSelections.length > 0;
+        return true;
+      },
+      wizardNext() {
+        if (this.wizardCanProceed && this.wizardStep < 1) {
+          this.wizardStep++;
+        }
+      },
+      wizardApply() {
+        const selections = this.wizardSelections.map((s, i) => ({
+          selection_id: "",
+          product_id: s.id,
+          name: s.name,
+          sku: s.sku,
+          price: s.price ?? 0,
+          price_type: 0,
+          qty: s.qty ?? 1,
+          is_default: i === 0,
+          can_change_qty: true,
+          position: i,
+          thumbnail: s.thumbnail ?? "",
+          delete: ""
+        }));
+        this.options.push({
+          option_id: "",
+          title: this.wizardOption.title,
+          type: this.wizardOption.type,
+          required: this.wizardOption.required,
+          position: this.options.length,
+          selections,
+          delete: ""
+        });
+        this.wizardOpen = false;
+      },
+      openWizardSearch() {
+        this.inlineSearchOpen = false;
+        this.wizardSearchOpen = true;
+        this.wizardSearchQuery = "";
+        this.wizardSearchResults = [];
+        this.$nextTick?.(() => {
+          const input = document.querySelector('[x-ref="wizardSearchInput"]');
+          if (input) input.focus();
+        });
+      },
+      wizardSearch() {
+        if (this.wizardSearchQuery.length < 2) {
+          this.wizardSearchResults = [];
+          return;
+        }
+        this.wizardSearching = true;
+        const excludeIds = this.wizardSelections.map((p) => String(p.id)).join(",");
+        const url = this.searchUrl + "?q=" + encodeURIComponent(this.wizardSearchQuery) + "&exclude=" + encodeURIComponent(excludeIds) + "&limit=20&form_key=" + encodeURIComponent(this.formKey);
+        fetch(url, {
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+          credentials: "same-origin"
+        }).then((resp) => resp.json()).then((data) => {
+          this.wizardSearchResults = data.items ?? [];
+          this.wizardSearching = false;
+        }).catch(() => {
+          this.wizardSearching = false;
+        });
+      },
+      wizardAddProduct(product) {
+        this.wizardSelections.push({
+          id: product.id,
+          name: product.name,
+          sku: product.sku,
+          price: product.price ?? 0,
+          qty: 1,
+          thumbnail: product.thumbnail ?? ""
+        });
+        this.wizardSearchResults = this.wizardSearchResults.filter((p) => p.id !== product.id);
+      },
+      wizardRemoveProduct(index) {
+        this.wizardSelections.splice(index, 1);
+      },
+      openInlineSearch(optionIndex) {
+        this.inlineSearchOptionIndex = optionIndex;
+        this.inlineSearchOpen = true;
+        this.inlineSearchQuery = "";
+        this.inlineSearchResults = [];
+        this.$nextTick?.(() => {
+          const input = document.querySelector('[x-ref="inlineSearchInput"]');
+          if (input) input.focus();
+        });
+      },
+      inlineSearch() {
+        if (this.inlineSearchQuery.length < 2) {
+          this.inlineSearchResults = [];
+          return;
+        }
+        this.inlineSearching = true;
+        const opt = this.options[this.inlineSearchOptionIndex];
+        const excludeIds = opt ? opt.selections.map((s) => String(s.product_id)).join(",") : "";
+        const url = this.searchUrl + "?q=" + encodeURIComponent(this.inlineSearchQuery) + "&exclude=" + encodeURIComponent(excludeIds) + "&limit=20&form_key=" + encodeURIComponent(this.formKey);
+        fetch(url, {
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+          credentials: "same-origin"
+        }).then((resp) => resp.json()).then((data) => {
+          this.inlineSearchResults = data.items ?? [];
+          this.inlineSearching = false;
+        }).catch(() => {
+          this.inlineSearching = false;
+        });
+      },
+      inlineAddProduct(product) {
+        const opt = this.options[this.inlineSearchOptionIndex];
+        if (!opt) return;
+        opt.selections.push({
+          selection_id: "",
+          product_id: product.id,
+          name: product.name,
+          sku: product.sku,
+          price: 0,
+          price_type: 0,
+          qty: 1,
+          is_default: false,
+          can_change_qty: true,
+          position: opt.selections.length,
+          thumbnail: product.thumbnail ?? "",
+          delete: ""
+        });
+        this.inlineSearchResults = this.inlineSearchResults.filter((p) => p.id !== product.id);
+      },
+      removeOption(index) {
+        const opt = this.options[index];
+        if (!opt) return;
+        if (opt.option_id) {
+          opt.delete = "1";
+        } else {
+          this.options.splice(index, 1);
+        }
+      },
+      removeSelection(optionIndex, selectionIndex) {
+        const opt = this.options[optionIndex];
+        if (!opt) return;
+        const sel = opt.selections[selectionIndex];
+        if (!sel) return;
+        if (sel.selection_id) {
+          sel.delete = "1";
+        } else {
+          opt.selections.splice(selectionIndex, 1);
+        }
+      },
+      toggleDefault(optionIndex, selectionIndex) {
+        const opt = this.options[optionIndex];
+        if (!opt) return;
+        const isMulti = opt.type === "checkbox" || opt.type === "multi";
+        if (!isMulti) {
+          opt.selections.forEach((s, i) => {
+            s.is_default = i === selectionIndex;
+          });
+        } else {
+          const sel = opt.selections[selectionIndex];
+          if (sel) sel.is_default = !sel.is_default;
+        }
+      },
+      get visibleOptions() {
+        return this.options.filter((o) => o.delete !== "1");
+      }
+    };
+  }
+  function register() {
+    window.Alpine.data(
+      "nebulaBundleOptions",
+      (config) => createBundleOptions(config)
+    );
+  }
+  if (window.Alpine) {
+    register();
+  } else {
+    document.addEventListener("alpine:init", register);
+  }
+})();
 //# sourceMappingURL=nebula-bundle-options.js.map

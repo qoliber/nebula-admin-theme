@@ -1,0 +1,186 @@
+<?php
+
+/**
+ * Nebula-styled Currency Symbols page.
+ *
+ * One row per allowed currency: code + display name, custom symbol input,
+ * "Use Standard" toggle. POST payload shape is identical to the stock form:
+ *
+ *   custom_currency_symbol[<code>]         = <symbol>
+ *   inherit_custom_currency_symbol[<code>] = "1"  (when "Use Standard" is on)
+ *
+ * Submits to POST adminhtml/system_currencysymbol/save (unchanged).
+ *
+ * @var \Magento\CurrencySymbol\Block\Adminhtml\System\Currencysymbol $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ */
+
+declare(strict_types=1);
+
+$symbols = $block->getCurrencySymbolsData();
+$formAction = $block->getFormActionUrl();
+$formKey = $block->getFormKey();
+$inheritLabel = (string) $block->getInheritText();
+
+// Pre-serialise parent-symbol fallbacks so Alpine can toggle without round-trip.
+$parentSymbols = [];
+foreach ($symbols as $code => $data) {
+    $parentSymbols[(string) $code] = (string) ($data['parentSymbol'] ?? '');
+}
+$parentSymbolsJson = json_encode(
+    $parentSymbols,
+    JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_THROW_ON_ERROR
+);
+?>
+<div class="w-full"
+     x-data="nebulaCurrencySymbols(<?= $escaper->escapeHtmlAttr($parentSymbolsJson) ?>)"
+     x-cloak>
+
+    <div class="nebula-form-actions-bar sticky top-0 z-30 mb-6 shadow-sm backdrop-blur-sm rounded-lg bg-white dark:bg-gray-800 px-6 py-4 border border-gray-200 dark:border-gray-700">
+        <div class="flex flex-wrap items-center justify-end gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button"
+                        @click="onReset()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/>
+                    </svg>
+                    <?= $escaper->escapeHtml((string) __('Reset')) ?>
+                </button>
+                <button type="button"
+                        @click="onSave()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
+                    <?= $escaper->escapeHtml((string) __('Save Currency Symbols')) ?>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <?php if (empty($symbols)): ?>
+        <div class="rounded-lg border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+            <?= $escaper->escapeHtml((string) __('No allowed currencies are configured. Configure them in Stores → Configuration → General → Currency Setup.')) ?>
+        </div>
+    <?php else: ?>
+        <form id="currency-symbols-form"
+              method="post"
+              action="<?= $escaper->escapeUrl($formAction) ?>">
+            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>"/>
+
+            <div class="rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-900/40 flex items-center gap-3">
+                    <span class="inline-flex items-center justify-center h-5 w-5 text-[var(--color-nebula-600)] dark:text-[var(--color-nebula-400)]">
+                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4"/>
+                        </svg>
+                    </span>
+                    <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        <?= $escaper->escapeHtml((string) __('Allowed Currencies')) ?>
+                    </h2>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                        <?= $escaper->escapeHtml((string) __('%1 entries', count($symbols))) ?>
+                    </span>
+                </div>
+
+                <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <?php foreach ($symbols as $code => $data): ?>
+                        <?php
+                        $codeStr = (string) $code;
+                        $codeAttr = $escaper->escapeHtmlAttr($codeStr);
+                        $displayName = (string) ($data['displayName'] ?? '');
+                        $displaySymbol = (string) ($data['displaySymbol'] ?? '');
+                        $inherited = !empty($data['inherited']);
+                        $parentSymbol = (string) ($data['parentSymbol'] ?? '');
+                        ?>
+                        <div class="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-gray-50/60 dark:hover:bg-gray-700/30"
+                             x-data="{ inherited: <?= $inherited ? 'true' : 'false' ?>, symbol: '<?= $escaper->escapeJs($displaySymbol) ?>' }"
+                             x-init="$watch('inherited', function (val) { if (val) { symbol = parentSymbols['<?= $escaper->escapeJs($codeStr) ?>'] || symbol; } })">
+                            <div class="sm:w-56 flex items-center gap-3 shrink-0">
+                                <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-md bg-[var(--color-nebula-50)] dark:bg-[var(--color-nebula-900)]/30 text-[var(--color-nebula-700)] dark:text-[var(--color-nebula-300)] text-xs font-mono font-bold ring-1 ring-inset ring-[var(--color-nebula-200)] dark:ring-[var(--color-nebula-700)]/40">
+                                    <?= $escaper->escapeHtml($codeStr) ?>
+                                </span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300 truncate">
+                                    <?= $escaper->escapeHtml($displayName) ?>
+                                </span>
+                            </div>
+
+                            <div class="flex-1 flex flex-col sm:flex-row sm:items-center gap-3">
+                                <label class="sr-only" for="custom_currency_symbol<?= $codeAttr ?>">
+                                    <?= $escaper->escapeHtml((string) __('Custom symbol for %1', $codeStr)) ?>
+                                </label>
+                                <input id="custom_currency_symbol<?= $codeAttr ?>"
+                                       class="w-full sm:w-48 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-[var(--color-nebula-500)] focus:ring-2 focus:ring-[var(--color-nebula-500)]/20 focus:outline-none disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed"
+                                       type="text"
+                                       x-model="symbol"
+                                       :disabled="inherited"
+                                       value="<?= $escaper->escapeHtmlAttr($displaySymbol) ?>"
+                                       name="custom_currency_symbol[<?= $codeAttr ?>]"
+                                       placeholder="<?= $escaper->escapeHtmlAttr($parentSymbol) ?>"/>
+
+                                <label class="inline-flex items-center gap-2 cursor-pointer select-none"
+                                       for="custom_currency_symbol_inherit<?= $codeAttr ?>">
+                                    <span class="relative inline-flex items-center">
+                                        <input id="custom_currency_symbol_inherit<?= $codeAttr ?>"
+                                               type="checkbox"
+                                               class="peer sr-only"
+                                               x-model="inherited"
+                                               value="1"
+                                               name="inherit_custom_currency_symbol[<?= $codeAttr ?>]"/>
+                                        <span class="w-9 h-5 bg-gray-200 dark:bg-gray-700 rounded-full peer-checked:bg-[var(--color-nebula-600)] dark:peer-checked:bg-[var(--color-nebula-500)] transition-colors"></span>
+                                        <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transform transition-transform peer-checked:translate-x-4"></span>
+                                    </span>
+                                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                        <?= $escaper->escapeHtml($inheritLabel) ?>
+                                    </span>
+                                    <?php if ($parentSymbol !== ''): ?>
+                                        <span class="text-[11px] text-gray-500 dark:text-gray-400 font-mono">
+                                            (<?= $escaper->escapeHtml($parentSymbol) ?>)
+                                        </span>
+                                    <?php endif; ?>
+                                </label>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </form>
+    <?php endif; ?>
+</div>
+
+<?php
+$scriptString = <<<JS
+(function () {
+    if (window._nebulaCurrencySymbolsRegistered) {
+        return;
+    }
+    window._nebulaCurrencySymbolsRegistered = true;
+
+    var register = function () {
+        Alpine.data('nebulaCurrencySymbols', function (parentSymbols) {
+            return {
+                parentSymbols: parentSymbols || {},
+                onSave: function () {
+                    var form = document.getElementById('currency-symbols-form');
+                    if (form) {
+                        form.submit();
+                    }
+                },
+                onReset: function () {
+                    window.location.reload();
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) {
+        register();
+    } else {
+        document.addEventListener('alpine:init', register);
+    }
+})();
+JS;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>

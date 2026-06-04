@@ -1,0 +1,43 @@
+{
+  "id": "report_product_sold",
+  "acl": "Magento_Reports::sold",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_product_sold.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "ordered_qty",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "order_items_name": {
+      "label": "Product",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 10
+    },
+    "order_items_sku": {
+      "label": "SKU",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "ordered_qty": {
+      "label": "Ordered Quantity",
+      "type": "text",
+      "sortable": true,
+      "position": 30
+    }
+  }
+}

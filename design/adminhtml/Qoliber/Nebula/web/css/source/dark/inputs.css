@@ -1,4 +1,5 @@
-/* Dark mode form inputs */
+/* Dark mode form inputs — config-value selectors still need explicit override
+   because they use non-tokenized Magento chrome that vendor/form.css cannot reach */
 .dark .nebula-config-value select,
 .dark .nebula-config-value input[type="text"],
 .dark .nebula-config-value input[type="password"],
@@ -8,13 +9,8 @@
   border-color: var(--nebula-border-default);
   color: var(--nebula-text-primary);
 }
-.dark .admin__control-text,
-.dark .admin__control-textarea,
-.dark .admin__control-select {
-  background: var(--nebula-bg-tertiary);
-  border-color: var(--nebula-border-default);
-  color: var(--nebula-text-primary);
-}
+/* .admin__control-* dark overrides removed — vendor/form.css now uses
+   --nebula-input-bg and --nebula-input-border which resolve via light-dark() */
 
 .dark .nebula-main select,
 .dark .nebula-main .admin__control-select {

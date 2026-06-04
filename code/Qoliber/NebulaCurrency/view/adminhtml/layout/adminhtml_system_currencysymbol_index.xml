@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+    Currency Symbols page (adminhtml/system_currencysymbol/index).
+
+    Stock layout adds `mage.system.currencysymbol` (rendered via grid.phtml)
+    to the `content` container. We remove that and inject a Nebula-styled
+    block backed by the SAME `Magento\CurrencySymbol\Block\Adminhtml\System\Currencysymbol`
+    PHP block — keeping `getFormActionUrl()` (adminhtml/system_currencysymbol/save)
+    and `getCurrencySymbolsData()` intact so the POST payload shape is
+    preserved (`custom_currency_symbol[<code>]` + `inherit_custom_currency_symbol[<code>]`).
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <body>
+        <referenceBlock name="mage.system.currencysymbol" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Qoliber\NebulaCurrency\Block\Adminhtml\System\Currencysymbol"
+                   name="nebula.system.currencysymbol"
+                   template="Qoliber_NebulaCurrency::currency/symbols.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

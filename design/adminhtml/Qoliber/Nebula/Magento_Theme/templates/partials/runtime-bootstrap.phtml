@@ -10,6 +10,9 @@
     function nebulaSyncRootClasses(darkMode, sidebarCollapsed) {
         document.documentElement.classList.toggle('dark', darkMode);
         document.documentElement.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+        // Keep color-scheme in sync so light-dark() tokens resolve correctly
+        // regardless of whether JS or OS preference triggered the change.
+        document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
 
         if (document.body) {
             document.body.classList.toggle('dark', darkMode);
@@ -25,7 +28,19 @@
                 || (!localStorage.getItem('nebula_dark') && window.matchMedia('(prefers-color-scheme: dark)').matches),
 
             init() {
-                nebulaSyncRootClasses(this.darkMode, this.sidebarCollapsed);
+                var self = this;
+                // Auto-collapse on tablet/mobile if the user has never set a preference
+                var mq = window.matchMedia('(max-width: 1023px)');
+                if (mq.matches && localStorage.getItem('nebula_sidebar') === null) {
+                    self.sidebarCollapsed = true;
+                }
+                nebulaSyncRootClasses(self.darkMode, self.sidebarCollapsed);
+                // When the viewport shrinks below 1024px, close the sidebar drawer
+                mq.addEventListener('change', function (e) {
+                    if (e.matches && !self.sidebarCollapsed) {
+                        self.toggleSidebar();
+                    }
+                });
             },
 
             toggleSidebar() {

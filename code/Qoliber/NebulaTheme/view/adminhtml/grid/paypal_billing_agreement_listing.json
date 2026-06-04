@@ -1,0 +1,97 @@
+{
+  "id": "paypal_billing_agreement_listing",
+  "acl": "Magento_Paypal::billing_agreement",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "paypal_billing_agreement.collection",
+      "method": "addCustomerDetails"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "agreement_id",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "agreement_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "customer_email": {
+      "label": "Email",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "customer_firstname": {
+      "label": "First Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "customer_lastname": {
+      "label": "Last Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 40
+    },
+    "reference_id": {
+      "label": "Reference ID",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 50
+    },
+    "status": {
+      "label": "Status",
+      "renderer": "snippet.status_badge",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "active": "Active",
+        "canceled": "Canceled"
+      },
+      "position": 60
+    },
+    "created_at": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 70
+    },
+    "updated_at": {
+      "label": "Updated",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 80
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "View",
+          "url": "paypal/billing_agreement/view/agreement/{{agreement_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

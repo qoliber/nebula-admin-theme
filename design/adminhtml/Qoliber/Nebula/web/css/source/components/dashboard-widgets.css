@@ -875,9 +875,21 @@
 }
 
 .nebula-dashboard-welcome {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  /* Greeting takes 40%, Lifetime Sales feature card takes 60%. */
+  .nebula-dashboard-welcome { grid-template-columns: 2fr 3fr; }
+}
+
+.nebula-dashboard-welcome__intro {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .nebula-dashboard-welcome__greeting {
@@ -892,17 +904,47 @@
   color: var(--nebula-text-tertiary);
 }
 
-.nebula-dashboard-welcome__meta {
-  text-align: right;
-  font-size: 0.75rem;
-  color: var(--nebula-text-muted);
+/* Feature Lifetime Sales card — big, brand-coloured, sits next to greeting. */
+.nebula-dashboard-lifetime-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-nebula-600) 92%, var(--color-nebula-800)),
+    var(--color-nebula-700)
+  );
+  color: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.nebula-dashboard-welcome__day {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--nebula-text-secondary);
+.nebula-dashboard-lifetime-card__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, #fff 75%, transparent);
+}
+
+.nebula-dashboard-lifetime-card__value {
+  margin-top: 0.25rem;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+@media (min-width: 1280px) {
+  .nebula-dashboard-lifetime-card__value { font-size: 2.5rem; }
+}
+
+.nebula-dashboard-lifetime-card__decimals {
+  font-size: 0.6em;
+  font-weight: 700;
+  margin-left: 0.15em;
+  color: color-mix(in srgb, #fff 70%, transparent);
 }
 
 .nebula-dashboard-stats-row {
@@ -916,7 +958,8 @@
 }
 
 @media (min-width: 1280px) {
-  .nebula-dashboard-stats-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  /* 5 cards now (Lifetime Sales moved to welcome row). */
+  .nebula-dashboard-stats-row { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 
 /* Card primitive (extends existing .nebula-dashboard-card) */

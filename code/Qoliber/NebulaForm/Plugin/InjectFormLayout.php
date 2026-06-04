@@ -28,6 +28,20 @@ class InjectFormLayout
     /** @var string FQCN of the Nebula form block, mirrors the legacy layout XMLs */
     private const FORM_BLOCK_CLASS = \Qoliber\NebulaForm\Block\Form::class;
 
+    /**
+     * Track which (processor instance + form id) tuples have already been
+     * injected. Magento's layout pipeline can call ProcessorInterface::load()
+     * more than once per request (cache miss + regenerate, sub-page renders,
+     * etc.); without this guard each call would append another copy of our
+     * update XML and the Nebula form block would render N times. Two `<form>`
+     * elements share the same x-ref + the same hidden input names, so every
+     * scalar POST value duplicates and serialised payloads (in_role_user,
+     * resource[]) get clobbered by whichever form Alpine resolves last.
+     *
+     * @var \WeakMap<ProcessorInterface, array<string, true>>|null
+     */
+    private ?\WeakMap $injectedPerProcessor = null;
+
     public function __construct(
         private readonly \Magento\Framework\App\Request\Http $request,
         private readonly RouteFormMap $routeFormMap
@@ -48,11 +62,36 @@ class InjectFormLayout
             return $result;
         }
 
+        if ($this->alreadyInjected($result, $match['form_id'])) {
+            return $result;
+        }
+
         $subject->addUpdate(
             $this->buildUpdateXml($match['form_id'], $match['replaces'])
         );
 
+        $this->markInjected($result, $match['form_id']);
+
         return $result;
+    }
+
+    private function alreadyInjected(ProcessorInterface $processor, string $formId): bool
+    {
+        $map = $this->getInjectedMap();
+        return isset($map[$processor]) && isset($map[$processor][$formId]);
+    }
+
+    private function markInjected(ProcessorInterface $processor, string $formId): void
+    {
+        $map = $this->getInjectedMap();
+        $existing = $map[$processor] ?? [];
+        $existing[$formId] = true;
+        $map[$processor] = $existing;
+    }
+
+    private function getInjectedMap(): \WeakMap
+    {
+        return $this->injectedPerProcessor ??= new \WeakMap();
     }
 
     /**
@@ -60,6 +99,9 @@ class InjectFormLayout
      * per-page XML files did:
      *  - one `<referenceBlock name="{block}" remove="true"/>` per `replaces`
      *    entry (a legacy form XML may remove several blocks);
+     *  - `<referenceContainer name="page.main.actions" remove="true"/>` —
+     *    form-shell.phtml provides its own sticky action bar, so the standard
+     *    nebula-page-actions toolbar is always redundant on NebulaForm pages;
      *  - `<referenceContainer name="content">` with the Nebula form block.
      *
      * `replaces` values use underscore (`cms_block_form`), dot
@@ -75,7 +117,7 @@ class InjectFormLayout
     {
         $formIdAttr = $this->escapeAttr($formId);
 
-        $xml = '';
+        $xml = '<referenceContainer name="page.main.actions" remove="true"/>';
 
         foreach ($replaces as $block) {
             $xml .= '<referenceBlock name="' . $this->escapeAttr($block) . '" remove="true"/>';

@@ -69,8 +69,7 @@ export const createToast = (type: ToastType, message: string): HTMLElement => {
         '    <svg style="width:20px;height:20px;color:#f8fafc !important;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">' +
         style.icon +
         '</svg>' +
-        '    <span style="flex:1;color:#f8fafc !important;font-size:14px;font-weight:600;line-height:1.4;">' +
-        message +
+        '    <span class="nebula-toast-message" style="flex:1;color:#f8fafc !important;font-size:14px;font-weight:600;line-height:1.4;">' +
         '</span>' +
         '    <button class="nebula-toast-pause" title="Pause" style="color:rgba(255,255,255,.7);cursor:pointer;background:none;border:none;padding:2px;display:flex;flex-shrink:0;transition:color .15s;">' +
         '      <svg style="width:16px;height:16px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5"/></svg>' +
@@ -83,6 +82,14 @@ export const createToast = (type: ToastType, message: string): HTMLElement => {
         '    <div class="nebula-toast-timer-bar" style="height:100%;background:rgba(255,255,255,.8);border-radius:0 0 12px 12px;width:100%;transition:width linear;"></div>' +
         '  </div>' +
         '</div>';
+
+    // The chrome above is static developer markup; the message is the only
+    // dynamic value, so inject it as text — never as HTML — to prevent XSS
+    // from admin messages that echo user-controlled input.
+    const messageEl = toast.querySelector<HTMLElement>('.nebula-toast-message');
+    if (messageEl) {
+        messageEl.textContent = message;
+    }
 
     container.appendChild(toast);
 
@@ -287,7 +294,7 @@ export function disconnectToastObserver(): void {
     };
     if (g.__nebulaToastObserver) {
         g.__nebulaToastObserver.disconnect();
-        g.__nebulaToastObserver = undefined;
+        delete g.__nebulaToastObserver;
     }
     g.__nebulaToastInstalled = false;
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Qoliber_NebulaSystem">
+        <sequence>
+            <module name="Magento_Backend"/>
+            <module name="Magento_Variable"/>
+            <module name="Magento_User"/>
+            <module name="Magento_Indexer"/>
+            <module name="Magento_Integration"/>
+            <module name="Magento_ImportExport"/>
+            <module name="Magento_TaxImportExport"/>
+            <module name="Magento_Backup"/>
+            <module name="Magento_AdminNotification"/>
+            <module name="Magento_Variable"/>
+            <module name="Magento_AsynchronousOperations"/>
+            <module name="Magento_ServicesId"/>
+            <module name="Qoliber_NebulaGrid"/>
+            <module name="Qoliber_NebulaMenu"/>
+        </sequence>
+    </module>
+</config>

@@ -15,46 +15,62 @@ $items = $order->getAllVisibleItems();
 $statusHistories = $order->getStatusHistoryCollection();
 ?>
 
-<div class="nebula-order-view" x-data="{ commentOpen: true }">
-    <!-- Header -->
-    <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-            <a href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>"
-               class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                </svg>
-                <?= $escaper->escapeHtml(__('Back to Orders')) ?>
-            </a>
-        </div>
-
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">
+<div class="nebula-order-view"
+     x-data="{ commentOpen: true }"
+     x-init="let node = $el.previousSibling; while (node) { const current = node; node = node.previousSibling; current.remove(); }">
+    <!-- Action Bar -->
+    <div class="nebula-form-actions-bar sticky top-0 z-30 mb-6 shadow-sm backdrop-blur-sm bg-white/90 border-b border-gray-200 -mx-6 px-6 py-3">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+            <div class="flex min-w-0 flex-1 items-center gap-3">
+                <h1 class="text-xl font-bold text-gray-900 truncate">
                     <?= $escaper->escapeHtml(__('Order #%1', $order->getIncrementId())) ?>
                 </h1>
-                <div class="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                    <span><?= $escaper->escapeHtml($order->getCustomerFirstname() . ' ' . $order->getCustomerLastname()) ?></span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $escaper->escapeHtmlAttr($block->getStatusBadgeClass()) ?>">
+                    <?= $escaper->escapeHtml($block->getStatusLabel()) ?>
+                </span>
+                <p class="text-xs text-gray-500 hidden sm:block truncate">
+                    <?= $escaper->escapeHtml($order->getCustomerFirstname() . ' ' . $order->getCustomerLastname()) ?>
                     <?php if ($order->getCustomerEmail()) : ?>
-                        <span class="text-gray-300">|</span>
-                        <a href="mailto:<?= $escaper->escapeHtmlAttr($order->getCustomerEmail()) ?>"
-                           class="text-blue-600 hover:text-blue-800">
-                            <?= $escaper->escapeHtml($order->getCustomerEmail()) ?>
-                        </a>
+                        &middot; <?= $escaper->escapeHtml($order->getCustomerEmail()) ?>
                     <?php endif; ?>
-                    <span class="text-gray-300">|</span>
-                    <span><?= $escaper->escapeHtml($block->formatDate($order->getCreatedAt(), \IntlDateFormatter::MEDIUM, true)) ?></span>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $escaper->escapeHtmlAttr($block->getStatusBadgeClass()) ?>">
-                        <?= $escaper->escapeHtml($block->getStatusLabel()) ?>
-                    </span>
-                </div>
+                </p>
             </div>
-
-            <!-- Action Buttons -->
             <div class="flex flex-wrap items-center gap-2">
+                <a href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>"
+                   class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <?= $escaper->escapeHtml(__('Back')) ?>
+                </a>
+                <?php if ($block->canSendEmail() || $block->canReorder() || $order->canInvoice() || $order->canShip() || $order->canCreditmemo() || $order->canCancel() || $order->canHold() || $order->canUnhold()) : ?>
+                    <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
+                <?php endif; ?>
+
+                <?php if ($block->canSendEmail()) : ?>
+                    <button type="button"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm"
+                       @click="(async () => { if (await window.Nebula.confirm({ title: '<?= $escaper->escapeJs((string) __('Send order email?')) ?>', message: '<?= $escaper->escapeJs((string) __('Magento will send the order update email to the customer.')) ?>', confirmText: '<?= $escaper->escapeJs((string) __('Send Email')) ?>', cancelText: '<?= $escaper->escapeJs((string) __('Cancel')) ?>' })) { const f = document.createElement('form'); f.method = 'POST'; f.action = '<?= $escaper->escapeJs($block->getEmailUrl()) ?>'; const k = document.createElement('input'); k.type = 'hidden'; k.name = 'form_key'; k.value = '<?= $escaper->escapeJs($block->getFormKeyValue()) ?>'; f.appendChild(k); document.body.appendChild(f); f.submit(); } })()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8m-16 8h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Send Email')) ?>
+                    </button>
+                <?php endif; ?>
+
+                <?php if ($block->canReorder()) : ?>
+                    <a href="<?= $escaper->escapeUrl($block->getReorderUrl()) ?>"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.64 18.36A9 9 0 1020 12M4 12a9 9 0 0115.36-6.36"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Reorder')) ?>
+                    </a>
+                <?php endif; ?>
+
                 <?php if ($order->canInvoice()) : ?>
                     <a href="<?= $escaper->escapeUrl($block->getInvoiceUrl()) ?>"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
@@ -64,7 +80,7 @@ $statusHistories = $order->getStatusHistoryCollection();
 
                 <?php if ($order->canShip()) : ?>
                     <a href="<?= $escaper->escapeUrl($block->getShipUrl()) ?>"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                         </svg>
@@ -74,7 +90,7 @@ $statusHistories = $order->getStatusHistoryCollection();
 
                 <?php if ($order->canCreditmemo()) : ?>
                     <a href="<?= $escaper->escapeUrl($block->getCreditMemoUrl()) ?>"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                         </svg>
@@ -84,7 +100,7 @@ $statusHistories = $order->getStatusHistoryCollection();
 
                 <?php if ($order->canCancel()) : ?>
                     <a href="<?= $escaper->escapeUrl($block->getCancelUrl()) ?>"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-red-600 border border-red-300 hover:bg-red-50 transition-colors"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-white text-red-600 border border-red-300 hover:bg-red-50 transition-colors shadow-sm"
                        @click.prevent="(async () => { if (await window.Nebula.confirm({ title: '<?= $escaper->escapeJs((string) __('Cancel this order?')) ?>', message: '<?= $escaper->escapeJs((string) __('The order will be marked as cancelled.')) ?>', danger: true, confirmText: '<?= $escaper->escapeJs((string) __('Cancel order')) ?>', cancelText: '<?= $escaper->escapeJs((string) __('Keep order')) ?>' })) { window.location.href = $event.currentTarget.href; } })()">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -95,7 +111,7 @@ $statusHistories = $order->getStatusHistoryCollection();
 
                 <?php if ($order->canHold()) : ?>
                     <a href="<?= $escaper->escapeUrl($block->getHoldUrl()) ?>"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
@@ -105,7 +121,7 @@ $statusHistories = $order->getStatusHistoryCollection();
 
                 <?php if ($order->canUnhold()) : ?>
                     <a href="<?= $escaper->escapeUrl($block->getUnholdUrl()) ?>"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">
+                       class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -260,9 +276,10 @@ $statusHistories = $order->getStatusHistoryCollection();
         </div>
 
         <!-- Totals -->
-        <div class="border-t border-gray-200 bg-gray-50 px-5 py-4">
+        <div class="border-t border-gray-200 bg-gray-50 p-5">
             <div class="flex justify-end">
-                <dl class="w-72 space-y-2 text-sm">
+                <div class="w-72 bg-white rounded-lg border border-gray-200 p-4">
+                <dl class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Subtotal')) ?></dt>
                         <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($order->getSubtotal())) ?></dd>
@@ -313,6 +330,7 @@ $statusHistories = $order->getStatusHistoryCollection();
                         </div>
                     <?php endif; ?>
                 </dl>
+                </div>
             </div>
         </div>
     </div>

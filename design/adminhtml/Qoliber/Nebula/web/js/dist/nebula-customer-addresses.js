@@ -1,4 +1,361 @@
-"use strict";(()=>{var f={sm:"max-w-md",md:"max-w-xl",lg:"max-w-3xl",xl:"max-w-5xl",full:"max-w-7xl"},p='a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex^="-"]), [contenteditable=true]';function S(n){let u=o=>{if(o.key!=="Tab")return;let t=Array.from(n.querySelectorAll(p)).filter(s=>s.offsetParent!==null||s===document.activeElement);if(t.length===0){o.preventDefault();return}let e=t[0],i=t[t.length-1],r=document.activeElement;o.shiftKey&&r===e?(o.preventDefault(),i.focus()):!o.shiftKey&&r===i&&(o.preventDefault(),e.focus())};return n.addEventListener("keydown",u),()=>n.removeEventListener("keydown",u)}function m(n={}){let u=n.steps??[],o=n.size??"lg",t=n.onOpen??null,e=n.onClose??null,i=null,r=null;return{modalOpen:!1,modalStep:0,modalSteps:u,modalSize:o,modalTitle:n.title??"",openModal(){this.modalStep=0,this.modalOpen=!0,i=document.activeElement,t&&t.call(this);let s=this;this.$nextTick?.(()=>{s.$el&&s.$el.dispatchEvent(new CustomEvent("nebula-modal:open",{bubbles:!0}));let d=s.$el?.querySelector('[x-show="modalOpen"]'),l=d?.querySelector('input, select, textarea, button, [tabindex]:not([tabindex^="-"])');l&&l.focus(),d&&r===null&&(r=S(d))})},closeModal(){this.modalOpen=!1,r&&(r(),r=null),e&&e.call(this),this.$el&&this.$el.dispatchEvent(new CustomEvent("nebula-modal:close",{bubbles:!0}));let s=i;i=null,s&&typeof s.focus=="function"&&requestAnimationFrame(()=>{document.contains(s)&&s.focus()})},nextModalStep(s){s&&!s.call(this)||this.modalStep<this.modalSteps.length-1&&this.modalStep++},prevModalStep(){this.modalStep>0&&this.modalStep--},goToModalStep(s){s>=0&&s<this.modalSteps.length&&(this.modalStep=s)},get modalSizeClass(){return f[this.modalSize]??f.lg},get isFirstModalStep(){return this.modalStep===0},get isLastModalStep(){return this.modalSteps.length===0||this.modalStep===this.modalSteps.length-1},get hasModalSteps(){return this.modalSteps.length>0},get currentModalStepLabel(){return this.modalSteps.length===0?"":this.modalSteps[this.modalStep]??""},get modalStepCount(){return this.modalSteps.length}}}function c(n){return{...m({size:"lg",steps:[],onClose(){let t=this;t.resetForm(),t.editIndex=null}}),addresses:n.existingAddresses??[],defaultBilling:n.defaultBilling??null,defaultShipping:n.defaultShipping??null,countries:n.countries??[],regionsByCountry:n.regionsByCountry??{},editIndex:null,formFirstname:"",formLastname:"",formCompany:"",formTelephone:"",formFax:"",formStreet0:"",formStreet1:"",formCity:"",formRegion:"",formRegionId:"",formPostcode:"",formCountryId:"",formDefaultBilling:!1,formDefaultShipping:!1,get currentRegions(){return this.regionsByCountry[this.formCountryId]??[]},get hasRegions(){return this.currentRegions.length>0},init(){let t=window.Alpine.store("nebulaModels");t&&t.register("section:addresses",this)},destroy(){let t=window.Alpine.store("nebulaModels");t&&t.unregister("section:addresses")},resetForm(){this.formFirstname="",this.formLastname="",this.formCompany="",this.formTelephone="",this.formFax="",this.formStreet0="",this.formStreet1="",this.formCity="",this.formRegion="",this.formRegionId="",this.formPostcode="",this.formCountryId="",this.formDefaultBilling=!1,this.formDefaultShipping=!1},openEditor(t){if(this.editIndex=t!==void 0?t:null,this.editIndex!==null){let e=this.addresses[this.editIndex];if(!e){this.resetForm(),this.openModal();return}this.formFirstname=e.firstname??"",this.formLastname=e.lastname??"",this.formCompany=e.company??"",this.formTelephone=e.telephone??"",this.formFax=e.fax??"";let i=[];Array.isArray(e.street)?i=e.street:typeof e.street=="string"&&(i=e.street.split(`
-`)),this.formStreet0=i[0]??"",this.formStreet1=i[1]??"",this.formCity=e.city??"",this.formRegion=e.region??"",this.formRegionId=e.region_id?String(e.region_id):"",this.formPostcode=e.postcode??"",this.formCountryId=e.country_id??"";let r=e.id??this.editIndex;this.formDefaultBilling=this.defaultBilling!==null&&String(this.defaultBilling)===String(r),this.formDefaultShipping=this.defaultShipping!==null&&String(this.defaultShipping)===String(r)}else this.resetForm();this.openModal()},get canSave(){return!(!this.formFirstname.trim()||!this.formLastname.trim()||!this.formStreet0.trim()||!this.formCity.trim()||!this.formCountryId||!this.formTelephone.trim()||this.hasRegions&&!this.formRegionId)},saveAddress(){let t={id:this.editIndex!==null?this.addresses[this.editIndex]?.id??null:null,firstname:this.formFirstname,lastname:this.formLastname,company:this.formCompany,telephone:this.formTelephone,fax:this.formFax,street:[this.formStreet0,this.formStreet1],city:this.formCity,region:this.formRegion,region_id:this.formRegionId,postcode:this.formPostcode,country_id:this.formCountryId};this.editIndex!==null?this.addresses[this.editIndex]=t:this.addresses.push(t);let e=t.id??(this.editIndex!==null?this.editIndex:this.addresses.length-1);this.formDefaultBilling?this.defaultBilling=e:String(this.defaultBilling)===String(e)&&(this.defaultBilling=null),this.formDefaultShipping?this.defaultShipping=e:String(this.defaultShipping)===String(e)&&(this.defaultShipping=null),this.closeModal()},removeAddress(t){let e=this.addresses[t];if(!e)return;let i=e.id??t;String(this.defaultBilling)===String(i)&&(this.defaultBilling=null),String(this.defaultShipping)===String(i)&&(this.defaultShipping=null),this.addresses.splice(t,1)},setDefaultBilling(t){let e=this.addresses[t];e&&(this.defaultBilling=e.id??t)},setDefaultShipping(t){let e=this.addresses[t];e&&(this.defaultShipping=e.id??t)},isDefaultBilling(t){let e=this.addresses[t];if(!e)return!1;let i=e.id??t;return this.defaultBilling!==null&&String(this.defaultBilling)===String(i)},isDefaultShipping(t){let e=this.addresses[t];if(!e)return!1;let i=e.id??t;return this.defaultShipping!==null&&String(this.defaultShipping)===String(i)},formatStreet(t){let e=t.street??[];return typeof e=="string"?e:e.filter(i=>i).join(", ")},countryLabel(t){let e=this.countries.find(i=>i.value===t);return e?e.label:t},serialize(){let t=[];for(let e=0;e<this.addresses.length;e++){let i=this.addresses[e];if(!i)continue;let r="customer[address]["+String(e)+"]",s=["firstname","lastname","company","city","region","region_id","postcode","country_id","telephone","fax"];for(let l of s){let a=i[l],g=a==null?"":typeof a=="string"||typeof a=="number"||typeof a=="boolean"?a:String(a);t.push({name:r+"["+l+"]",value:g})}let d=[];Array.isArray(i.street)?d=i.street:typeof i.street=="string"&&(d=i.street.split(`
-`));for(let l=0;l<d.length;l++)t.push({name:r+"[street][]",value:d[l]??""});i.id!==void 0&&i.id!==null&&t.push({name:r+"[id]",value:i.id})}return this.defaultBilling!==null&&t.push({name:"customer[default_billing]",value:this.defaultBilling}),this.defaultShipping!==null&&t.push({name:"customer[default_shipping]",value:this.defaultShipping}),t}}}function h(){window.Alpine.data("nebulaCustomerAddresses",n=>c(n))}window.Alpine?h():document.addEventListener("alpine:init",h);})();
+"use strict";
+(() => {
+  // ts/modal.ts
+  var sizeClasses = {
+    sm: "max-w-md",
+    md: "max-w-xl",
+    lg: "max-w-3xl",
+    xl: "max-w-5xl",
+    full: "max-w-7xl"
+  };
+  var FOCUSABLE_SELECTOR = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex^="-"]), [contenteditable=true]';
+  function installFocusTrap(panel) {
+    const handler = (event) => {
+      if (event.key !== "Tab") return;
+      const focusables = Array.from(
+        panel.querySelectorAll(FOCUSABLE_SELECTOR)
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (focusables.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    panel.addEventListener("keydown", handler);
+    return () => panel.removeEventListener("keydown", handler);
+  }
+  function createModal(config = {}) {
+    const steps = config.steps ?? [];
+    const size = config.size ?? "lg";
+    const onOpen = config.onOpen ?? null;
+    const onClose = config.onClose ?? null;
+    let previouslyFocused = null;
+    let trapTeardown = null;
+    return {
+      modalOpen: false,
+      modalStep: 0,
+      modalSteps: steps,
+      modalSize: size,
+      modalTitle: config.title ?? "",
+      openModal() {
+        this.modalStep = 0;
+        this.modalOpen = true;
+        previouslyFocused = document.activeElement;
+        if (onOpen) {
+          onOpen.call(this);
+        }
+        const self = this;
+        this.$nextTick?.(() => {
+          if (self.$el) {
+            self.$el.dispatchEvent(new CustomEvent("nebula-modal:open", { bubbles: true }));
+          }
+          const panel = self.$el?.querySelector('[x-show="modalOpen"]');
+          const focusTarget = panel?.querySelector(
+            'input, select, textarea, button, [tabindex]:not([tabindex^="-"])'
+          );
+          if (focusTarget) focusTarget.focus();
+          if (panel && trapTeardown === null) {
+            trapTeardown = installFocusTrap(panel);
+          }
+        });
+      },
+      closeModal() {
+        this.modalOpen = false;
+        if (trapTeardown) {
+          trapTeardown();
+          trapTeardown = null;
+        }
+        if (onClose) {
+          onClose.call(this);
+        }
+        if (this.$el) {
+          this.$el.dispatchEvent(new CustomEvent("nebula-modal:close", { bubbles: true }));
+        }
+        const previous = previouslyFocused;
+        previouslyFocused = null;
+        if (previous && typeof previous.focus === "function") {
+          requestAnimationFrame(() => {
+            if (document.contains(previous)) previous.focus();
+          });
+        }
+      },
+      nextModalStep(canProceed) {
+        if (canProceed && !canProceed.call(this)) return;
+        if (this.modalStep < this.modalSteps.length - 1) {
+          this.modalStep++;
+        }
+      },
+      prevModalStep() {
+        if (this.modalStep > 0) {
+          this.modalStep--;
+        }
+      },
+      goToModalStep(index) {
+        if (index >= 0 && index < this.modalSteps.length) {
+          this.modalStep = index;
+        }
+      },
+      get modalSizeClass() {
+        return sizeClasses[this.modalSize] ?? sizeClasses.lg;
+      },
+      get isFirstModalStep() {
+        return this.modalStep === 0;
+      },
+      get isLastModalStep() {
+        return this.modalSteps.length === 0 || this.modalStep === this.modalSteps.length - 1;
+      },
+      get hasModalSteps() {
+        return this.modalSteps.length > 0;
+      },
+      get currentModalStepLabel() {
+        if (this.modalSteps.length === 0) return "";
+        return this.modalSteps[this.modalStep] ?? "";
+      },
+      get modalStepCount() {
+        return this.modalSteps.length;
+      }
+    };
+  }
+
+  // ts/pages/customer-addresses.ts
+  function createCustomerAddresses(config) {
+    const modalMixin = createModal({
+      size: "lg",
+      steps: [],
+      onClose() {
+        const self = this;
+        self.resetForm();
+        self.editIndex = null;
+      }
+    });
+    const state = {
+      ...modalMixin,
+      addresses: config.existingAddresses ?? [],
+      defaultBilling: config.defaultBilling ?? null,
+      defaultShipping: config.defaultShipping ?? null,
+      countries: config.countries ?? [],
+      regionsByCountry: config.regionsByCountry ?? {},
+      editIndex: null,
+      formFirstname: "",
+      formLastname: "",
+      formCompany: "",
+      formTelephone: "",
+      formFax: "",
+      formStreet0: "",
+      formStreet1: "",
+      formCity: "",
+      formRegion: "",
+      formRegionId: "",
+      formPostcode: "",
+      formCountryId: "",
+      formDefaultBilling: false,
+      formDefaultShipping: false,
+      get currentRegions() {
+        return this.regionsByCountry[this.formCountryId] ?? [];
+      },
+      get hasRegions() {
+        return this.currentRegions.length > 0;
+      },
+      init() {
+        const models = window.Alpine.store("nebulaModels");
+        if (models) models.register("section:addresses", this);
+      },
+      destroy() {
+        const models = window.Alpine.store("nebulaModels");
+        if (models) models.unregister("section:addresses");
+      },
+      resetForm() {
+        this.formFirstname = "";
+        this.formLastname = "";
+        this.formCompany = "";
+        this.formTelephone = "";
+        this.formFax = "";
+        this.formStreet0 = "";
+        this.formStreet1 = "";
+        this.formCity = "";
+        this.formRegion = "";
+        this.formRegionId = "";
+        this.formPostcode = "";
+        this.formCountryId = "";
+        this.formDefaultBilling = false;
+        this.formDefaultShipping = false;
+      },
+      openEditor(editIdx) {
+        this.editIndex = editIdx !== void 0 ? editIdx : null;
+        if (this.editIndex !== null) {
+          const addr = this.addresses[this.editIndex];
+          if (!addr) {
+            this.resetForm();
+            this.openModal();
+            return;
+          }
+          this.formFirstname = addr.firstname ?? "";
+          this.formLastname = addr.lastname ?? "";
+          this.formCompany = addr.company ?? "";
+          this.formTelephone = addr.telephone ?? "";
+          this.formFax = addr.fax ?? "";
+          let street = [];
+          if (Array.isArray(addr.street)) street = addr.street;
+          else if (typeof addr.street === "string") street = addr.street.split("\n");
+          this.formStreet0 = street[0] ?? "";
+          this.formStreet1 = street[1] ?? "";
+          this.formCity = addr.city ?? "";
+          this.formRegion = addr.region ?? "";
+          this.formRegionId = addr.region_id ? String(addr.region_id) : "";
+          this.formPostcode = addr.postcode ?? "";
+          this.formCountryId = addr.country_id ?? "";
+          const addrKey = addr.id ?? this.editIndex;
+          this.formDefaultBilling = this.defaultBilling !== null && String(this.defaultBilling) === String(addrKey);
+          this.formDefaultShipping = this.defaultShipping !== null && String(this.defaultShipping) === String(addrKey);
+        } else {
+          this.resetForm();
+        }
+        this.openModal();
+      },
+      get canSave() {
+        if (!this.formFirstname.trim() || !this.formLastname.trim() || !this.formStreet0.trim() || !this.formCity.trim() || !this.formCountryId || !this.formTelephone.trim()) {
+          return false;
+        }
+        if (this.hasRegions && !this.formRegionId) {
+          return false;
+        }
+        return true;
+      },
+      saveAddress() {
+        const addr = {
+          id: this.editIndex !== null ? this.addresses[this.editIndex]?.id ?? null : null,
+          firstname: this.formFirstname,
+          lastname: this.formLastname,
+          company: this.formCompany,
+          telephone: this.formTelephone,
+          fax: this.formFax,
+          street: [this.formStreet0, this.formStreet1],
+          city: this.formCity,
+          region: this.formRegion,
+          region_id: this.formRegionId,
+          postcode: this.formPostcode,
+          country_id: this.formCountryId
+        };
+        if (this.editIndex !== null) {
+          this.addresses[this.editIndex] = addr;
+        } else {
+          this.addresses.push(addr);
+        }
+        const addrKey = addr.id ?? (this.editIndex !== null ? this.editIndex : this.addresses.length - 1);
+        if (this.formDefaultBilling) {
+          this.defaultBilling = addrKey;
+        } else if (String(this.defaultBilling) === String(addrKey)) {
+          this.defaultBilling = null;
+        }
+        if (this.formDefaultShipping) {
+          this.defaultShipping = addrKey;
+        } else if (String(this.defaultShipping) === String(addrKey)) {
+          this.defaultShipping = null;
+        }
+        this.closeModal();
+      },
+      removeAddress(idx) {
+        const addr = this.addresses[idx];
+        if (!addr) return;
+        const addrKey = addr.id ?? idx;
+        if (String(this.defaultBilling) === String(addrKey)) this.defaultBilling = null;
+        if (String(this.defaultShipping) === String(addrKey)) this.defaultShipping = null;
+        this.addresses.splice(idx, 1);
+      },
+      setDefaultBilling(idx) {
+        const addr = this.addresses[idx];
+        if (!addr) return;
+        this.defaultBilling = addr.id ?? idx;
+      },
+      setDefaultShipping(idx) {
+        const addr = this.addresses[idx];
+        if (!addr) return;
+        this.defaultShipping = addr.id ?? idx;
+      },
+      isDefaultBilling(idx) {
+        const addr = this.addresses[idx];
+        if (!addr) return false;
+        const addrKey = addr.id ?? idx;
+        return this.defaultBilling !== null && String(this.defaultBilling) === String(addrKey);
+      },
+      isDefaultShipping(idx) {
+        const addr = this.addresses[idx];
+        if (!addr) return false;
+        const addrKey = addr.id ?? idx;
+        return this.defaultShipping !== null && String(this.defaultShipping) === String(addrKey);
+      },
+      formatStreet(_addr) {
+        const street = _addr.street ?? [];
+        if (typeof street === "string") return street;
+        return street.filter((s) => s).join(", ");
+      },
+      countryLabel(countryId) {
+        const found = this.countries.find((c) => c.value === countryId);
+        return found ? found.label : countryId;
+      },
+      serialize() {
+        const pairs = [];
+        for (let i = 0; i < this.addresses.length; i++) {
+          const addr = this.addresses[i];
+          if (!addr) continue;
+          const prefix = "customer[address][" + String(i) + "]";
+          const fields = [
+            "firstname",
+            "lastname",
+            "company",
+            "city",
+            "region",
+            "region_id",
+            "postcode",
+            "country_id",
+            "telephone",
+            "fax"
+          ];
+          for (const key of fields) {
+            const raw = addr[key];
+            const value = raw === void 0 || raw === null ? "" : typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean" ? raw : String(raw);
+            pairs.push({ name: prefix + "[" + key + "]", value });
+          }
+          let street = [];
+          if (Array.isArray(addr.street)) street = addr.street;
+          else if (typeof addr.street === "string") street = addr.street.split("\n");
+          for (let si = 0; si < street.length; si++) {
+            pairs.push({ name: prefix + "[street][]", value: street[si] ?? "" });
+          }
+          if (addr.id !== void 0 && addr.id !== null) {
+            pairs.push({ name: prefix + "[id]", value: addr.id });
+          }
+        }
+        if (this.defaultBilling !== null) {
+          pairs.push({ name: "customer[default_billing]", value: this.defaultBilling });
+        }
+        if (this.defaultShipping !== null) {
+          pairs.push({ name: "customer[default_shipping]", value: this.defaultShipping });
+        }
+        return pairs;
+      }
+    };
+    return state;
+  }
+  function register() {
+    window.Alpine.data(
+      "nebulaCustomerAddresses",
+      (config) => createCustomerAddresses(config)
+    );
+  }
+  if (window.Alpine) {
+    register();
+  } else {
+    document.addEventListener("alpine:init", register);
+  }
+})();
 //# sourceMappingURL=nebula-customer-addresses.js.map

@@ -1,23 +1,32 @@
 /* --- System Messages (rendered by Magento\Framework\View\Element\Messages) --- */
+
+/*
+ * Public API: set --message-surface on a .message element to reskin it.
+ * Border and text are derived — no separate variables needed.
+ *
+ * Defaults per type:
+ *   --message-surface on .message-success  → green-50
+ *   --message-surface on .message-error    → red-50
+ *   --message-surface on .message-warning  → amber-50
+ *   --message-surface on .message-notice   → blue-50
+ */
 .messages {
   @apply w-full max-w-sm mx-auto my-4;
 }
+
 .message {
+  --_msg-surface: var(--message-surface, var(--nebula-bg-secondary));
   @apply text-sm;
+  background: var(--_msg-surface);
+  color: color-mix(in oklch, var(--_msg-surface), black 62%);
+  border: 1px solid color-mix(in srgb, var(--_msg-surface), black 12%);
   padding: var(--nebula-spacing-md) var(--nebula-spacing-lg);
   margin-bottom: var(--nebula-spacing-sm);
   border-radius: var(--nebula-radius-lg);
   font-size: var(--nebula-font-size-sm);
 }
-.message-success {
-  @apply bg-green-50 border border-green-200 text-green-800;
-}
-.message-error {
-  @apply bg-red-50 border border-red-200 text-red-800;
-}
-.message-warning {
-  @apply bg-amber-50 border border-amber-200 text-amber-800;
-}
-.message-notice {
-  @apply bg-blue-50 border border-blue-200 text-blue-800;
-}
+
+.message-success { --message-surface: #f0fdf4; }
+.message-error   { --message-surface: #fef2f2; }
+.message-warning { --message-surface: #fffbeb; }
+.message-notice  { --message-surface: #eff6ff; }

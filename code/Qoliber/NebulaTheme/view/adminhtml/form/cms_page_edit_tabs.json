@@ -143,21 +143,6 @@
           ]
         },
         {
-          "id": "content_tab",
-          "label": "Content",
-          "children": [
-            {
-              "id": "content_section",
-              "type": "section",
-              "label": "Content",
-              "fields": [
-                "content_heading",
-                "content"
-              ]
-            }
-          ]
-        },
-        {
           "id": "seo_tab",
           "label": "SEO",
           "children": [
@@ -201,6 +186,21 @@
                     }
                   ]
                 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "content_tab",
+          "label": "Content",
+          "children": [
+            {
+              "id": "content_section",
+              "type": "section",
+              "label": "Content",
+              "fields": [
+                "content_heading",
+                "content"
               ]
             }
           ]

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <link src="requirejs/require.js"/>
+    </head>
+    <body>
+        <block name="require.js"
+               class="Magento\Backend\Block\Page\RequireJs"
+               template="Magento_Backend::page/js/require_js.phtml"/>
+        <block class="Magento\Framework\View\Element\Template"
+               name="head.critical"
+               as="head.critical"
+               template="Magento_Backend::page/container.phtml"/>
+        <block class="Magento\Framework\View\Element\Template"
+               name="head.additional"
+               template="Magento_Backend::page/container.phtml"/>
+        <referenceContainer name="after.body.start">
+            <block class="Magento\RequireJs\Block\Html\Head\Config" name="requirejs-config"/>
+            <block class="Magento\Translation\Block\Html\Head\Config"
+                   name="translate-config"/>
+            <block class="Magento\Translation\Block\Js"
+                   name="translate"
+                   template="Magento_Translation::translate.phtml"/>
+            <block class="Magento\Framework\View\Element\Js\Components"
+                   name="head.components"
+                   as="components"
+                   template="Magento_Backend::page/js/components.phtml"/>
+            <block class="Magento\Framework\View\Element\Html\Calendar"
+                   name="head.calendar"
+                   as="calendar"
+                   template="Magento_Backend::page/js/calendar.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

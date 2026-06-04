@@ -1,0 +1,86 @@
+<?php
+/**
+ * @var \Qoliber\NebulaSystem\Block\Adminhtml\System\Placeholder $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+
+$page = $block->getPageDefinition();
+$title = (string) ($page['title'] ?? __('Nebula Placeholder'));
+$group = (string) ($page['group'] ?? __('System'));
+$originalRoute = (string) ($page['original_route'] ?? '');
+$summary = (string) ($page['summary'] ?? '');
+$nextSteps = $page['next_steps'] ?? [];
+?>
+<div class="space-y-6">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div class="border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div class="space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center rounded-full bg-nebula-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-nebula-700 dark:bg-nebula-500/15 dark:text-nebula-200">
+                            <?= $escaper->escapeHtml((string) __('MVP Placeholder')) ?>
+                        </span>
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                            <?= $escaper->escapeHtml($group) ?>
+                        </span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                            <?= $escaper->escapeHtml($title) ?>
+                        </h1>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            <?= $escaper->escapeHtml($summary) ?>
+                        </p>
+                    </div>
+                </div>
+                <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                    <?= $escaper->escapeHtml((string) __('This page exists so the Nebula admin menu stays complete while ownership is built item by item.')) ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div class="space-y-4">
+                <section class="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-700 dark:bg-slate-900/40">
+                    <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        <?= $escaper->escapeHtml((string) __('Original Magento Route')) ?>
+                    </h2>
+                    <p class="mt-2 font-mono text-sm text-slate-700 dark:text-slate-300">
+                        <?= $escaper->escapeHtml($originalRoute) ?>
+                    </p>
+                </section>
+
+                <section class="rounded-xl border border-slate-200 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-800/60">
+                    <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        <?= $escaper->escapeHtml((string) __('Planned Follow Up')) ?>
+                    </h2>
+                    <ol class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                        <?php foreach ($nextSteps as $index => $step): ?>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-nebula-500/10 text-[11px] font-semibold text-nebula-700 dark:text-nebula-200">
+                                    <?= $escaper->escapeHtml((string) ($index + 1)) ?>
+                                </span>
+                                <span><?= $escaper->escapeHtml((string) $step) ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ol>
+                </section>
+            </div>
+
+            <aside class="space-y-4">
+                <section class="rounded-xl border border-slate-200 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-800/60">
+                    <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        <?= $escaper->escapeHtml((string) __('Current State')) ?>
+                    </h2>
+                    <ul class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                        <li><?= $escaper->escapeHtml((string) __('Visible in the Nebula admin menu.')) ?></li>
+                        <li><?= $escaper->escapeHtml((string) __('Owned by a Nebula placeholder route for MVP parity.')) ?></li>
+                        <li><?= $escaper->escapeHtml((string) __('Ready to be replaced by a wrapped or native Nebula page later.')) ?></li>
+                    </ul>
+                </section>
+            </aside>
+        </div>
+    </div>
+</div>

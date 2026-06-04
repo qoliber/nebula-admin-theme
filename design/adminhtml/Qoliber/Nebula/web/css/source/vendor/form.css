@@ -14,7 +14,10 @@
 .admin__control-textarea,
 .admin__control-select,
 .admin__control-multiselect {
-  @apply block w-full text-sm text-gray-900 bg-white border border-gray-300 transition;
+  @apply block w-full text-sm transition;
+  background: var(--nebula-input-bg);
+  color: var(--nebula-text-primary);
+  border: 1px solid var(--nebula-input-border);
   padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
   border-radius: var(--nebula-input-radius);
 }
@@ -52,18 +55,8 @@
 }
 .admin__legend {
   @apply text-lg font-semibold border-b;
-  color: var(--nebula-text-primary);
-  border-color: var(--nebula-border-default);
+  color: light-dark(var(--nebula-text-primary), var(--color-nebula-100));
+  border-color: var(--nebula-border-strong);
   margin-bottom: var(--nebula-spacing-lg);
   padding-bottom: var(--nebula-spacing-md);
-}
-
-.dark .admin__fieldset {
-  border-color: var(--nebula-border-strong);
-}
-
-.dark .admin__legend,
-.dark .admin__legend span {
-  color: var(--color-nebula-100);
-  border-color: var(--nebula-border-strong);
 }

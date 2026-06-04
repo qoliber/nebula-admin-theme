@@ -65,5 +65,226 @@
             type="Qoliber\Nebula\Plugin\UseTabbedCmsPageEditForm"
             sortOrder="10"
         />
+        <plugin
+            name="qoliber_nebula_cms_block_edit_form_id_swap"
+            type="Qoliber\Nebula\Plugin\UseTabbedCmsBlockEditForm"
+            sortOrder="20"
+        />
+    </type>
+
+    <!--
+        Nebula sidebar menu icon registry. Single source of truth for the
+        Font Awesome (or image, or custom-type) icon rendered next to every
+        menu item. Custom modules extend the `icons` argument from their
+        own etc/adminhtml/di.xml to add or override:
+
+            <type name="Qoliber\Nebula\Model\Menu\MenuIconRegistry">
+                <arguments>
+                    <argument name="icons" xsi:type="array">
+                        <item name="Acme_Catalog::dashboard" xsi:type="array">
+                            <item name="class" xsi:type="string">fa-solid fa-rocket</item>
+                        </item>
+                        <item name="Acme_Catalog::brand" xsi:type="array">
+                            <item name="type" xsi:type="string">image</item>
+                            <item name="src"  xsi:type="string">Acme_Catalog::images/logo.svg</item>
+                            <item name="alt"  xsi:type="string">Acme</item>
+                        </item>
+                    </argument>
+                </arguments>
+            </type>
+
+        New icon TYPES register under the `renderers` argument:
+
+            <argument name="renderers" xsi:type="array">
+                <item name="inline-svg" xsi:type="object">Acme\Catalog\Model\Menu\InlineSvgRenderer</item>
+            </argument>
+
+        No JS rebuild, no template edit — picked up on next request after
+        `cache:clean config`.
+    -->
+    <type name="Qoliber\Nebula\Model\Menu\MenuIconRegistry">
+        <arguments>
+            <argument name="defaultType" xsi:type="string">fontawesome</argument>
+            <argument name="default" xsi:type="array">
+                <item name="class" xsi:type="string">fa-solid fa-circle-dot</item>
+            </argument>
+            <argument name="renderers" xsi:type="array">
+                <item name="fontawesome" xsi:type="object">Qoliber\Nebula\Model\Menu\Renderer\FontawesomeRenderer</item>
+                <item name="image"       xsi:type="object">Qoliber\Nebula\Model\Menu\Renderer\ImageRenderer</item>
+            </argument>
+            <argument name="icons" xsi:type="array">
+                <item name="Magento_Backend::dashboard" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-gauge-high</item>
+                </item>
+                <item name="Magento_Sales::sales" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-cart-shopping</item>
+                </item>
+                <item name="Magento_Sales::sales_operation" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-file-invoice-dollar</item>
+                </item>
+                <item name="Magento_Catalog::catalog" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-boxes-stacked</item>
+                </item>
+                <item name="Magento_Catalog::catalog_products" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-cube</item>
+                </item>
+                <item name="Magento_Catalog::catalog_categories" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-folder-tree</item>
+                </item>
+                <item name="Magento_Catalog::inventory" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-warehouse</item>
+                </item>
+                <item name="Magento_Customer::customer" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-users</item>
+                </item>
+                <item name="Magento_Customer::customer_manage" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-user</item>
+                </item>
+                <item name="Magento_Backend::marketing" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-bullhorn</item>
+                </item>
+                <item name="Magento_CatalogRule::promo" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-tags</item>
+                </item>
+                <item name="Magento_Backend::content" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-pen-nib</item>
+                </item>
+                <item name="Magento_Backend::content_elements" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-puzzle-piece</item>
+                </item>
+                <item name="Magento_Backend::media" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-images</item>
+                </item>
+                <item name="Magento_Backend::design" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-palette</item>
+                </item>
+                <item name="Magento_Reports::report" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-chart-line</item>
+                </item>
+                <item name="Magento_Backend::stores" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-store</item>
+                </item>
+                <item name="Magento_Backend::stores_settings" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-sliders</item>
+                </item>
+                <item name="Magento_Config::system_config" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-gear</item>
+                </item>
+                <item name="Magento_Tax::sales_tax" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-receipt</item>
+                </item>
+                <item name="Magento_CurrencySymbol::system_currency" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-coins</item>
+                </item>
+                <item name="Magento_InventoryAdminUi::inventory" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-warehouse</item>
+                </item>
+                <item name="Qoliber_NebulaMenu::stores_settings" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-sliders</item>
+                </item>
+                <item name="Qoliber_NebulaMenu::stores_taxes" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-receipt</item>
+                </item>
+                <item name="Qoliber_NebulaMenu::stores_attributes" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-list-check</item>
+                </item>
+                <item name="Magento_Catalog::attributes" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-list-check</item>
+                </item>
+                <item name="Magento_Backend::system" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-gear</item>
+                </item>
+                <item name="Magento_Backend::system_tools" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-screwdriver-wrench</item>
+                </item>
+                <item name="Magento_Backend::system_convert" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-arrows-rotate</item>
+                </item>
+                <item name="Magento_Backend::system_cache" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-database</item>
+                </item>
+                <item name="Magento_Indexer::system_index" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-arrows-rotate</item>
+                </item>
+                <item name="Magento_Backup::system_tools_backup" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-hard-drive</item>
+                </item>
+                <item name="Magento_User::system_acl" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-shield-halved</item>
+                </item>
+                <item name="Magento_User::system_acl_users" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-user</item>
+                </item>
+                <item name="Magento_User::system_acl_roles" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-user-shield</item>
+                </item>
+                <item name="Magento_User::system_acl_locks" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-user-lock</item>
+                </item>
+                <item name="Magento_Integration::system_extensions" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-plug</item>
+                </item>
+                <item name="Magento_Integration::system_integrations" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-plug-circle-check</item>
+                </item>
+                <item name="Magento_Backend::system_other_settings" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-ellipsis</item>
+                </item>
+                <item name="Magento_AdminNotification::system_adminnotification" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-bell</item>
+                </item>
+                <item name="Magento_Variable::system_variable" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-code</item>
+                </item>
+                <item name="Magento_ImportExport::system_convert_import" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-file-import</item>
+                </item>
+                <item name="Magento_ImportExport::system_convert_export" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-file-export</item>
+                </item>
+                <item name="Magento_ImportExport::system_convert_history" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-clock-rotate-left</item>
+                </item>
+                <item name="Magento_TaxImportExport::system_convert_tax" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-receipt</item>
+                </item>
+                <item name="Magento_AsynchronousOperations::system_magento_logging" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-list-check</item>
+                </item>
+                <item name="Magento_AsynchronousOperations::system_magento_logging_bulk_operations" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-bars-progress</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_convert_import" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-file-import</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_convert_export" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-file-export</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_convert_history" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-clock-rotate-left</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_convert_tax" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-receipt</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_tools_backup" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-hard-drive</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_acl_locks" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-user-lock</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_adminnotification" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-bell</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_variable" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-code</item>
+                </item>
+                <item name="Qoliber_NebulaSystem::system_magento_logging_bulk_operations" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-bars-progress</item>
+                </item>
+                <item name="Magento_Marketplace::partners" xsi:type="array">
+                    <item name="class" xsi:type="string">fa-solid fa-handshake</item>
+                </item>
+            </argument>
+        </arguments>
     </type>
 </config>

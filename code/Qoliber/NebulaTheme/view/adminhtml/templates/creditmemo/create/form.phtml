@@ -1,0 +1,211 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Form $block */
+$creditmemo = $block->getCreditmemo();
+
+if (!$creditmemo) {
+    return;
+}
+
+$order = $creditmemo->getOrder();
+$invoice = $creditmemo->getInvoice();
+$headerText = $block->getParentBlock() ? (string) $block->getParentBlock()->getHeaderText() : (string) __('New Credit Memo');
+$financialSnapshot = [
+    [
+        'label' => (string) __('Paid Amount'),
+        'value' => $order->formatPrice((float) $order->getTotalInvoiced()),
+    ],
+    [
+        'label' => (string) __('Refund Amount'),
+        'value' => $order->formatPrice((float) $order->getTotalRefunded()),
+    ],
+    [
+        'label' => (string) __('Shipping Amount'),
+        'value' => $order->formatPrice((float) $order->getShippingInvoiced()),
+    ],
+    [
+        'label' => (string) __('Order Grand Total'),
+        'value' => $order->formatPrice((float) $order->getGrandTotal()),
+    ],
+];
+?>
+<form id="edit_form"
+      method="post"
+      action="<?= $block->escapeUrl($block->getSaveUrl()) ?>"
+      class="space-y-6"
+      x-data="{
+          tab: window.location.hash === '#refund' ? 'refund' : 'overview',
+          setTab(tab) {
+              this.tab = tab;
+              if (window.history && window.history.replaceState) {
+                  window.history.replaceState(null, '', tab === 'refund' ? '#refund' : '#overview');
+              }
+          }
+      }">
+    <?= $block->getBlockHtml('formkey') ?>
+
+    <div class="nebula-form-actions-bar sticky top-0 z-30 -mx-6 mb-6 border-b border-gray-200 bg-white/90 px-6 py-3 shadow-sm backdrop-blur-sm">
+        <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-3">
+                    <h1 class="truncate text-xl font-bold text-gray-900">
+                        <?= $block->escapeHtml($headerText) ?>
+                    </h1>
+                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                        <?= $block->escapeHtml(__('Draft')) ?>
+                    </span>
+                </div>
+                <p class="mt-1 text-sm text-gray-500">
+                    <?php if ($invoice) : ?>
+                        <?= $block->escapeHtml(__('Invoice #%1', $invoice->getIncrementId())) ?>
+                    <?php else : ?>
+                        <?= $block->escapeHtml(__('Order #%1', $order->getIncrementId())) ?>
+                    <?php endif; ?>
+                    <?php if ($order->getCustomerName()) : ?>
+                        &middot; <?= $block->escapeHtml($order->getCustomerName()) ?>
+                    <?php endif; ?>
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="<?= $block->escapeUrl($block->getParentBlock() ? $block->getParentBlock()->getBackUrl() : '#') ?>"
+                   class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <?= $block->escapeHtml(__('Back')) ?>
+                </a>
+                <button type="button"
+                        onclick="window.location.reload()"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M5.64 18.36A9 9 0 1020 12"/>
+                    </svg>
+                    <?= $block->escapeHtml(__('Reset')) ?>
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-4 border-t border-gray-200 pt-4">
+            <div class="border-b border-gray-200">
+                <nav class="flex gap-1 overflow-x-auto" aria-label="<?= $block->escapeHtmlAttr(__('Credit Memo Sections')) ?>">
+                    <button type="button"
+                            @click="setTab('overview')"
+                            :aria-selected="tab === 'overview' ? 'true' : 'false'"
+                            :class="tab === 'overview'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                            class="whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition">
+                        <?= $block->escapeHtml(__('Overview')) ?>
+                    </button>
+                    <button type="button"
+                            @click="setTab('refund')"
+                            :aria-selected="tab === 'refund' ? 'true' : 'false'"
+                            :class="tab === 'refund'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                            class="whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition">
+                        <?= $block->escapeHtml(__('Refund')) ?>
+                    </button>
+                </nav>
+            </div>
+            <div class="pt-3">
+                <p class="text-sm text-gray-500" x-show="tab === 'overview'" x-cloak>
+                    <?= $block->escapeHtml(__('Review the order context first, then continue to the refund workflow.')) ?>
+                </p>
+                <p class="text-sm text-gray-500" x-show="tab === 'refund'" x-cloak>
+                    <?= $block->escapeHtml(__('Adjust quantities, review totals, and complete the refund.')) ?>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="tab === 'overview'" x-cloak class="space-y-6">
+        <?= $block->getChildHtml('order_info') ?>
+
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <?php foreach ($financialSnapshot as $card) : ?>
+                <div class="rounded-xl border border-gray-200 bg-white p-5">
+                    <div class="text-xs font-medium uppercase tracking-wide text-gray-400">
+                        <?= $block->escapeHtml($card['label']) ?>
+                    </div>
+                    <div class="mt-2 text-2xl font-semibold text-gray-900">
+                        <?= /* @noEscape */ $card['value'] ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </section>
+
+        <section class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <div class="rounded-xl border border-gray-200 bg-white p-5">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                        <?= $block->escapeHtml(__('Payment Information')) ?>
+                    </h2>
+                </div>
+                <div class="space-y-3 text-sm text-gray-700">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                        <div class="font-medium text-gray-900"><?= /* @noEscape */ $block->getChildHtml('order_payment') ?></div>
+                        <div class="mt-1 text-gray-500">
+                            <?= $block->escapeHtml(__('The order was placed using %1.', $order->getOrderCurrencyCode())) ?>
+                        </div>
+                    </div>
+                    <?php if (trim((string) $block->getChildHtml('order_payment_additional')) !== '') : ?>
+                        <div class="rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-600">
+                            <?= /* @noEscape */ $block->getChildHtml('order_payment_additional') ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <?php if (!$order->getIsVirtual()) : ?>
+                <div class="rounded-xl border border-gray-200 bg-white p-5">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                            <?= $block->escapeHtml(__('Shipping Information')) ?>
+                        </h2>
+                    </div>
+                    <div class="space-y-3 text-sm text-gray-700">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                            <div class="font-medium text-gray-900"><?= $block->escapeHtml($order->getShippingDescription()) ?></div>
+                            <div class="mt-1 text-gray-500">
+                                <?= $block->escapeHtml(__('Total Shipping Charges')) ?>:
+                                <?php if ($this->helper(\Magento\Tax\Helper\Data::class)->displaySalesPriceInclTax($block->getSource()->getStoreId())) : ?>
+                                    <?php $_excl = $block->displayShippingPriceInclTax($order); ?>
+                                <?php else : ?>
+                                    <?php $_excl = $block->displayPriceAttribute('shipping_amount', false, ' '); ?>
+                                <?php endif; ?>
+                                <?php $_incl = $block->displayShippingPriceInclTax($order); ?>
+                                <?= /* @noEscape */ $_excl ?>
+                                <?php if ($this->helper(\Magento\Tax\Helper\Data::class)->displaySalesBothPrices($block->getSource()->getStoreId()) && $_incl !== $_excl) : ?>
+                                    <span class="text-gray-500">(<?= $block->escapeHtml(__('Incl. Tax')) ?> <?= /* @noEscape */ $_incl ?>)</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </section>
+
+        <section class="rounded-xl border border-indigo-200 bg-indigo-50 p-5">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h2 class="text-base font-semibold text-indigo-900"><?= $block->escapeHtml(__('Ready to refund?')) ?></h2>
+                    <p class="mt-1 text-sm text-indigo-800">
+                        <?= $block->escapeHtml(__('Switch to the refund tab to update quantities, review totals, and submit the credit memo.')) ?>
+                    </p>
+                </div>
+                <button type="button"
+                        @click="setTab('refund')"
+                        class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                    <?= $block->escapeHtml(__('Go to Refund')) ?>
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div id="creditmemo_item_container" x-show="tab === 'refund'" x-cloak>
+        <?= $block->getChildHtml('order_items') ?>
+    </div>
+</form>

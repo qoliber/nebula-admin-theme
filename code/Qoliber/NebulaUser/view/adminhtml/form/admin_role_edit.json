@@ -1,0 +1,54 @@
+{
+  "id": "admin_role_edit",
+  "acl": "Magento_User::acl_roles",
+  "route": "adminhtml_user_role_editrole",
+  "replaces": ["adminhtml.user.editroles", "adminhtml.user.roles.users.grid.js"],
+  "dataSource": {
+    "provider": "admin_role.form",
+    "config": {
+      "identifierParam": "rid"
+    }
+  },
+  "settings": {
+    "title": "Admin Role",
+    "identifierField": "role_id",
+    "identifierParam": "rid",
+    "backUrl": "adminhtml/user_role/index",
+    "saveUrl": "adminhtml/user_role/saverole",
+    "deleteUrl": "adminhtml/user_role/delete"
+  },
+  "fieldsets": {
+    "role_info": {
+      "label": "Role Info",
+      "position": 10,
+      "open": true,
+      "fields": {
+        "rolename": {
+          "label": "Role Name",
+          "type": "text",
+          "required": true,
+          "position": 10
+        },
+        "current_password": {
+          "label": "Your Current Password",
+          "type": "password",
+          "required": true,
+          "position": 20,
+          "note": "Enter your current admin password to confirm changes."
+        }
+      }
+    },
+    "resources": {
+      "label": "Role Resources",
+      "position": 20,
+      "open": true,
+      "renderer": "snippet.role_resources_tree"
+    },
+    "users": {
+      "label": "Role Users",
+      "position": 30,
+      "open": true,
+      "renderer": "snippet.role_users_grid"
+    }
+  }
+}

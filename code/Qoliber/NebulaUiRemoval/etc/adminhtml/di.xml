@@ -2,14 +2,20 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
-    <!-- Kill UI Component generation at layout level -->
+    <!--
+        Both plugins are SELECTIVE: a UI Component is only suppressed when Nebula
+        ships a matching grid/form JSON definition for it. UI Components Nebula
+        does not replace (core or third-party) are read and generated normally.
+    -->
+
+    <!-- Skip UI Component generation only where a Nebula replacement exists -->
     <type name="Magento\Framework\View\Layout\Generator\UiComponent">
         <plugin name="qoliber_nebula_kill_ui_components"
                 type="Qoliber\NebulaUiRemoval\Plugin\DisableUiComponentGenerator"
                 sortOrder="1"/>
     </type>
 
-    <!-- Kill UI Component layout reader — prevents even scheduling them -->
+    <!-- Skip UI Component layout reading only where a Nebula replacement exists -->
     <type name="Magento\Framework\View\Layout\Reader\UiComponent">
         <plugin name="qoliber_nebula_kill_ui_component_reader"
                 type="Qoliber\NebulaUiRemoval\Plugin\DisableUiComponentReader"

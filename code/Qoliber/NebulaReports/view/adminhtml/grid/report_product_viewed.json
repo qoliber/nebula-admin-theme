@@ -1,0 +1,47 @@
+{
+  "id": "report_product_viewed",
+  "acl": "Magento_Reports::viewed",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_product_viewed.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50],
+    "defaultSort": {
+      "field": "views_num",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "period": {
+      "label": "Interval",
+      "type": "text",
+      "sortable": false,
+      "position": 10
+    },
+    "product_name": {
+      "label": "Product",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "product_price": {
+      "label": "Price",
+      "type": "price",
+      "sortable": false,
+      "position": 30
+    },
+    "views_num": {
+      "label": "Views",
+      "type": "text",
+      "sortable": false,
+      "position": 40
+    }
+  }
+}

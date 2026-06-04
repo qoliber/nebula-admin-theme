@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 $viewModel = $block->getData('view_model');
 if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\RelatedProducts) {
-    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaTheme\ViewModel\RelatedProducts::class);
+    throw new \RuntimeException(
+        'Nebula snippet "related_products": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\RelatedProducts). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
 }
 
 $entity = $block->getData('entity');

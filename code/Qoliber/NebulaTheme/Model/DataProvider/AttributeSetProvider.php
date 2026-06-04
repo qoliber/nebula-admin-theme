@@ -8,14 +8,31 @@ use Magento\Catalog\Model\Product;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory;
 use Qoliber\NebulaComponent\Api\GridDataProviderInterface;
 
+/**
+ * Grid data provider for the product attribute-set listing.
+ */
 class AttributeSetProvider implements GridDataProviderInterface
 {
+    /** @var int Upper bound for request-controlled page size (memory-exhaustion guard). */
+    private const MAX_PAGE_SIZE = 200;
+
+    /**
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $collectionFactory
+     * @param \Magento\Catalog\Model\Product $product
+     */
     public function __construct(
         private readonly CollectionFactory $collectionFactory,
         private readonly Product $product
     ) {
     }
 
+    /**
+     * Fetch attribute-set rows and total count for the given grid definition/request.
+     *
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $params
+     * @return array{items: array<int, array<string, mixed>>, totalCount: int}
+     */
     public function getData(array $config, array $params = []): array
     {
         $collection = $this->collectionFactory->create();
@@ -73,15 +90,17 @@ class AttributeSetProvider implements GridDataProviderInterface
             }
         }
 
+        // Sort — only by a declared column, never an arbitrary request field.
         $sort = $params['sort'] ?? '';
         $sortDir = $params['sortDir'] ?? 'asc';
-        if (!empty($sort)) {
+        if ($sort !== '' && isset($columns[$sort])) {
             $collection->setOrder($sort, strtoupper($sortDir) === 'DESC' ? 'DESC' : 'ASC');
         }
 
-        $page = (int) ($params['page'] ?? 1);
+        $page = max(1, (int) ($params['page'] ?? 1));
         $pageSize = (int) ($params['pageSize'] ?? 20);
         if ($pageSize > 0) {
+            $pageSize = min($pageSize, self::MAX_PAGE_SIZE);
             $collection->setPageSize($pageSize);
             $collection->setCurPage($page);
         }

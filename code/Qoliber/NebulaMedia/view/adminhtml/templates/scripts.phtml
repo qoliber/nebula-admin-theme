@@ -166,7 +166,7 @@ $configJson = $block->getConfigJson();
                                         :class="selectedFile && selectedFile.id === file.id ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-gray-200'"
                                     >
                                         <div class="nebula-media-picker__thumbnail relative aspect-[4/3] bg-gray-100" style="position: relative; overflow: hidden;">
-                                            <img :src="file.thumbUrl || file.url" :alt="file.name" class="h-full w-full object-cover" loading="lazy">
+                                            <img :src="file.thumbUrl || file.url" :alt="file.name" @error="$event.target.src = file.url" class="h-full w-full object-cover" loading="lazy">
                                             <button
                                                 type="button"
                                                 @click.stop="openDeleteDialog(file)"

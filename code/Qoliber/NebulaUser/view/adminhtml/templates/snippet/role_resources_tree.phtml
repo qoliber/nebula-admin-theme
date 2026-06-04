@@ -1,0 +1,414 @@
+<?php
+
+/**
+ * Snippet: role_resources_tree
+ *
+ * Renders the hierarchical ACL-resource picker for the role edit page's
+ * "Role Resources" fieldset. Inputs are named `resource[]` (one hidden input
+ * per checked resource id) — the same POST shape stock Magento accepts in
+ * \Magento\User\Controller\Adminhtml\User\Role\SaveRole, so save uses the
+ * vendor controller unchanged.
+ *
+ * Two top-level controls:
+ *   - "Resource Access" mode toggle (`All` vs `Custom`)
+ *       - When `All` is selected, a single hidden `all=1` is POSTed and the
+ *         vendor controller swaps the resource set to the implicit RootResource
+ *         id. The custom tree is hidden in that mode.
+ *       - When `Custom`, only the checked tree nodes are POSTed as
+ *         `resource[]=<id>`.
+ *   - "Expand all / Collapse all" affordances for the tree itself.
+ *
+ * The tree node component is an Alpine factory:
+ *   - state lives at the root (Set of checked ids, Map of expanded ids)
+ *   - checking a parent cascades to all descendants
+ *   - unchecking a parent uncascades to all descendants
+ *   - clicking a leaf only flips that leaf
+ *
+ * Available block data set by SectionRenderer when this snippet is mounted:
+ *   - `view_model`  → \Qoliber\NebulaUser\ViewModel\RoleResourcesTree
+ *   - `entity_data` → the resolved role data (unused here; the ViewModel
+ *                      reads the `rid` request param directly)
+ *   - `form_block`  → \Qoliber\NebulaForm\Block\Form host
+ *   - `section`     → the fieldset definition
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaUser\ViewModel\RoleResourcesTree) {
+    throw new \RuntimeException(
+        'Nebula snippet "role_resources_tree": view_model was not injected '
+        . '(expected \Qoliber\NebulaUser\ViewModel\RoleResourcesTree). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
+}
+
+$tree = $viewModel->getTree();
+
+if ($tree === []) {
+    ?>
+    <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-8 text-center text-sm text-gray-500">
+        <?= $escaper->escapeHtml((string) __('No ACL resources are registered in the system.')) ?>
+    </div>
+    <?php
+    return;
+}
+
+$selected         = $viewModel->getSelectedResources();
+$isAll            = $viewModel->isEverythingAllowed();
+$expandedAncestors = $viewModel->getExpandedAncestors();
+
+// In "All" mode the tree-stored set is just `[RootResource]`; the actual leaf
+// checkboxes should not look pre-checked (the controller decides the swap).
+$checkedIds = $isAll ? [] : array_values(array_filter(
+    $selected,
+    static fn (string $id): bool => $id !== $viewModel->getRootResourceId()
+));
+
+$config = json_encode([
+    'mode'        => $isAll ? 'all' : 'custom',
+    'checked'     => $checkedIds,
+    'expanded'    => (object) $expandedAncestors,
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES);
+?>
+<script>
+(function() {
+    if (window._nebulaRoleResourcesTreeRegistered) return;
+    window._nebulaRoleResourcesTreeRegistered = true;
+
+    var register = function() {
+        Alpine.data('nebulaRoleResourcesTree', function(initial) {
+            // Build the resource → children map from the markup on init so the
+            // cascade logic doesn't need an upfront tree payload.
+            return {
+                mode:     initial.mode || 'custom',
+                checked:  {},
+                expanded: initial.expanded || {},
+                searchText: '',
+                _savedExpanded: null,  // expand state stashed before search filter
+
+                init: function() {
+                    var seed = Array.isArray(initial.checked) ? initial.checked : [];
+                    var map  = {};
+                    seed.forEach(function(id) { map[id] = true; });
+                    this.checked = map;
+                    var self = this;
+                    this.$watch('searchText', function() { self.applyFilter(); });
+                },
+
+                /**
+                 * Filter visible tree rows by `searchText` (label or id contains).
+                 * Matching rows AND all their ancestor rows are kept visible;
+                 * everything else gets a `.is-filtered-out` class. When search
+                 * clears, the pre-search expand state is restored.
+                 */
+                applyFilter: function() {
+                    var q    = (this.searchText || '').trim().toLowerCase();
+                    var root = this.$root;
+                    var nodes = root.querySelectorAll('[data-resource-node]');
+
+                    if (q === '') {
+                        nodes.forEach(function(el) { el.classList.remove('is-filtered-out'); });
+                        if (this._savedExpanded !== null) {
+                            this.expanded = this._savedExpanded;
+                            this._savedExpanded = null;
+                        }
+                        return;
+                    }
+
+                    if (this._savedExpanded === null) {
+                        this._savedExpanded = Object.assign({}, this.expanded);
+                    }
+
+                    var matches    = new Set();
+                    var newExpanded = {};
+                    nodes.forEach(function(el) {
+                        var id    = el.getAttribute('data-resource-node');
+                        var labelEl = el.querySelector('label > span.text-gray-800');
+                        var label = labelEl ? labelEl.textContent.toLowerCase() : '';
+                        if (label.indexOf(q) !== -1 || id.toLowerCase().indexOf(q) !== -1) {
+                            matches.add(el);
+                            // Surface every ancestor row so the match is reachable.
+                            var cur = el.parentElement;
+                            while (cur && cur !== root) {
+                                if (cur.hasAttribute && cur.hasAttribute('data-resource-node')) {
+                                    matches.add(cur);
+                                    newExpanded[cur.getAttribute('data-resource-node')] = true;
+                                }
+                                cur = cur.parentElement;
+                            }
+                        }
+                    });
+
+                    nodes.forEach(function(el) {
+                        if (matches.has(el)) {
+                            el.classList.remove('is-filtered-out');
+                        } else {
+                            el.classList.add('is-filtered-out');
+                        }
+                    });
+                    this.expanded = newExpanded;
+                },
+
+                isChecked: function(id) {
+                    return !!this.checked[id];
+                },
+
+                isExpanded: function(id) {
+                    return !!this.expanded[id];
+                },
+
+                toggleExpand: function(id) {
+                    // Use spread so Alpine sees a new object reference and
+                    // re-evaluates downstream x-show / :class bindings.
+                    var next = Object.assign({}, this.expanded);
+                    if (next[id]) { delete next[id]; } else { next[id] = true; }
+                    this.expanded = next;
+                },
+
+                toggleChecked: function(id, evt) {
+                    var nextChecked = !this.checked[id];
+                    var descendants = this._descendantsOf(id);
+                    var next = Object.assign({}, this.checked);
+
+                    if (nextChecked) {
+                        next[id] = true;
+                        descendants.forEach(function(childId) { next[childId] = true; });
+                    } else {
+                        delete next[id];
+                        descendants.forEach(function(childId) { delete next[childId]; });
+                    }
+
+                    this.checked = next;
+                },
+
+                _descendantsOf: function(id) {
+                    var root = this.$root.querySelector('[data-resource-node="' + cssEscape(id) + '"]');
+                    if (!root) return [];
+                    return Array.from(root.querySelectorAll('[data-resource-node]'))
+                        .map(function(el) { return el.getAttribute('data-resource-node'); });
+                },
+
+                expandAll: function() {
+                    var next = {};
+                    this.$root.querySelectorAll('[data-resource-node]').forEach(function(el) {
+                        next[el.getAttribute('data-resource-node')] = true;
+                    });
+                    this.expanded = next;
+                },
+
+                collapseAll: function() {
+                    this.expanded = {};
+                },
+
+                checkAll: function() {
+                    var next = {};
+                    this.$root.querySelectorAll('[data-resource-node]').forEach(function(el) {
+                        next[el.getAttribute('data-resource-node')] = true;
+                    });
+                    this.checked = next;
+                },
+
+                uncheckAll: function() {
+                    this.checked = {};
+                },
+
+                setMode: function(mode) {
+                    this.mode = mode;
+                },
+
+                // Iterator-friendly: returns the list of currently-checked ids
+                // sorted by walk order, so the hidden inputs are deterministic.
+                checkedIds: function() {
+                    var self = this;
+                    var ids = [];
+                    this.$root.querySelectorAll('[data-resource-node]').forEach(function(el) {
+                        var id = el.getAttribute('data-resource-node');
+                        if (self.checked[id]) { ids.push(id); }
+                    });
+                    return ids;
+                }
+            };
+
+            // Minimal CSS.escape fallback so older runtimes still work (the
+            // colons in ACL ids `Module_Foo::bar` need escaping in selectors).
+            function cssEscape(value) {
+                if (window.CSS && typeof window.CSS.escape === 'function') {
+                    return window.CSS.escape(value);
+                }
+                return String(value).replace(/[^a-zA-Z0-9_-]/g, function(c) {
+                    return '\\' + c;
+                });
+            }
+        });
+    };
+
+    if (window.Alpine) { register(); }
+    else { document.addEventListener('alpine:init', register); }
+})();
+</script>
+
+<div x-data="nebulaRoleResourcesTree(<?= $escaper->escapeHtmlAttr($config) ?>)"
+     class="space-y-4">
+
+    <!--
+        Mode toggle: "All" vs "Custom". When mode === 'all', a single hidden
+        input `all=1` is rendered and the resource[] inputs are suppressed —
+        matches stock vendor behaviour, so SaveRole controller swaps to the
+        RootResource id without further changes.
+    -->
+    <div class="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+        <span class="text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <?= $escaper->escapeHtml((string) __('Resource Access')) ?>
+        </span>
+        <div class="inline-flex rounded-md shadow-sm" role="group">
+            <button type="button"
+                    @click="setMode('custom')"
+                    :class="mode === 'custom' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+                    class="rounded-l-md border px-3 py-1.5 text-xs font-semibold transition focus:z-10 focus:outline-none">
+                <?= $escaper->escapeHtml((string) __('Custom')) ?>
+            </button>
+            <button type="button"
+                    @click="setMode('all')"
+                    :class="mode === 'all' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+                    class="-ml-px rounded-r-md border px-3 py-1.5 text-xs font-semibold transition focus:z-10 focus:outline-none">
+                <?= $escaper->escapeHtml((string) __('All')) ?>
+            </button>
+        </div>
+        <p class="ml-auto text-xs text-gray-500" x-show="mode === 'all'">
+            <?= $escaper->escapeHtml((string) __('The role will have unrestricted access to every backend resource.')) ?>
+        </p>
+        <p class="ml-auto text-xs text-gray-500" x-show="mode === 'custom'">
+            <?= $escaper->escapeHtml((string) __('Pick exactly which backend resources the role can access.')) ?>
+        </p>
+    </div>
+
+    <!-- All mode: emit the all=1 marker that vendor SaveRole expects. -->
+    <template x-if="mode === 'all'">
+        <input type="hidden" name="all" value="1">
+    </template>
+
+    <!--
+        Custom mode tree. Each leaf has an Alpine-driven visual checkbox AND a
+        hidden POST input that is only emitted when checked, so the resource[]
+        payload only carries the currently-active set. The hidden input idiom
+        (template + x-show on conditional name) means the inputs survive form
+        serialisation without needing a JS pre-submit hook.
+    -->
+    <div x-show="mode === 'custom'" class="rounded-lg border border-gray-200 bg-white">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-2">
+            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <?= $escaper->escapeHtml((string) __('Available Resources')) ?>
+            </span>
+            <div class="flex flex-1 items-center gap-2 sm:justify-end">
+                <div class="relative max-w-xs flex-1">
+                    <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400"
+                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                    </svg>
+                    <input type="search"
+                           x-model.debounce.150ms="searchText"
+                           placeholder="<?= $escaper->escapeHtmlAttr((string) __('Search resources…')) ?>"
+                           class="w-full rounded border border-gray-300 bg-white pl-7 pr-2 py-1 text-xs text-gray-800 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <button type="button"
+                        @click="checkAll()"
+                        class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition">
+                    <?= $escaper->escapeHtml((string) __('Select all')) ?>
+                </button>
+                <button type="button"
+                        @click="uncheckAll()"
+                        class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition">
+                    <?= $escaper->escapeHtml((string) __('Clear')) ?>
+                </button>
+                <span class="mx-1 h-4 w-px bg-gray-200"></span>
+                <button type="button"
+                        @click="expandAll()"
+                        class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition">
+                    <?= $escaper->escapeHtml((string) __('Expand all')) ?>
+                </button>
+                <button type="button"
+                        @click="collapseAll()"
+                        class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 transition">
+                    <?= $escaper->escapeHtml((string) __('Collapse all')) ?>
+                </button>
+            </div>
+        </div>
+        <div class="max-h-[28rem] overflow-y-auto px-3 py-3">
+            <?php
+            /**
+             * Render one tree node (and recurse for its children).
+             *
+             * Each node:
+             *  - sets `data-resource-node="<id>"` so the Alpine root can find it
+             *    for cascade lookups and bulk operations.
+             *  - emits a hidden `<input name="resource[]">` gated by x-show so it
+             *    is only present in the form payload when the node is checked.
+             *  - shows the chevron + recursive child container only when the
+             *    node has children (leaves get an indent spacer for alignment).
+             *
+             * @param array<int, array{id:string,label:string,children:array}> $nodes
+             */
+            $renderNode = function (array $nodes, int $depth = 0) use (&$renderNode, $escaper): void {
+                foreach ($nodes as $node) {
+                    $id       = $node['id'];
+                    $label    = $node['label'];
+                    $children = $node['children'];
+                    $hasKids  = $children !== [];
+                    $indentPx = max(0, $depth * 16);
+                    ?>
+                    <div data-resource-node="<?= $escaper->escapeHtmlAttr($id) ?>"
+                         class="text-sm">
+                        <div class="group flex items-center gap-2 rounded px-1.5 py-1 hover:bg-gray-50"
+                             style="padding-left: <?= /* @noEscape */ $indentPx ?>px;">
+                            <?php if ($hasKids) : ?>
+                                <button type="button"
+                                        @click.stop="toggleExpand('<?= $escaper->escapeJs($id) ?>')"
+                                        :class="isExpanded('<?= $escaper->escapeJs($id) ?>') ? 'rotate-90 text-gray-600' : 'text-gray-400'"
+                                        class="flex h-4 w-4 flex-shrink-0 items-center justify-center transition-transform"
+                                        aria-label="<?= $escaper->escapeHtmlAttr((string) __('Toggle %1', $label)) ?>"
+                                        title="<?= $escaper->escapeHtmlAttr((string) __('Toggle %1', $label)) ?>">
+                                    <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                                    </svg>
+                                </button>
+                            <?php else : ?>
+                                <span class="h-4 w-4 flex-shrink-0"></span>
+                            <?php endif; ?>
+
+                            <label class="flex flex-1 cursor-pointer items-center gap-2 min-w-0">
+                                <input type="checkbox"
+                                       class="h-4 w-4 flex-shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                       :checked="isChecked('<?= $escaper->escapeJs($id) ?>')"
+                                       @change.stop="toggleChecked('<?= $escaper->escapeJs($id) ?>', $event)">
+                                <span class="truncate text-gray-800">
+                                    <?= $escaper->escapeHtml($label) ?>
+                                </span>
+                                <span class="ml-1 truncate text-[10px] font-mono text-gray-400 hidden sm:inline">
+                                    <?= $escaper->escapeHtml($id) ?>
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Hidden POST input gated by Alpine state. -->
+                        <template x-if="mode === 'custom' && isChecked('<?= $escaper->escapeJs($id) ?>')">
+                            <input type="hidden" name="resource[]" value="<?= $escaper->escapeHtmlAttr($id) ?>">
+                        </template>
+
+                        <?php if ($hasKids) : ?>
+                            <div x-show="isExpanded('<?= $escaper->escapeJs($id) ?>')" x-cloak>
+                                <?php $renderNode($children, $depth + 1); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php
+                }
+            };
+
+            $renderNode($tree);
+            ?>
+        </div>
+    </div>
+</div>

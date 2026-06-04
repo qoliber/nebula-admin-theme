@@ -43,7 +43,7 @@
                     </container>
 
                     <container name="page.main.container" as="page_main_container" htmlTag="div"
-                        htmlClass="nebula-page-container">
+                        htmlClass="nebula-page-container mt-6">
                         <container name="admin.scope.col.wrap" as="admin-scope-col-wrap" htmlTag="div">
                             <container name="main.col" as="main-col" htmlTag="div">
                                 <container name="content" as="content"/>

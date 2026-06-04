@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+    Re-route the stock Currency Rates page block to our Nebula subclass.
+    The Index controller in module-currency-symbol calls
+    `createBlock(\Magento\CurrencySymbol\Block\Adminhtml\System\Currency::class)`
+    directly — so a layout-only override is not possible. A DI preference is
+    the cleanest hook: every consumer that resolves the stock FQDN gets the
+    Nebula subclass (which only differs in `$_template`).
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\CurrencySymbol\Block\Adminhtml\System\Currency"
+                type="Qoliber\NebulaCurrency\Block\Adminhtml\System\Currency"/>
+</config>

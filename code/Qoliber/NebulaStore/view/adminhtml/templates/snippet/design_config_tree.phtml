@@ -1,0 +1,294 @@
+<?php
+
+/**
+ * Design Configuration scope tree.
+ *
+ * Replaces the legacy flat scope/website/group/view grid with a collapsible
+ * tree. Scope hierarchy in Magento's design config is:
+ *   ⚙ Default  →  🌐 Website  →  · Store View
+ * Store Groups appear as non-clickable labels because Magento doesn't expose
+ * a group-level design config scope.
+ */
+
+declare(strict_types=1);
+
+/** @var \Magento\Backend\Block\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$viewModel = $block->getData('view_model');
+if (!$viewModel instanceof \Qoliber\NebulaStore\ViewModel\DesignConfigTree) {
+    throw new \RuntimeException(
+        'Nebula snippet "design_config_tree (layout XML)": view_model was not injected '
+        . '(expected \Qoliber\NebulaStore\ViewModel\DesignConfigTree). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
+}
+
+$defaultScope = $viewModel->getDefaultScope();
+$tree = $viewModel->getTree();
+$treeJson = json_encode($tree, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+?>
+<style>
+    .nebula-page-actions .page-title-wrapper { display: none !important; }
+    .nebula-page-actions { margin: 0 !important; padding: 0 !important; min-height: 0 !important; border: none !important; }
+</style>
+<div class="w-full"
+     x-data="nebulaDesignConfigTree(<?= $escaper->escapeHtmlAttr($treeJson) ?>)"
+     x-cloak>
+
+    <div class="nebula-form-actions-bar sticky top-0 z-30 mb-6 shadow-sm backdrop-blur-sm rounded-lg bg-white dark:bg-gray-800 px-6 py-4 border border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    <?= $escaper->escapeHtml((string) __('Design Configuration')) ?>
+                </h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    <?= $escaper->escapeHtml((string) __('Per-scope theme, transactional emails, watermarks, search engine robots')) ?>
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="relative">
+                    <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                    </svg>
+                    <input type="search"
+                           x-model="search"
+                           @input="onSearch()"
+                           placeholder="<?= $escaper->escapeHtmlAttr((string) __('Search websites, stores, views…')) ?>"
+                           class="w-64 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-8 pr-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-[var(--color-nebula-500)] focus:ring-2 focus:ring-[var(--color-nebula-500)]/20 focus:outline-none">
+                </div>
+                <button type="button"
+                        @click="expandAll()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                    <?= $escaper->escapeHtml((string) __('Expand all')) ?>
+                </button>
+                <button type="button"
+                        @click="collapseAll()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                    <?= $escaper->escapeHtml((string) __('Collapse all')) ?>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+
+        <a href="<?= $escaper->escapeUrl((string) $defaultScope['edit_url']) ?>"
+           class="flex items-start gap-3 px-4 py-4 bg-[var(--color-nebula-50)]/40 dark:bg-[var(--color-nebula-900)]/20 hover:bg-[var(--color-nebula-50)] dark:hover:bg-[var(--color-nebula-900)]/30 border-b border-gray-200 dark:border-gray-700 transition-colors">
+            <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-nebula-600)] dark:bg-[var(--color-nebula-500)] text-white text-base shadow-sm">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><?= $escaper->escapeHtml((string) $defaultScope['name']) ?></span>
+                    <span class="inline-flex items-center rounded-full bg-[var(--color-nebula-100)] dark:bg-[var(--color-nebula-900)]/40 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-nebula-700)] dark:text-[var(--color-nebula-300)]">
+                        <?= $escaper->escapeHtml((string) __('Global scope')) ?>
+                    </span>
+                    <?php if (($defaultScope['theme_name'] ?? '') !== '') : ?>
+                    <span class="inline-flex items-center gap-1 rounded-md bg-[var(--color-nebula-50)] dark:bg-[var(--color-nebula-900)]/30 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-nebula-700)] dark:text-[var(--color-nebula-300)] ring-1 ring-inset ring-[var(--color-nebula-200)] dark:ring-[var(--color-nebula-800)]/40">
+                        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/>
+                        </svg>
+                        <?= $escaper->escapeHtml((string) $defaultScope['theme_name']) ?>
+                    </span>
+                    <?php endif; ?>
+                </div>
+                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    <?= $escaper->escapeHtml((string) $defaultScope['description']) ?>
+                </p>
+            </div>
+            <svg class="h-4 w-4 text-gray-400 dark:text-gray-500 self-center" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+            </svg>
+        </a>
+
+        <template x-if="websites.length === 0">
+            <div class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                <?= $escaper->escapeHtml((string) __('No websites configured yet.')) ?>
+            </div>
+        </template>
+
+        <template x-for="website in visibleWebsites()" :key="website.id">
+            <div class="border-t border-gray-200 dark:border-gray-700">
+
+                <div class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/40 group">
+                    <button type="button"
+                            @click="toggle(website)"
+                            class="inline-flex h-6 w-6 items-center justify-center rounded text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="h-4 w-4 transition-transform"
+                             :class="website._open ? 'rotate-90' : ''"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                        </svg>
+                    </button>
+                    <span class="inline-flex h-5 w-5 items-center justify-center shrink-0 text-[var(--color-nebula-600)] dark:text-[var(--color-nebula-400)]"><svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"/></svg></span>
+                    <a :href="website.edit_url"
+                       class="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-[var(--color-nebula-700)] dark:hover:text-[var(--color-nebula-300)] truncate"
+                       x-text="website.name"></a>
+                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                          x-text="website.code"></span>
+                    <span class="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums" x-text="'id: ' + website.id"></span>
+                    <template x-if="website.is_default">
+                        <span class="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-200 dark:ring-amber-800/40">
+                            <?= $escaper->escapeHtml((string) __('Default')) ?>
+                        </span>
+                    </template>
+                    <template x-if="website.theme_name">
+                        <span class="inline-flex items-center gap-1 rounded-md bg-[var(--color-nebula-50)] dark:bg-[var(--color-nebula-900)]/30 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-nebula-700)] dark:text-[var(--color-nebula-300)] ring-1 ring-inset ring-[var(--color-nebula-200)] dark:ring-[var(--color-nebula-800)]/40"
+                              :title="'<?= $escaper->escapeJs((string) __('Active theme')) ?>: ' + website.theme_name">
+                            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/>
+                            </svg>
+                            <span x-text="website.theme_name"></span>
+                        </span>
+                    </template>
+                    <span class="flex-1"></span>
+                    <a :href="website.edit_url"
+                       class="opacity-0 group-hover:opacity-100 inline-flex items-center gap-1 rounded-md bg-white dark:bg-gray-800 px-2 py-1 text-xs font-semibold text-[var(--color-nebula-600)] dark:text-[var(--color-nebula-400)] border border-[var(--color-nebula-200)] dark:border-[var(--color-nebula-800)]/50 hover:bg-[var(--color-nebula-50)] dark:hover:bg-[var(--color-nebula-900)]/30 transition-opacity">
+                        <?= $escaper->escapeHtml((string) __('Edit')) ?>
+                        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <template x-if="website._open">
+                    <div class="bg-gray-50/60 dark:bg-gray-900/40">
+                        <template x-for="group in visibleGroups(website)" :key="group.id">
+                            <div>
+
+                                <div class="flex items-center gap-3 pl-[52px] pr-4 py-2 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-100/40 dark:bg-gray-700/20">
+                                    <span class="inline-flex h-5 w-5 items-center justify-center shrink-0 text-[var(--color-nebula-600)] dark:text-[var(--color-nebula-400)]"><svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75z"/></svg></span>
+                                    <span class="font-semibold" x-text="group.name"></span>
+                                    <span class="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums normal-case" x-text="'id: ' + group.id"></span>
+                                </div>
+
+                                <template x-for="view in visibleStores(group)" :key="view.id">
+                                    <a :href="view.edit_url"
+                                       class="flex items-center gap-3 pr-4 py-2 hover:bg-gray-100/70 text-sm text-gray-700 dark:text-gray-300 group/view"
+                                       style="padding-left: calc(var(--spacing) * 24)">
+                                        <span class="inline-flex h-2 w-2 rounded-full shrink-0"
+                                              :class="view.is_active ? 'bg-emerald-500' : 'bg-red-500'"
+                                              :title="view.is_active ? '<?= $escaper->escapeJs((string) __('Active')) ?>' : '<?= $escaper->escapeJs((string) __('Inactive')) ?>'"></span>
+                                        <span class="group-hover/view:text-[var(--color-nebula-700)] truncate" x-text="view.name"></span>
+                                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                                              x-text="view.code"></span>
+                                        <span class="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums" x-text="'id: ' + view.id"></span>
+                                        <template x-if="view.theme_name">
+                                            <span class="inline-flex items-center gap-1 rounded-md bg-[var(--color-nebula-50)] dark:bg-[var(--color-nebula-900)]/30 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-nebula-700)] dark:text-[var(--color-nebula-300)] ring-1 ring-inset ring-[var(--color-nebula-200)] dark:ring-[var(--color-nebula-800)]/40"
+                                                  :title="'<?= $escaper->escapeJs((string) __('Active theme')) ?>: ' + view.theme_name">
+                                                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/>
+                                                </svg>
+                                                <span x-text="view.theme_name"></span>
+                                            </span>
+                                        </template>
+                                        <span class="flex-1"></span>
+                                        <span class="opacity-0 group-hover/view:opacity-100 inline-flex items-center gap-1 rounded-md bg-white dark:bg-gray-800 px-2 py-1 text-xs font-semibold text-[var(--color-nebula-600)] dark:text-[var(--color-nebula-400)] border border-[var(--color-nebula-200)] dark:border-[var(--color-nebula-800)]/50 shadow-sm hover:bg-[var(--color-nebula-50)] dark:hover:bg-[var(--color-nebula-900)]/30 transition-opacity">
+                                            <?= $escaper->escapeHtml((string) __('Edit')) ?>
+                                            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                                            </svg>
+                                        </span>
+                                    </a>
+                                </template>
+                                <template x-if="group.stores.length === 0">
+                                    <div class="pr-4 py-2 text-xs text-gray-400 dark:text-gray-500 italic" style="padding-left: calc(var(--spacing) * 24)">
+                                        <?= $escaper->escapeHtml((string) __('No store views')) ?>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="website.groups.length === 0">
+                            <div class="pl-[52px] pr-4 py-2 text-xs text-gray-400 dark:text-gray-500 italic">
+                                <?= $escaper->escapeHtml((string) __('No stores')) ?>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <template x-if="search && visibleWebsites().length === 0">
+            <div class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                <?= $escaper->escapeHtml((string) __('No matches.')) ?>
+            </div>
+        </template>
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window._nebulaDesignConfigTreeRegistered) {
+        return;
+    }
+    window._nebulaDesignConfigTreeRegistered = true;
+
+    var register = function () {
+        Alpine.data('nebulaDesignConfigTree', function (initialWebsites) {
+            var websites = (initialWebsites || []).map(function (w) {
+                return Object.assign({}, w, {
+                    _open: true,
+                    groups: (w.groups || []).map(function (g) {
+                        return Object.assign({}, g, { stores: g.stores || [] });
+                    })
+                });
+            });
+            return {
+                websites: websites,
+                search: '',
+                toggle: function (node) { node._open = !node._open; },
+                expandAll: function () {
+                    this.websites.forEach(function (w) { w._open = true; });
+                },
+                collapseAll: function () {
+                    this.websites.forEach(function (w) { w._open = false; });
+                },
+                onSearch: function () {
+                    if (this.search.trim().length > 0) this.expandAll();
+                },
+                _matches: function (text) {
+                    var q = this.search.trim().toLowerCase();
+                    if (q.length === 0) return true;
+                    return String(text || '').toLowerCase().indexOf(q) !== -1;
+                },
+                _storeMatches: function (s) {
+                    return this._matches(s.name) || this._matches(s.code);
+                },
+                _groupMatches: function (g) {
+                    if (this._matches(g.name)) return true;
+                    return g.stores.some(this._storeMatches.bind(this));
+                },
+                _websiteMatches: function (w) {
+                    if (this._matches(w.name) || this._matches(w.code)) return true;
+                    return w.groups.some(this._groupMatches.bind(this));
+                },
+                visibleWebsites: function () {
+                    if (this.search.trim().length === 0) return this.websites;
+                    return this.websites.filter(this._websiteMatches.bind(this));
+                },
+                visibleGroups: function (website) {
+                    if (this.search.trim().length === 0) return website.groups;
+                    if (this._matches(website.name) || this._matches(website.code)) {
+                        return website.groups;
+                    }
+                    return website.groups.filter(this._groupMatches.bind(this));
+                },
+                visibleStores: function (group) {
+                    if (this.search.trim().length === 0) return group.stores;
+                    if (this._matches(group.name)) return group.stores;
+                    return group.stores.filter(this._storeMatches.bind(this));
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) {
+        register();
+    } else {
+        document.addEventListener('alpine:init', register);
+    }
+})();
+</script>

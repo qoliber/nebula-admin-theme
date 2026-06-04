@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * Nebula date-range filter bar — shared by all 10 reports.
+ *
+ * Sales reports use period + from + to. Customer reports pass
+ * `hide_period: true` to suppress the period selector (their
+ * collections ignore it).
+ *
+ * Posts via GET to the same URL with the params the wrapping
+ * collection (Qoliber\NebulaReports\Model\ResourceModel\...) reads
+ * in `_beforeLoad()`:
+ *   - period: day | month | year (default: day)
+ *   - from:   YYYY-MM-DD (default: 30 days ago)
+ *   - to:     YYYY-MM-DD (default: today)
+ *
+ * Block data inputs:
+ *   - page_title   (string, optional) — heading shown above the filter row
+ *   - page_summary (string, optional) — short description text
+ *   - hide_period  (bool,   optional) — when true, omit the Period <select>
+ *   - hide_dates   (bool,   optional) — when true, omit the entire filter
+ *                                       row (date inputs + Show button).
+ *                                       Used by reports that have no time
+ *                                       window (Products in Carts, etc.).
+ */
+
+declare(strict_types=1);
+
+/** @var \Magento\Backend\Block\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$request = $block->getRequest();
+$period  = (string) $request->getParam('period', 'day');
+$from    = (string) $request->getParam('from', date('Y-m-d', strtotime('-30 days')));
+$to      = (string) $request->getParam('to', date('Y-m-d'));
+
+$title      = (string) ($block->getData('page_title')   ?: __('Orders Report'));
+$summary    = (string) ($block->getData('page_summary') ?: __('Aggregated sales totals per period — excludes canceled orders. Refresh statistics under Reports → Statistics if the data feels stale.'));
+$hidePeriod = (bool) $block->getData('hide_period');
+$hideDates  = (bool) $block->getData('hide_dates');
+?>
+<div class="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+    <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <h1 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+            <?= $escaper->escapeHtml($title) ?>
+        </h1>
+        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            <?= $escaper->escapeHtml($summary) ?>
+        </p>
+    </div>
+    <?php if (!$hideDates): ?>
+    <form method="get" class="flex flex-wrap items-end gap-3 px-4 py-3">
+        <?php if (!$hidePeriod): ?>
+        <div class="flex flex-col">
+            <label for="nebula-report-period" class="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                <?= $escaper->escapeHtml((string) __('Period')) ?>
+            </label>
+            <select id="nebula-report-period"
+                    name="period"
+                    class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-[var(--color-nebula-500)] focus:ring-1 focus:ring-[var(--color-nebula-500)] focus:outline-none">
+                <option value="day"   <?= $period === 'day'   ? 'selected' : '' ?>><?= $escaper->escapeHtml((string) __('Day')) ?></option>
+                <option value="month" <?= $period === 'month' ? 'selected' : '' ?>><?= $escaper->escapeHtml((string) __('Month')) ?></option>
+                <option value="year"  <?= $period === 'year'  ? 'selected' : '' ?>><?= $escaper->escapeHtml((string) __('Year')) ?></option>
+            </select>
+        </div>
+        <?php endif; ?>
+        <div class="flex flex-col">
+            <label for="nebula-report-from" class="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                <?= $escaper->escapeHtml((string) __('From')) ?>
+            </label>
+            <input id="nebula-report-from"
+                   type="date"
+                   name="from"
+                   value="<?= $escaper->escapeHtmlAttr($from) ?>"
+                   class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-[var(--color-nebula-500)] focus:ring-1 focus:ring-[var(--color-nebula-500)] focus:outline-none">
+        </div>
+        <div class="flex flex-col">
+            <label for="nebula-report-to" class="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                <?= $escaper->escapeHtml((string) __('To')) ?>
+            </label>
+            <input id="nebula-report-to"
+                   type="date"
+                   name="to"
+                   value="<?= $escaper->escapeHtmlAttr($to) ?>"
+                   class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-[var(--color-nebula-500)] focus:ring-1 focus:ring-[var(--color-nebula-500)] focus:outline-none">
+        </div>
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-nebula-600)] dark:bg-[var(--color-nebula-500)] px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-nebula-700)] dark:hover:bg-[var(--color-nebula-400)] transition">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/>
+            </svg>
+            <?= $escaper->escapeHtml((string) __('Show Report')) ?>
+        </button>
+    </form>
+    <?php endif; ?>
+</div>

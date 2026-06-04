@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="page.title" remove="true"/>
+        <referenceContainer name="page.main.actions" remove="true"/>
+        <referenceBlock name="page.actions.toolbar" remove="true"/>
+        <referenceBlock name="sales_invoice_view" template="Qoliber_NebulaTheme::blank.phtml"/>
+        <referenceContainer name="left" remove="true"/>
+        <referenceContainer name="content" htmlTag="div">
+            <block class="Qoliber\NebulaTheme\Block\InvoiceView"
+                   name="nebula.invoice_view"
+                   after="-"/>
+        </referenceContainer>
+    </body>
+</page>

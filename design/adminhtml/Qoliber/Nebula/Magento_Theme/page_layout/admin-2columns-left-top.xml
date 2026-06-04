@@ -34,7 +34,7 @@
                     </container>
 
                     <container name="page.main.container" as="page_main_container" htmlTag="div"
-                        htmlClass="nebula-2col-container">
+                        htmlClass="nebula-2col-container mt-6">
                         <container name="side.col" as="side-col" htmlTag="div" htmlClass="nebula-2col-left">
                             <container name="left" as="left"/>
                         </container>

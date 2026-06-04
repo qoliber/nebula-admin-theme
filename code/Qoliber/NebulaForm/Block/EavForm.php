@@ -85,6 +85,30 @@ class EavForm extends Template
         }
     }
 
+    /**
+     * Render a sidebar/drawer snippet through the SectionRenderer so its
+     * registered ViewModel (SnippetViewModelRegistry) is injected under
+     * `view_model` — exactly the path form sections use. Rendering the snippet
+     * with a bare Template block would skip that injection and break any
+     * sidebar snippet that needs a ViewModel (e.g. category_navigation_tree).
+     */
+    public function renderSidebar(string $rendererRef): string
+    {
+        if ($rendererRef === '') {
+            return '';
+        }
+
+        return $this->sectionRenderer->render(
+            $this->getLayout(),
+            ['renderer' => $rendererRef],
+            [
+                'entity' => $this->getEntity(),
+                'entity_data' => $this->getEntityData(),
+                'form_block' => $this,
+            ]
+        );
+    }
+
     public function getFieldNamer(): FieldNamer
     {
         return $this->fieldNamer;

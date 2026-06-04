@@ -27,10 +27,10 @@ declare(strict_types=1);
 
 $viewModel = $block->getData('view_model');
 if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\CouponGenerator) {
-    // nebula:allow-object-manager dynamic-snippet-view-model fallback —
-    // matches the pattern used in snippet/rule_editor.phtml.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaTheme\ViewModel\CouponGenerator::class);
+    throw new \RuntimeException(
+        'Nebula snippet "coupon_generator": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\CouponGenerator). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
 }
 
 $entityData = (array) ($block->getData('entity_data') ?? []);

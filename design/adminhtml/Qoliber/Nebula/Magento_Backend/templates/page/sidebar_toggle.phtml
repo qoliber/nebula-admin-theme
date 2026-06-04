@@ -11,3 +11,13 @@
     <i class="fa-solid text-sm"
        :class="$store.nebula.sidebarCollapsed ? 'fa-angles-right' : 'fa-angles-left'"></i>
 </button>
+<!--
+    Centered date pill in the admin header. Absolutely positioned via
+    .nebula-header-date so it sits at the geometric centre of the bar
+    regardless of the variable width of the right-cluster icons.
+-->
+<div class="nebula-header-date">
+    <span class="nebula-header-date__day"><?= $block->escapeHtml(date('l')) ?></span>
+    <span class="nebula-header-date__sep">·</span>
+    <span><?= $block->escapeHtml(date('F j, Y')) ?></span>
+</div>

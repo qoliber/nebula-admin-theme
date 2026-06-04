@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content" htmlTag="div">
+            <block class="Qoliber\NebulaSystem\Block\Adminhtml\Variable\Manager"
+                   name="nebula.variable.manager"
+                   after="-">
+                <block class="Qoliber\NebulaGrid\Block\Grid"
+                       name="nebula.variable_listing"
+                       as="grid">
+                    <arguments>
+                        <argument name="grid_id" xsi:type="string">variable_listing</argument>
+                    </arguments>
+                </block>
+                <block class="Magento\Variable\Block\System\Variable\Edit\Form"
+                       name="nebula.variable.form"
+                       as="form"/>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

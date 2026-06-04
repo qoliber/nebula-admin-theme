@@ -1,0 +1,60 @@
+<?php
+/**
+ * @var \Magento\Sales\Block\Adminhtml\Order\Create\Form $block
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ */
+$customerSelectorDisplay = $block->getCustomerSelectorDisplay();
+$storeSelectorDisplay = $block->getStoreSelectorDisplay();
+$dataSelectorDisplay = $block->getDataSelectorDisplay();
+$customerHtml = (string) $block->getChildHtml('customer.grid.container');
+$storeHtml = (string) $block->getChildHtml('store');
+$dataHtml = (string) $block->getChildHtml('data');
+?>
+<form id="edit_form" data-order-config='<?= $block->escapeHtml($block->getOrderDataJson()) ?>'
+      data-load-base-url="<?= $block->escapeUrl($block->getLoadBlockUrl()) ?>"
+      action="<?= $block->escapeUrl($block->getSaveUrl()) ?>" method="post" enctype="multipart/form-data">
+    <?= $block->getBlockHtml('formkey') ?>
+    <div id="order-message">
+        <?= $block->getChildHtml('message') ?>
+    </div>
+    <div id="order-customer-selector"
+         class="fieldset-wrapper order-customer-selector<?= $customerSelectorDisplay === 'none' ? ' no-display' : '' ?>"
+         style="display: <?= $block->escapeHtmlAttr($customerSelectorDisplay) ?>;">
+        <?= $customerHtml ?>
+    </div>
+    <div id="order-store-selector"
+         class="fieldset-wrapper<?= $storeSelectorDisplay === 'none' ? ' no-display' : '' ?>"
+         style="display: <?= $block->escapeHtmlAttr($storeSelectorDisplay) ?>;">
+        <?= $storeHtml ?>
+    </div>
+    <div id="order-data"
+         class="<?= $dataSelectorDisplay === 'none' ? 'no-display' : '' ?>"
+         style="display: <?= $block->escapeHtmlAttr($dataSelectorDisplay) ?>;">
+        <?= $dataHtml ?>
+    </div>
+</form>
+<?php $scriptString = <<<Script
+require(['jquery'], function($){
+    'use strict';
+
+Script;
+if ($customerSelectorDisplay !== 'none') {
+    $scriptString .= <<<Script
+    $('div#order-customer-selector').show().removeClass('no-display');
+Script;
+}
+if ($storeSelectorDisplay !== 'none') {
+    $scriptString .= <<<Script
+    $('div#order-store-selector').show().removeClass('no-display');
+Script;
+}
+if ($dataSelectorDisplay !== 'none') {
+    $scriptString .= <<<Script
+    $('div#order-data').show().removeClass('no-display');
+Script;
+}
+$scriptString .= <<<Script
+});
+Script;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>

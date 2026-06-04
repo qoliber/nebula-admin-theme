@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 $viewModel = $block->getData('view_model');
 if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\BundleSettings) {
-    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaTheme\ViewModel\BundleSettings::class);
+    throw new \RuntimeException(
+        'Nebula snippet "bundle_settings": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\BundleSettings). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
 }
 
 $entity = $block->getData('entity');

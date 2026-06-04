@@ -1,17 +1,28 @@
 import Quill from 'quill';
+import type Embed from 'quill/blots/embed';
 
 import { createBaseField } from './base';
-import type { NebulaFieldConfig, ValidationRulesObject } from '../types';
+import type {
+    NebulaDirectiveMeta,
+    NebulaDirectiveOpenOptions,
+    NebulaFieldConfig,
+    ValidationRulesObject,
+} from '../types';
 
 const HISTORY_DELAY = 500;
 const HISTORY_MAX_STACK = 100;
 const DEFAULT_TABLE_ROWS = 2;
 const DEFAULT_TABLE_COLUMNS = 2;
+const DIRECTIVE_PATTERN = /{{(?:widget|config|customVar)\b[^{}]*}}/g;
 
 const UNDO_ICON =
     '<svg viewBox="0 0 18 18"><polyline class="ql-stroke" points="6 5 3 8 6 11"></polyline><path class="ql-stroke" d="M5 8h5a4 4 0 1 1 0 8h-1"></path></svg>';
 const REDO_ICON =
     '<svg viewBox="0 0 18 18"><polyline class="ql-stroke" points="12 5 15 8 12 11"></polyline><path class="ql-stroke" d="M13 8H8a4 4 0 1 0 0 8h1"></path></svg>';
+const VARIABLE_ICON =
+    '<svg viewBox="0 0 18 18"><text class="ql-fill" font-family="monospace" font-size="11" font-weight="600" x="1" y="13">{x}</text></svg>';
+const WIDGET_ICON =
+    '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect class="ql-stroke" x="2" y="2" width="6" height="6" rx="1"/><rect class="ql-stroke" x="10" y="2" width="6" height="6" rx="1"/><rect class="ql-stroke" x="2" y="10" width="6" height="6" rx="1"/><rect class="ql-stroke" x="10" y="10" width="6" height="6" rx="1"/></svg>';
 
 interface QuillRefs {
     editorHost?: HTMLElement;
@@ -23,6 +34,8 @@ interface QuillRefs {
 interface QuillState extends ReturnType<typeof createBaseField> {
     editor: Quill | null;
     editorReady: boolean;
+    sourceMode: boolean;
+    toolbarElement: HTMLDivElement | null;
     lastRange: QuillRange | null;
     savedRange: QuillRange | null;
     editingImageRange: QuillRange | null;
@@ -35,6 +48,11 @@ interface QuillState extends ReturnType<typeof createBaseField> {
     $refs?: QuillRefs;
     $nextTick?: (callback: () => void) => void;
     validation: ValidationRulesObject;
+    handleSourceInput(): void;
+    toggleSourceMode(): void;
+    openSourceVariablePicker(): void;
+    openSourceWidgetPicker(): void;
+    openSourceImagePicker(): void;
     openLinkDialog(): void;
     closeLinkDialog(): void;
     submitLinkDialog(): void;
@@ -72,6 +90,14 @@ interface NebulaMediaApi {
     }): Promise<NebulaMediaSelection | null>;
 }
 
+interface DirectiveDescriptor {
+    directive: string;
+    kind: 'widget' | 'variable';
+    label: string;
+    subtitle: string;
+    placeholderUrl: string | null;
+}
+
 declare global {
     interface Window {
         NebulaMedia?: NebulaMediaApi;
@@ -94,6 +120,174 @@ function normalizeHtml(html: string): string {
     const trimmed = html.trim();
 
     return trimmed === '<p><br></p>' ? '' : trimmed;
+}
+
+function getDirectiveMeta(): NebulaDirectiveMeta | undefined {
+    return window.NebulaDirective?.meta;
+}
+
+function getDirectiveAttribute(directive: string, name: string): string | null {
+    const match = directive.match(new RegExp(name + '=(?:"([^"]*)"|([^\\s}]+))'));
+
+    if (!match) {
+        return null;
+    }
+
+    const value = match[1] ?? match[2] ?? '';
+
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
+function humanizeSegment(value: string): string {
+    return value
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/[_-]+/g, ' ')
+        .trim();
+}
+
+function getFriendlyWidgetName(type: string): string {
+    const parts = type.split('\\').filter(Boolean);
+    const label = parts.slice(-2).map(humanizeSegment).join(' ');
+
+    return label || humanizeSegment(type);
+}
+
+function getVariableLookupKey(directive: string): string | null {
+    if (directive.startsWith('{{config')) {
+        const path = getDirectiveAttribute(directive, 'path');
+        return path ? 'default:' + path : null;
+    }
+
+    if (directive.startsWith('{{customVar')) {
+        const code = getDirectiveAttribute(directive, 'code');
+        return code ? 'custom:' + code : null;
+    }
+
+    return null;
+}
+
+function describeDirective(directive: string): DirectiveDescriptor {
+    if (directive.startsWith('{{widget')) {
+        const type = getDirectiveAttribute(directive, 'type') ?? '';
+        const widgetMeta = type ? getDirectiveMeta()?.widgets?.[type] : undefined;
+
+        return {
+            directive,
+            kind: 'widget',
+            label: widgetMeta?.name || getFriendlyWidgetName(type),
+            subtitle: type,
+            placeholderUrl: widgetMeta?.placeholderUrl || null,
+        };
+    }
+
+    const key = getVariableLookupKey(directive);
+    const variableMeta = key ? getDirectiveMeta()?.variables?.[key] : undefined;
+    const code = getDirectiveAttribute(directive, 'path') ?? getDirectiveAttribute(directive, 'code') ?? directive;
+    const group = variableMeta?.group ? variableMeta.group + ' / ' : '';
+
+    return {
+        directive,
+        kind: 'variable',
+        label: variableMeta ? group + variableMeta.label : humanizeSegment(code),
+        subtitle: code,
+        placeholderUrl: null,
+    };
+}
+
+function buildDirectivePlaceholderMarkup(descriptor: DirectiveDescriptor): string {
+    const preview = descriptor.kind === 'widget' && descriptor.placeholderUrl
+        ? '<span class="nebula-quill-directive__preview"><img src="'
+            + escapeHtmlAttribute(descriptor.placeholderUrl)
+            + '" alt=""></span>'
+        : '<span class="nebula-quill-directive__badge">'
+            + (descriptor.kind === 'widget' ? 'Widget' : 'Variable')
+            + '</span>';
+
+    return preview
+        + '<span class="nebula-quill-directive__content">'
+        + '<span class="nebula-quill-directive__label">'
+        + escapeHtmlAttribute(descriptor.label)
+        + '</span>'
+        + '<span class="nebula-quill-directive__subtitle">'
+        + escapeHtmlAttribute(descriptor.subtitle)
+        + '</span>'
+        + '</span>';
+}
+
+function buildDirectivePlaceholderHtml(directive: string): string {
+    const descriptor = describeDirective(directive);
+
+    return '<span class="nebula-quill-directive nebula-quill-directive--'
+        + descriptor.kind
+        + '" contenteditable="false" data-directive="'
+        + escapeHtmlAttribute(descriptor.directive)
+        + '" data-kind="'
+        + escapeHtmlAttribute(descriptor.kind)
+        + '" data-label="'
+        + escapeHtmlAttribute(descriptor.label)
+        + '" data-subtitle="'
+        + escapeHtmlAttribute(descriptor.subtitle)
+        + '"'
+        + (descriptor.placeholderUrl
+            ? ' data-placeholder-url="' + escapeHtmlAttribute(descriptor.placeholderUrl) + '"'
+            : '')
+        + '>'
+        + buildDirectivePlaceholderMarkup(descriptor)
+        + '</span>';
+}
+
+const EmbedBlot = Quill.import('blots/embed') as typeof Embed;
+
+let directiveBlotRegistered = false;
+
+function registerDirectiveBlot(): void {
+    if (directiveBlotRegistered) {
+        return;
+    }
+
+    class NebulaDirectiveBlot extends EmbedBlot {
+        static override create(value: DirectiveDescriptor): HTMLElement {
+            const node = super.create() as HTMLElement;
+
+            node.classList.add('nebula-quill-directive--' + value.kind);
+            node.setAttribute('contenteditable', 'false');
+            node.dataset.directive = value.directive;
+            node.dataset.kind = value.kind;
+            node.dataset.label = value.label;
+            node.dataset.subtitle = value.subtitle;
+
+            if (value.placeholderUrl) {
+                node.dataset.placeholderUrl = value.placeholderUrl;
+            } else {
+                delete node.dataset.placeholderUrl;
+            }
+
+            node.innerHTML = buildDirectivePlaceholderMarkup(value);
+
+            return node;
+        }
+
+        static override value(node: HTMLElement): DirectiveDescriptor {
+            return {
+                directive: node.dataset.directive ?? '',
+                kind: (node.dataset.kind === 'widget' ? 'widget' : 'variable') as 'widget' | 'variable',
+                label: node.dataset.label ?? '',
+                subtitle: node.dataset.subtitle ?? '',
+                placeholderUrl: node.dataset.placeholderUrl ?? null,
+            };
+        }
+    }
+
+    (NebulaDirectiveBlot as { blotName?: string }).blotName = 'nebula-directive';
+    (NebulaDirectiveBlot as { className?: string }).className = 'nebula-quill-directive';
+    (NebulaDirectiveBlot as { tagName?: string }).tagName = 'span';
+
+    Quill.register(NebulaDirectiveBlot, true);
+    directiveBlotRegistered = true;
 }
 
 function cloneRange(range: QuillRange | null | undefined): QuillRange | null {
@@ -185,6 +379,20 @@ function buildImageHtml(selection: NebulaMediaSelection): string {
     return '<img ' + attributes.join(' ') + '>';
 }
 
+function renderVisualHtml(sourceHtml: string): string {
+    return sourceHtml.replace(DIRECTIVE_PATTERN, (directive) => buildDirectivePlaceholderHtml(directive));
+}
+
+function serializeEditorHtml(root: HTMLElement): string {
+    const clone = root.cloneNode(true) as HTMLElement;
+
+    clone.querySelectorAll<HTMLElement>('.nebula-quill-directive').forEach((placeholder) => {
+        placeholder.replaceWith(document.createTextNode(placeholder.dataset.directive ?? ''));
+    });
+
+    return normalizeHtml(clone.innerHTML);
+}
+
 function getImageAlignment(image: HTMLImageElement): 'left' | 'center' | 'right' {
     const style = (image.getAttribute('style') ?? '').toLowerCase();
 
@@ -226,6 +434,47 @@ function getImageRange(quill: Quill, image: HTMLImageElement): QuillRange | null
     };
 }
 
+function getDirectiveRange(quill: Quill, directiveElement: HTMLElement): QuillRange | null {
+    const blot = Quill.find(directiveElement, true) as { statics?: { blotName?: string } } | null;
+
+    if (!blot) {
+        return null;
+    }
+
+    return {
+        index: quill.getIndex(blot as never),
+        length: 1,
+    };
+}
+
+function insertDirective(
+    quill: Quill,
+    promise: Promise<string | null>,
+    savedRange: QuillRange,
+    nextTick?: (callback: () => void) => void,
+): void {
+    void promise.then((directive) => {
+        if (!directive) {
+            focusEditorRoot(quill, nextTick);
+            return;
+        }
+
+        const range = restoreRange(quill, savedRange) ?? savedRange;
+        const insertAt = range.index + range.length;
+        quill.insertEmbed(insertAt, 'nebula-directive', describeDirective(directive), 'user');
+        quill.setSelection(insertAt + 1, 0, 'silent');
+        focusEditorRoot(quill, nextTick);
+    });
+}
+
+function insertAtCursor(textarea: HTMLTextAreaElement, content: string): void {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+
+    textarea.setRangeText(content, start, end, 'end');
+    textarea.focus();
+}
+
 function buildButton(className: string, title: string, icon?: string): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'button';
@@ -247,9 +496,9 @@ function buildToolbar(): HTMLDivElement {
     headerGroup.className = 'ql-formats';
     const headerSelect = document.createElement('select');
     headerSelect.className = 'ql-header';
-    [false, '1', '2', '3'].forEach((value) => {
+    [null, '1', '2', '3'].forEach((value) => {
         const option = document.createElement('option');
-        if (value !== false) {
+        if (value !== null) {
             option.value = value;
         } else {
             option.selected = true;
@@ -294,9 +543,9 @@ function buildToolbar(): HTMLDivElement {
     alignGroup.className = 'ql-formats';
     const alignSelect = document.createElement('select');
     alignSelect.className = 'ql-align';
-    [false, 'center', 'right', 'justify'].forEach((value) => {
+    [null, 'center', 'right', 'justify'].forEach((value) => {
         const option = document.createElement('option');
-        if (value !== false) {
+        if (value !== null) {
             option.value = value;
         } else {
             option.selected = true;
@@ -305,6 +554,12 @@ function buildToolbar(): HTMLDivElement {
     });
     alignGroup.appendChild(alignSelect);
     toolbar.appendChild(alignGroup);
+
+    const directiveGroup = document.createElement('span');
+    directiveGroup.className = 'ql-formats';
+    directiveGroup.appendChild(buildButton('ql-variable', 'Insert Variable', VARIABLE_ICON));
+    directiveGroup.appendChild(buildButton('ql-widget', 'Insert Widget', WIDGET_ICON));
+    toolbar.appendChild(directiveGroup);
 
     const historyGroup = document.createElement('span');
     historyGroup.className = 'ql-formats';
@@ -326,6 +581,8 @@ export function registerQuillField(): void {
             return Object.assign(base, {
                 editor: null as Quill | null,
                 editorReady: false,
+                sourceMode: false,
+                toolbarElement: null as HTMLDivElement | null,
                 lastRange: null as QuillRange | null,
                 savedRange: null as QuillRange | null,
                 editingImageRange: null as QuillRange | null,
@@ -349,8 +606,11 @@ export function registerQuillField(): void {
                             return;
                         }
 
+                        registerDirectiveBlot();
+
                         const initialValue = asString(this.value || fallbackInput.value);
                         const toolbar = buildToolbar();
+                        this.toolbarElement = toolbar;
                         host.before(toolbar);
                         const editor = new Quill(host, {
                             modules: {
@@ -405,6 +665,36 @@ export function registerQuillField(): void {
                                         table(): void {
                                             component.openTableDialog();
                                         },
+                                        variable(this: { quill: Quill }): void {
+                                            const savedRange = getDialogRange(this.quill, component.lastRange);
+
+                                            if (!window.NebulaDirective?.openVariable) {
+                                                console.error('NebulaDirective is not available.');
+                                                return;
+                                            }
+
+                                            insertDirective(
+                                                this.quill,
+                                                window.NebulaDirective.openVariable(),
+                                                savedRange,
+                                                component.$nextTick,
+                                            );
+                                        },
+                                        widget(this: { quill: Quill }): void {
+                                            const savedRange = getDialogRange(this.quill, component.lastRange);
+
+                                            if (!window.NebulaDirective?.openWidget) {
+                                                console.error('NebulaDirective is not available.');
+                                                return;
+                                            }
+
+                                            insertDirective(
+                                                this.quill,
+                                                window.NebulaDirective.openWidget(),
+                                                savedRange,
+                                                component.$nextTick,
+                                            );
+                                        },
                                         undo(this: { quill: Quill }): void {
                                             const history = this.quill.getModule('history') as HistoryModule | undefined;
                                             history?.undo();
@@ -423,19 +713,20 @@ export function registerQuillField(): void {
                         this.editor = editor;
 
                         if (initialValue.trim() !== '') {
-                            editor.clipboard.dangerouslyPasteHTML(initialValue);
+                            editor.clipboard.dangerouslyPasteHTML(renderVisualHtml(initialValue));
                         }
 
-                        this.value = normalizeHtml(editor.root.innerHTML);
-                        fallbackInput.value = this.value;
+                        this.value = serializeEditorHtml(editor.root);
+                        fallbackInput.value = asString(this.value);
                         fallbackInput.removeAttribute('name');
                         fallbackInput.hidden = true;
                         host.hidden = false;
+                        toolbar.hidden = false;
                         this.editorReady = true;
 
                         editor.on('text-change', () => {
-                            this.value = normalizeHtml(editor.root.innerHTML);
-                            fallbackInput.value = this.value;
+                            this.value = serializeEditorHtml(editor.root);
+                            fallbackInput.value = asString(this.value);
 
                             if (
                                 window.Nebula?.clearFieldError &&
@@ -492,6 +783,183 @@ export function registerQuillField(): void {
                                 focusEditorRoot(editor, component.$nextTick);
                             });
                         });
+
+                        editor.root.addEventListener('dblclick', (event) => {
+                            const target = event.target;
+                            const placeholder = target instanceof HTMLElement
+                                ? target.closest<HTMLElement>('.nebula-quill-directive')
+                                : null;
+
+                            if (!placeholder) {
+                                return;
+                            }
+
+                            const directive = placeholder.dataset.directive ?? '';
+                            const range = getDirectiveRange(editor, placeholder);
+
+                            if (!range) {
+                                return;
+                            }
+
+                            const openOptions: NebulaDirectiveOpenOptions = { directive };
+
+                            if (placeholder.dataset.kind === 'widget' && window.NebulaDirective?.openWidget) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                component.lastRange = range;
+
+                                void window.NebulaDirective.openWidget(openOptions).then((updatedDirective) => {
+                                    if (!updatedDirective) {
+                                        focusEditorRoot(editor, component.$nextTick);
+                                        return;
+                                    }
+
+                                    const directiveRange = restoreRange(editor, range) ?? range;
+                                    editor.deleteText(directiveRange.index, directiveRange.length, 'user');
+                                    editor.insertEmbed(
+                                        directiveRange.index,
+                                        'nebula-directive',
+                                        describeDirective(updatedDirective),
+                                        'user',
+                                    );
+                                    editor.setSelection(directiveRange.index + 1, 0, 'silent');
+                                    component.lastRange = { index: directiveRange.index + 1, length: 0 };
+                                    focusEditorRoot(editor, component.$nextTick);
+                                });
+
+                                return;
+                            }
+
+                            if (placeholder.dataset.kind === 'variable' && window.NebulaDirective?.openVariable) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                component.lastRange = range;
+
+                                void window.NebulaDirective.openVariable(openOptions).then((updatedDirective) => {
+                                    if (!updatedDirective) {
+                                        focusEditorRoot(editor, component.$nextTick);
+                                        return;
+                                    }
+
+                                    const directiveRange = restoreRange(editor, range) ?? range;
+                                    editor.deleteText(directiveRange.index, directiveRange.length, 'user');
+                                    editor.insertEmbed(
+                                        directiveRange.index,
+                                        'nebula-directive',
+                                        describeDirective(updatedDirective),
+                                        'user',
+                                    );
+                                    editor.setSelection(directiveRange.index + 1, 0, 'silent');
+                                    component.lastRange = { index: directiveRange.index + 1, length: 0 };
+                                    focusEditorRoot(editor, component.$nextTick);
+                                });
+                            }
+                        });
+                    });
+                },
+
+                handleSourceInput(this: QuillState): void {
+                    const fallbackInput = this.$refs?.fallbackInput;
+
+                    if (!fallbackInput) {
+                        return;
+                    }
+
+                    this.value = fallbackInput.value;
+                },
+
+                toggleSourceMode(this: QuillState): void {
+                    const fallbackInput = this.$refs?.fallbackInput;
+                    const host = this.$refs?.editorHost;
+
+                    if (!fallbackInput || !host) {
+                        return;
+                    }
+
+                    if (this.sourceMode) {
+                        if (this.editor) {
+                            this.editor.setContents([]);
+
+                            if (fallbackInput.value.trim() !== '') {
+                                this.editor.clipboard.dangerouslyPasteHTML(renderVisualHtml(fallbackInput.value));
+                            }
+
+                            this.value = serializeEditorHtml(this.editor.root);
+                            fallbackInput.value = asString(this.value);
+                        }
+
+                        this.sourceMode = false;
+                        fallbackInput.hidden = true;
+                        host.hidden = false;
+                        if (this.toolbarElement) {
+                            this.toolbarElement.hidden = false;
+                        }
+                        focusEditorRoot(this.editor, this.$nextTick);
+                        return;
+                    }
+
+                    if (this.editor) {
+                        this.value = serializeEditorHtml(this.editor.root);
+                        fallbackInput.value = asString(this.value);
+                    }
+
+                    this.sourceMode = true;
+                    fallbackInput.hidden = false;
+                    host.hidden = true;
+                    if (this.toolbarElement) {
+                        this.toolbarElement.hidden = true;
+                    }
+                    fallbackInput.focus();
+                },
+
+                openSourceVariablePicker(this: QuillState): void {
+                    const fallbackInput = this.$refs?.fallbackInput;
+
+                    if (!fallbackInput || !window.NebulaDirective?.openVariable) {
+                        return;
+                    }
+
+                    void window.NebulaDirective.openVariable().then((directive) => {
+                        if (!directive) {
+                            return;
+                        }
+
+                        insertAtCursor(fallbackInput, directive);
+                        this.handleSourceInput();
+                    });
+                },
+
+                openSourceWidgetPicker(this: QuillState): void {
+                    const fallbackInput = this.$refs?.fallbackInput;
+
+                    if (!fallbackInput || !window.NebulaDirective?.openWidget) {
+                        return;
+                    }
+
+                    void window.NebulaDirective.openWidget().then((directive) => {
+                        if (!directive) {
+                            return;
+                        }
+
+                        insertAtCursor(fallbackInput, directive);
+                        this.handleSourceInput();
+                    });
+                },
+
+                openSourceImagePicker(this: QuillState): void {
+                    const fallbackInput = this.$refs?.fallbackInput;
+
+                    if (!fallbackInput || !window.NebulaMedia?.open) {
+                        return;
+                    }
+
+                    void window.NebulaMedia.open({ resetSelection: true }).then((imageSelection) => {
+                        if (!imageSelection) {
+                            return;
+                        }
+
+                        insertAtCursor(fallbackInput, buildImageHtml(imageSelection));
+                        this.handleSourceInput();
                     });
                 },
 

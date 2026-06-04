@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+    Shared layout handle for EAV form pages (product edit, category edit, customer edit, etc.).
+    Apply via <update handle="nebula_eav_form"/> in the page's own layout handle.
+
+    EAV forms render their own sticky header (form-shell) that owns the page title,
+    scope switcher, and save button. The standard page.main.actions toolbar must
+    not exist on these pages — remove it at the layout level, not via CSS.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <attribute name="class" value="nebula-eav-form"/>
+        <referenceContainer name="page.main.actions" remove="true"/>
+    </body>
+</page>

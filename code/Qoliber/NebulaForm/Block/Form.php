@@ -35,6 +35,26 @@ class Form extends Template
     /** @var array<string, mixed>|null */
     private ?array $entityData = null;
 
+    /**
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Qoliber\NebulaComponent\Api\DefinitionResolverInterface $definitionResolver
+     * @param \Qoliber\NebulaComponent\Model\DataProviderResolver $dataProviderResolver
+     * @param \Qoliber\NebulaComponent\Model\OptionSourceResolver $optionSourceResolver
+     * @param \Magento\Framework\Data\Form\FormKey $formKey
+     * @param \Qoliber\NebulaForm\Model\FieldNamer $fieldNamer
+     * @param \Qoliber\NebulaForm\Model\Form\FieldsetLayoutBuilder $fieldsetLayoutBuilder
+     * @param \Qoliber\NebulaForm\Model\Form\LayoutNodeFlattener $layoutNodeFlattener
+     * @param \Qoliber\NebulaForm\Model\Form\SectionRenderer $sectionRenderer
+     * @param \Qoliber\NebulaForm\Model\Definition\FormDefinitionNormalizer $formDefinitionNormalizer
+     * @param \Qoliber\NebulaComponent\Model\Authorization\DefinitionAccessControl $definitionAccessControl
+     * @param \Qoliber\NebulaForm\Model\Form\HiddenInputResolver $hiddenInputResolver
+     * @param \Qoliber\NebulaForm\Model\Field\WysiwygRendererInterface $wysiwygRenderer
+     * @param array<string, string> $fieldTemplates Map of field type => "Module::field/<type>.phtml" template id.
+     *        Lets other modules supply a field template for a type NebulaForm
+     *        doesn't ship itself (e.g. NebulaPageBuilder contributes `pagebuilder`)
+     *        without NebulaForm depending on them. Empty when those modules are off.
+     * @param array<string, mixed> $data
+     */
     public function __construct(
         Context $context,
         private readonly DefinitionResolverInterface $definitionResolver,
@@ -49,12 +69,33 @@ class Form extends Template
         private readonly DefinitionAccessControl $definitionAccessControl,
         private readonly HiddenInputResolver $hiddenInputResolver,
         private readonly WysiwygRendererInterface $wysiwygRenderer,
+        private readonly array $fieldTemplates = [],
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->setTemplate('Qoliber_NebulaForm::form.phtml');
     }
 
+    /**
+     * Resolve an externally-contributed field template id for a field type, or
+     * '' when none is registered (the caller then falls back to the built-in
+     * partial). Lets other modules supply a template for a type NebulaForm does
+     * not ship itself (e.g. NebulaPageBuilder contributes `pagebuilder` via
+     * di.xml) without NebulaForm depending on them.
+     *
+     * @param string $type
+     * @return string Template id like "Qoliber_NebulaPageBuilder::field/pagebuilder.phtml".
+     */
+    public function getFieldTemplateOverride(string $type): string
+    {
+        return $this->fieldTemplates[$type] ?? '';
+    }
+
+    /**
+     * Return the resolved, normalized form definition (lazily loaded).
+     *
+     * @return array<string, mixed>
+     */
     public function getDefinition(): array
     {
         if ($this->definition === null) {
@@ -73,16 +114,31 @@ class Form extends Template
         return $this->definition;
     }
 
+    /**
+     * Form identifier supplied via the block's `form_id` argument.
+     *
+     * @return string
+     */
     public function getFormId(): string
     {
         return (string) $this->getData('form_id');
     }
 
+    /**
+     * Whether the current admin is authorized for this form's ACL resource.
+     *
+     * @return bool
+     */
     public function isAllowed(): bool
     {
         return $this->definitionAccessControl->isAllowed($this->getDefinition());
     }
 
+    /**
+     * Resolve the edited entity id from the request, or null when creating.
+     *
+     * @return string|null
+     */
     public function getEntityId(): ?string
     {
         $definition = $this->getDefinition();
@@ -92,16 +148,31 @@ class Form extends Template
         return $entityId !== null ? (string) $entityId : null;
     }
 
+    /**
+     * Whether the form is rendering a new (unsaved) entity.
+     *
+     * @return bool
+     */
     public function isNewEntity(): bool
     {
         return $this->getEntityId() === null;
     }
 
+    /**
+     * Expose the field namer so templates can build submit names / DOM ids.
+     *
+     * @return \Qoliber\NebulaForm\Model\FieldNamer
+     */
     public function getFieldNamer(): FieldNamer
     {
         return $this->fieldNamer;
     }
 
+    /**
+     * Submit-time field-name prefix declared by the form settings (null if none).
+     *
+     * @return string|null
+     */
     public function getFieldPrefix(): ?string
     {
         $prefix = $this->getDefinition()['settings']['fieldPrefix'] ?? null;
@@ -111,6 +182,11 @@ class Form extends Template
 
     /**
      * @return array<string, array<string, mixed>>
+     */
+    /**
+     * Return the form's fieldsets, ordered for rendering.
+     *
+     * @return array<string, mixed>
      */
     public function getFieldsets(): array
     {
@@ -134,6 +210,8 @@ class Form extends Template
     }
 
     /**
+     * Return the form's layout-tree nodes (empty for fieldset-based forms).
+     *
      * @return array<int, array<string, mixed>>
      */
     public function getLayoutTree(): array
@@ -144,6 +222,11 @@ class Form extends Template
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    /**
+     * Return the flattened, renderable layout nodes for the form body.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function getRenderableNodes(): array
@@ -161,6 +244,8 @@ class Form extends Template
     }
 
     /**
+     * Return a fieldset's fields ordered by their `position`.
+     *
      * @param array<string, mixed> $fieldset
      * @return array<string, array<string, mixed>>
      */
@@ -175,6 +260,16 @@ class Form extends Template
         return $fields;
     }
 
+    /**
+     * Return the entity data the form is populated from (lazily resolved).
+     *
+     * @return array<string, mixed>
+     */
+    /**
+     * Return the entity data the form is populated from (lazily resolved).
+     *
+     * @return array<string, mixed>
+     */
     public function getEntityData(): array
     {
         if ($this->entityData !== null) {
@@ -200,6 +295,12 @@ class Form extends Template
         );
     }
 
+    /**
+     * Resolve a single field's current value from the entity data.
+     *
+     * @param string $fieldKey
+     * @return mixed
+     */
     public function getFieldValue(string $fieldKey): mixed
     {
         $data = $this->getEntityData();
@@ -235,6 +336,16 @@ class Form extends Template
         return null;
     }
 
+    /**
+     * Admin route the form POSTs to on save.
+     *
+     * @return string
+     */
+    /**
+     * Admin route the form POSTs to on save (with the identifier param injected).
+     *
+     * @return string
+     */
     public function getSaveUrl(): string
     {
         $definition = $this->getDefinition();
@@ -254,11 +365,21 @@ class Form extends Template
         return $this->getUrl($saveUrl, $params);
     }
 
+    /**
+     * Admin route the Back button navigates to.
+     *
+     * @return string
+     */
     public function getBackUrl(): string
     {
         return $this->getUrl($this->getDefinition()['settings']['backUrl'] ?? '*/*/');
     }
 
+    /**
+     * Admin route the Delete button posts to (empty when delete is disabled).
+     *
+     * @return string
+     */
     public function getDeleteUrl(): string
     {
         $deleteUrl = (string) ($this->getDefinition()['settings']['deleteUrl'] ?? '');
@@ -277,6 +398,11 @@ class Form extends Template
         return $this->getUrl($deleteUrl, [$identifierParam => $this->getEntityId()]);
     }
 
+    /**
+     * Request param name carrying the identifier for the delete action.
+     *
+     * @return string
+     */
     public function getDeleteIdentifierParam(): string
     {
         return (string) (
@@ -285,11 +411,27 @@ class Form extends Template
         );
     }
 
+    /**
+     * Current admin form key for CSRF-protected form submission.
+     *
+     * @return string
+     */
+    /**
+     * Current admin form key for CSRF-protected form submission.
+     *
+     * @return string
+     */
     public function getFormKey(): string
     {
         return $this->formKey->getFormKey();
     }
 
+    /**
+     * Translate a string through Magento's i18n layer.
+     *
+     * @param string $text
+     * @return string
+     */
     public function translate(string $text): string
     {
         return (string) __($text);
@@ -319,6 +461,8 @@ class Form extends Template
     }
 
     /**
+     * Build the hidden inputs (declared hiddenFields + entity identifier).
+     *
      * @return array<string, string>
      */
     public function getHiddenRouteFields(): array
@@ -336,22 +480,40 @@ class Form extends Template
         // identifier isn't in the POST body, setData() clobbers it back to
         // null and the repository INSERTs a new row. Inject the identifier
         // as a hidden POST input on every edit so the body carries it too.
+        //
+        // Two distinct names exist in the JSON:
+        //   - settings.identifierField  → the POST-body field the controller
+        //                                 reads (e.g. role_id, page_id,
+        //                                 "user[user_id]"). Required for the
+        //                                 hidden input here.
+        //   - dataSource.config.identifierParam → the URL query param (e.g.
+        //                                 rid for /editrole/rid/N). Used for
+        //                                 the save/delete URL construction.
+        // Prefer identifierField; fall back to identifierParam when a form
+        // doesn't distinguish them (most forms share the same name for both).
         $entityId = $this->getEntityId();
         if ($entityId !== null && $entityId !== '') {
-            $definition = $this->getDefinition();
-            $identifierParam = (string) (
-                $definition['dataSource']['config']['identifierParam']
+            $definition  = $this->getDefinition();
+            $fieldName = (string) (
+                $definition['settings']['identifierField']
+                ?? $definition['dataSource']['config']['identifierParam']
                 ?? $definition['settings']['identifierParam']
                 ?? 'id'
             );
-            if (!isset($result[$identifierParam])) {
-                $result[$identifierParam] = (string) $entityId;
+            if (!isset($result[$fieldName])) {
+                $result[$fieldName] = (string) $entityId;
             }
         }
 
         return $result;
     }
 
+    /**
+     * Render a layout section/snippet body, or '' when it has no renderer.
+     *
+     * @param array<string, mixed> $section
+     * @return string
+     */
     public function renderSection(array $section): string
     {
         if (!$this->hasRenderableSection($section)) {
@@ -365,7 +527,16 @@ class Form extends Template
     }
 
     /**
+     * Render the WYSIWYG control markup for a wysiwyg field.
+     *
+     * @param string $fieldKey
      * @param array<string, mixed> $field
+     * @param string $fieldName
+     * @param string $fieldId
+     * @param mixed $fieldValue
+     * @param bool $isRequired
+     * @param bool $isDisabled
+     * @return string
      */
     public function renderWysiwygFieldControl(
         string $fieldKey,
@@ -384,7 +555,7 @@ class Form extends Template
 
         $validation['label'] = $this->translate((string) ($field['label'] ?? $fieldKey));
 
-        $config = htmlspecialchars(
+        $config = $this->escapeHtmlAttr(
             (string) json_encode([
                 'fieldName' => $fieldName,
                 'value' => (string) ($fieldValue ?? ''),
@@ -392,9 +563,7 @@ class Form extends Template
                 'required' => $isRequired,
                 'rows' => (int) ($field['rows'] ?? 5),
                 'validation' => $validation,
-            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            ENT_QUOTES,
-            'UTF-8'
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
         );
 
         $rules = [];
@@ -419,18 +588,25 @@ class Form extends Template
                 . ' data-validate-label="' . $this->escapeHtmlAttr((string) $validation['label']) . '"'
             : '';
 
+        $cssClass = 'block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm'
+            . ' placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20'
+            . ' focus:outline-none disabled:bg-gray-50 disabled:text-gray-500';
+
         return $this->wysiwygRenderer->render(
             $fieldId,
             $fieldName,
             (string) ($fieldValue ?? ''),
             $config,
             $validateAttr,
-            'block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-nebula-500 focus:ring-2 focus:ring-nebula-500/20 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500'
+            $cssClass
         );
     }
 
     /**
+     * Whether a layout section declares a resolvable snippet/template renderer.
+     *
      * @param array<string, mixed> $section
+     * @return bool
      */
     private function hasRenderableSection(array $section): bool
     {
@@ -451,6 +627,13 @@ class Form extends Template
         return false;
     }
 
+    /**
+     * Propagate the owning module name onto a child block from its template id.
+     *
+     * @param \Magento\Framework\View\Element\Template $block
+     * @param string $template
+     * @return void
+     */
     public function setModuleOnBlock(Template $block, string $template): void
     {
         if (str_contains($template, '::')) {
@@ -459,6 +642,8 @@ class Form extends Template
     }
 
     /**
+     * Build the default field values map for a new (unsaved) entity.
+     *
      * @return array<string, mixed>
      */
     private function getDefaults(): array
@@ -475,6 +660,8 @@ class Form extends Template
     }
 
     /**
+     * Flatten every fieldset's fields into a single name => field map.
+     *
      * @return array<string, array<string, mixed>>
      */
     private function getAllFields(): array

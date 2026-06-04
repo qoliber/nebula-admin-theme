@@ -4,12 +4,19 @@
     <body>
         <referenceBlock name="adminhtml.tax.rate.container" remove="true"/>
         <referenceContainer name="content" htmlTag="div">
-            <block class="Qoliber\NebulaGrid\Block\Grid"
-                   name="nebula.tax_rate_listing"
+            <block class="Qoliber\NebulaTheme\Block\Adminhtml\Tax\Rate\Manager"
+                   name="nebula.tax_rate_manager"
                    after="-">
-                <arguments>
-                    <argument name="grid_id" xsi:type="string">tax_rate_listing</argument>
-                </arguments>
+                <block class="Qoliber\NebulaGrid\Block\Grid"
+                       name="nebula.tax_rate_listing"
+                       as="grid">
+                    <arguments>
+                        <argument name="grid_id" xsi:type="string">tax_rate_listing</argument>
+                    </arguments>
+                </block>
+                <block class="Qoliber\NebulaTheme\Block\Adminhtml\Tax\Rate\Form"
+                       name="nebula.tax_rate_form"
+                       as="form"/>
             </block>
         </referenceContainer>
     </body>

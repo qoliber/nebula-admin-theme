@@ -17,6 +17,7 @@ declare global {
         Nebula?: NebulaGlobal;
         NebulaField?: NebulaFieldFactory;
         nebulaToast?: (type: ToastType, message: string) => void;
+        NebulaDirective?: NebulaDirectiveApi;
     }
 }
 
@@ -66,6 +67,34 @@ export interface NebulaGlobal {
     confirm?: (options: ConfirmOptions) => Promise<boolean>;
     showSaveLoader?: () => void;
     hideSaveLoader?: () => void;
+    hasUnsavedCategoryChanges?: () => boolean;
+}
+
+export interface NebulaDirectiveOpenOptions {
+    directive?: string;
+}
+
+export interface NebulaDirectiveVariableMeta {
+    label: string;
+    group: string;
+    directive: string;
+}
+
+export interface NebulaDirectiveWidgetMeta {
+    name: string;
+    description: string;
+    placeholderUrl: string;
+}
+
+export interface NebulaDirectiveMeta {
+    variables?: Record<string, NebulaDirectiveVariableMeta>;
+    widgets?: Record<string, NebulaDirectiveWidgetMeta>;
+}
+
+export interface NebulaDirectiveApi {
+    openVariable?(options?: NebulaDirectiveOpenOptions): Promise<string | null>;
+    openWidget?(options?: NebulaDirectiveOpenOptions): Promise<string | null>;
+    meta?: NebulaDirectiveMeta;
 }
 
 // ─── Field factories ──────────────────────────────────────────────────────
@@ -242,7 +271,7 @@ export interface FilterDefinition {
 
 // ─── Rule editor ──────────────────────────────────────────────────────────
 
-export type RuleInputType = 'string' | 'numeric' | 'date' | 'select' | 'boolean' | 'multiselect' | 'grid';
+export type RuleInputType = 'string' | 'numeric' | 'date' | 'select' | 'boolean' | 'multiselect' | 'grid' | 'category';
 
 export interface RuleAttribute {
     value: string;
@@ -272,6 +301,7 @@ export interface RuleEditorConfig {
     ruleType?: 'catalog' | 'sales';
     fieldPrefix?: string;
     conditions?: RuleConditionData;
+    registerModel?: boolean;
 }
 
 export interface RuleNode {

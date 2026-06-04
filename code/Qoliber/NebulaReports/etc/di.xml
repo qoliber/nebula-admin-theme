@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!--
+        Nebula collection aliases for the Magento Reports + Search module ports.
+
+        Where the stock collection needs setup methods that the legacy block
+        controller used to call (e.g. joinInventoryItem, addSummary, setPeriod,
+        prepareActiveCartItems, prepareForAbandonedReport), we register a thin
+        Qoliber subclass that runs that setup in `_beforeLoad()` instead of
+        the underlying vendor class.
+    -->
+    <type name="Qoliber\NebulaGrid\Model\Registry\CollectionRegistry">
+        <arguments>
+            <argument name="bindings" xsi:type="array">
+                <item name="report_product_viewed.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Report\Product\Viewed\Collection</item>
+                <item name="report_product_lowstock.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Product\Lowstock\Collection</item>
+                <item name="report_product_sold.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Product\Sold\Collection</item>
+                <item name="report_product_downloads.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Product\Downloads\Collection</item>
+                <item name="report_review_customer.collection" xsi:type="string">Magento\Reports\Model\ResourceModel\Review\Customer\Collection</item>
+                <item name="report_review_product.collection" xsi:type="string">Magento\Reports\Model\ResourceModel\Review\Product\Collection</item>
+                <item name="report_shopcart_product.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Shopcart\Product\Collection</item>
+                <item name="report_shopcart_abandoned.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Shopcart\Abandoned\Collection</item>
+                <item name="search_term_report.collection" xsi:type="string">Magento\Search\Model\ResourceModel\Query\Collection</item>
+                <item name="report_sales_sales.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Sales\Order\Collection</item>
+                <item name="report_sales_tax.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Sales\Tax\Collection</item>
+                <item name="report_sales_invoiced.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Sales\Invoiced\Collection</item>
+                <item name="report_sales_refunded.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Sales\Refunded\Collection</item>
+                <item name="report_sales_shipping.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Sales\Shipping\Collection</item>
+                <item name="report_sales_coupons.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Sales\Coupons\Collection</item>
+                <item name="report_sales_bestsellers.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Sales\Bestsellers\Collection</item>
+                <item name="report_customer_accounts.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Customer\Accounts\Collection</item>
+                <item name="report_customer_orders.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Customer\Orders\Collection</item>
+                <item name="report_customer_totals.collection" xsi:type="string">Qoliber\NebulaReports\Model\ResourceModel\Customer\Totals\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Products-in-Carts + Abandoned-Carts + Sales report controllers all
+        use $this->_addContent($layout->createBlock(...)) (Shopcart) or
+        rely on a named container block whose template includes the legacy
+        filter form + grid (Sales), so a stock layout-XML <referenceBlock
+        remove> alone can't replace just the grid. Same trick as
+        Qoliber_NebulaCurrency: DI-preference the stock Container class so
+        Magento instantiates our Nebula-aware subclass instead, which renders
+        the Nebula grid (and, for Sales, a date-range filter bar) in place
+        of the stock report rendering. The child blocks the controller
+        references via $layout->getBlock(...) still get created by the
+        parent Container's _prepareLayout(), so controller setters keep
+        working.
+    -->
+    <preference for="Magento\Reports\Block\Adminhtml\Shopcart\Product"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Shopcart\Product"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Shopcart\Abandoned"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Shopcart\Abandoned"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Sales\Sales"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Sales\Sales"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Sales\Tax"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Sales\Tax"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Sales\Invoiced"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Sales\Invoiced"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Sales\Refunded"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Sales\Refunded"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Sales\Shipping"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Sales\Shipping"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Sales\Coupons"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Sales\Coupons"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Sales\Bestsellers"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Sales\Bestsellers"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Customer\Accounts"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Customer\Accounts"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Customer\Orders"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Customer\Orders"/>
+    <preference for="Magento\Reports\Block\Adminhtml\Customer\Totals"
+                type="Qoliber\NebulaReports\Block\Adminhtml\Customer\Totals"/>
+
+</config>

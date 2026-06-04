@@ -11,25 +11,4 @@ if (!$childHtml) {
     return;
 }
 ?>
-<style>
-    .nebula-page-actions .action-primary:hover,
-    .nebula-page-actions button.primary:hover,
-    .nebula-page-actions button.action-primary:hover,
-    .page-main-actions .action-primary:hover,
-    .page-main-actions button.primary:hover,
-    .page-main-actions button.action-primary:hover {
-        background-color: color-mix(in srgb, var(--nebula-button-primary-bg) 82%, var(--color-nebula-900));
-        color: var(--color-white);
-    }
-
-    .dark .nebula-page-actions .action-primary:hover,
-    .dark .nebula-page-actions button.primary:hover,
-    .dark .nebula-page-actions button.action-primary:hover,
-    .dark .page-main-actions .action-primary:hover,
-    .dark .page-main-actions button.primary:hover,
-    .dark .page-main-actions button.action-primary:hover {
-        background-color: color-mix(in srgb, var(--nebula-button-primary-bg) 76%, var(--color-nebula-900));
-        color: var(--color-white);
-    }
-</style>
 <?= /* @noEscape */ $childHtml ?>

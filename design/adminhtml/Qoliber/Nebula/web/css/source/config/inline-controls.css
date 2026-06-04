@@ -1,3 +1,5 @@
+/* System config patches — legacy form, not NebulaForm */
+
 /*
  * Vendor renderers that pack multiple controls into one value cell
  * (Reports YtdStart/MtdStart, Cron schedule date pickers, etc.) set

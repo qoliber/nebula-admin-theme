@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Qoliber_NebulaReports">
+        <sequence>
+            <module name="Magento_Reports"/>
+            <module name="Magento_Catalog"/>
+            <module name="Magento_CatalogInventory"/>
+            <module name="Magento_Downloadable"/>
+            <module name="Magento_Newsletter"/>
+            <module name="Magento_Paypal"/>
+            <module name="Magento_Review"/>
+            <module name="Magento_Sales"/>
+            <module name="Magento_Search"/>
+            <module name="PayPal_Braintree"/>
+            <module name="Magento_Quote"/>
+            <module name="Qoliber_NebulaComponent"/>
+            <module name="Qoliber_NebulaGrid"/>
+            <module name="Qoliber_NebulaTheme"/>
+        </sequence>
+    </module>
+</config>

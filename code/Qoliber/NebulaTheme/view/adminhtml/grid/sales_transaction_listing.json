@@ -1,0 +1,94 @@
+{
+  "id": "sales_transaction_listing",
+  "acl": "Magento_Sales::transactions",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "sales_transaction.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "created_at",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "transaction_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "increment_id": {
+      "label": "Order ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "txn_id": {
+      "label": "Transaction ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "parent_txn_id": {
+      "label": "Parent Transaction ID",
+      "type": "text",
+      "sortable": false,
+      "filter": "text",
+      "position": 40
+    },
+    "method": {
+      "label": "Payment Method",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 50
+    },
+    "txn_type": {
+      "label": "Transaction Type",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "position": 60
+    },
+    "is_closed": {
+      "label": "Closed",
+      "type": "boolean",
+      "sortable": true,
+      "filter": "select",
+      "filterOptions": {
+        "1": "Yes",
+        "0": "No"
+      },
+      "position": 70
+    },
+    "created_at": {
+      "label": "Created",
+      "type": "date",
+      "sortable": true,
+      "filter": "date",
+      "position": 80
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "View",
+          "url": "sales/transactions/view/txn_id/{{transaction_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

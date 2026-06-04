@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 $viewModel = $block->getData('view_model');
 if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\MediaGallery) {
-    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaTheme\ViewModel\MediaGallery::class);
+    throw new \RuntimeException(
+        'Nebula snippet "media_gallery": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\MediaGallery). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
 }
 
 $entity = $block->getData('entity');

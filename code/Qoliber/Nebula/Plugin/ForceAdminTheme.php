@@ -16,7 +16,7 @@ class ForceAdminTheme
         mixed $themeId = null,
         ?string $area = null
     ): array {
-        if ($area === Area::AREA_ADMINHTML || $subject->getArea() === Area::AREA_ADMINHTML) {
+        if ($area === Area::AREA_ADMINHTML || ($area === null && $subject->getArea() === Area::AREA_ADMINHTML)) {
             return [self::THEME_PATH, $area];
         }
 

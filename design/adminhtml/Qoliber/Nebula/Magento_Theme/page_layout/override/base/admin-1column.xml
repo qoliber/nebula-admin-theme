@@ -44,7 +44,7 @@
                     </container>
 
                     <container name="page.main.container" as="page_main_container" htmlTag="div"
-                        htmlClass="nebula-page-container">
+                        htmlClass="nebula-page-container mt-6">
                         <!--
                             Keep htmlTag/htmlClass parity with vendor's stock
                             admin-1column page layout. Several admin pages

@@ -1,0 +1,66 @@
+{
+  "id": "search_term_report",
+  "acl": "Magento_Search::search",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "search_term_report.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "query_id",
+      "direction": "desc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "query_id": {
+      "label": "ID",
+      "type": "text",
+      "sortable": true,
+      "position": 10
+    },
+    "query_text": {
+      "label": "Search Query",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "store_id": {
+      "label": "Store",
+      "type": "text",
+      "sortable": false,
+      "position": 30
+    },
+    "num_results": {
+      "label": "Results",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 40
+    },
+    "popularity": {
+      "label": "Hits",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 50
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "search/term/edit/id/{{query_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

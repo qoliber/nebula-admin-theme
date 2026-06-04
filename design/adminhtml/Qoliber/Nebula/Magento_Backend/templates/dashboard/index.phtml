@@ -22,22 +22,55 @@ if ($hour < 12) {
     $greeting = __('Good evening');
 }
 ?>
+<?php
+/*
+ * Pull the Sales child block's totals (Lifetime Sales + Average Order)
+ * up so we can render Lifetime Sales as a prominent feature card in the
+ * welcome row and keep Average Order with the smaller stats cluster.
+ * The Totals child block (Revenue / Tax / Shipping / Quantity) renders
+ * unchanged via getChildHtml('totals').
+ */
+$salesBlock    = $block->getChildBlock('sales');
+$salesTotals   = $salesBlock instanceof \Magento\Backend\Block\Dashboard\Bar
+    ? $salesBlock->getTotals()
+    : [];
+$lifetimeSales = $salesTotals[0] ?? null;
+$averageOrder  = $salesTotals[1] ?? null;
+?>
 <div class="nebula-dashboard-page">
-    <!-- Welcome -->
+    <!-- Welcome row: greeting (left ~40%) + Lifetime Sales feature card (right ~60%) -->
     <div class="nebula-dashboard-welcome">
-        <div>
+        <div class="nebula-dashboard-welcome__intro">
             <h2 class="nebula-dashboard-welcome__greeting"><?= $block->escapeHtml($greeting) ?>, <?= $block->escapeHtml($firstName) ?></h2>
             <p class="nebula-dashboard-welcome__sub"><?= $block->escapeHtml(__('Here\'s what\'s happening with your store today.')) ?></p>
         </div>
-        <div class="nebula-dashboard-welcome__meta">
-            <span class="nebula-dashboard-welcome__day"><?= $block->escapeHtml(date('l')) ?></span>
-            <?= $block->escapeHtml(date('F j, Y')) ?>
+        <?php if ($lifetimeSales): ?>
+        <div class="nebula-dashboard-lifetime-card">
+            <span class="nebula-dashboard-lifetime-card__label"><?= $block->escapeHtml($lifetimeSales['label']) ?></span>
+            <span class="nebula-dashboard-lifetime-card__value">
+                <?= /* @noEscape */ $lifetimeSales['value'] ?><span class="nebula-dashboard-lifetime-card__decimals"><?= /* @noEscape */ $lifetimeSales['decimals'] ?></span>
+            </span>
         </div>
+        <?php endif; ?>
     </div>
 
-    <!-- 6 Stat Cards in one row -->
+    <!-- Stats row: Average Order + 4 Totals (5 cards) — Lifetime Sales moved to welcome -->
     <div class="nebula-dashboard-stats-row">
-        <?= $block->getChildHtml('sales') ?>
+        <?php if ($averageOrder): ?>
+            <div class="nebula-dashboard-summary-card nebula-dashboard-summary-card--sales">
+                <div class="nebula-dashboard-summary-card__icon nebula-dashboard-summary-card__icon--orders">
+                    <svg class="nebula-dashboard-summary-card__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/>
+                    </svg>
+                </div>
+                <div class="nebula-dashboard-summary-card__content">
+                    <p class="nebula-dashboard-summary-card__label"><?= $block->escapeHtml($averageOrder['label']) ?></p>
+                    <p class="nebula-dashboard-summary-card__value">
+                        <?= /* @noEscape */ $averageOrder['value'] ?><span class="nebula-dashboard-summary-card__decimals"><?= /* @noEscape */ $averageOrder['decimals'] ?></span>
+                    </p>
+                </div>
+            </div>
+        <?php endif; ?>
         <?= $block->getChildHtml('totals') ?>
     </div>
 
@@ -103,8 +136,94 @@ if ($hour < 12) {
                     </div>
                     <?= $block->getChildHtml('refresh_statistics') ?>
                 </div>
-                <?= $block->getChildHtml('grids') ?>
-                <div id="grid_tab_content"></div>
+                <?php
+                /*
+                 * Nebula dashboard tabs.
+                 *
+                 * Mirrors Magento\Backend\Block\Dashboard\Grids: Bestsellers
+                 * is eager-loaded, the other 3 fetch on first click.
+                 *
+                 * The AJAX endpoints implement HttpPostActionInterface, so we
+                 * POST with form_key. Response is raw HTML — injected via
+                 * x-html into the corresponding panel.
+                 *
+                 * Loaded HTML is cached in the Alpine state so re-clicking
+                 * the same tab doesn't refetch.
+                 */
+                $bestsellersHtml = $block->getLayout()
+                    ->createBlock(\Magento\Backend\Block\Dashboard\Tab\Products\Ordered::class)
+                    ->toHtml();
+                $tabs = [
+                    [
+                        'id'      => 'ordered_products',
+                        'label'   => (string) __('Bestsellers'),
+                        'content' => $bestsellersHtml,
+                        'url'     => '',
+                    ],
+                    [
+                        'id'      => 'reviewed_products',
+                        'label'   => (string) __('Most Viewed Products'),
+                        'content' => '',
+                        'url'     => $block->getUrl('adminhtml/dashboard/productsViewed', ['_current' => true]),
+                    ],
+                    [
+                        'id'      => 'new_customers',
+                        'label'   => (string) __('New Customers'),
+                        'content' => '',
+                        'url'     => $block->getUrl('adminhtml/dashboard/customersNewest', ['_current' => true]),
+                    ],
+                    [
+                        'id'      => 'customers',
+                        'label'   => (string) __('Customers'),
+                        'content' => '',
+                        'url'     => $block->getUrl('adminhtml/dashboard/customersMost', ['_current' => true]),
+                    ],
+                ];
+                $tabsConfig = json_encode(
+                    ['tabs' => $tabs, 'formKey' => $block->getFormKey()],
+                    JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES
+                );
+                ?>
+                <div x-data="nebulaDashboardTabs(<?= $block->escapeHtmlAttr($tabsConfig) ?>)" class="nebula-dashboard-tabs">
+                    <div class="flex flex-wrap items-center gap-1 border-b border-gray-200 dark:border-gray-700 mb-4">
+                        <template x-for="(tab, idx) in tabs" :key="tab.id">
+                            <button type="button"
+                                    @click="activate(idx)"
+                                    :class="active === idx
+                                        ? 'border-[var(--color-nebula-600)] text-[var(--color-nebula-700)] dark:text-[var(--color-nebula-300)]'
+                                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'"
+                                    class="-mb-px px-4 py-2 text-sm font-semibold border-b-2 transition"
+                                    x-text="tab.label"></button>
+                        </template>
+                    </div>
+                    <div class="relative min-h-[8rem]">
+                        <!--
+                            Render the currently-DISPLAYED tab. While a new tab
+                            is being fetched, `displayed` stays on the previous
+                            tab and the loader below overlays this panel — so
+                            the container keeps its size instead of collapsing
+                            then expanding when content arrives.
+                        -->
+                        <template x-for="(tab, idx) in tabs" :key="tab.id">
+                            <div x-show="displayed === idx" x-html="tab.content"></div>
+                        </template>
+                        <template x-if="error">
+                            <div class="rounded border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-900/30 px-3 py-2 text-xs text-red-700 dark:text-red-300 mt-2" x-text="error"></div>
+                        </template>
+                        <!-- Loader overlay: covers the currently-shown panel during fetch. -->
+                        <div x-show="loading"
+                             x-cloak
+                             class="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-[1px] z-10 rounded">
+                            <div class="flex items-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                                <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <?= $block->escapeHtml(__('Loading…')) ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -1,0 +1,81 @@
+{
+  "id": "report_sales_coupons",
+  "acl": "Magento_Reports::salesroot_coupons",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_sales_coupons.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 100,
+    "pageSizes": [50, 100, 200],
+    "defaultSort": {
+      "field": "period",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "period": {
+      "label": "Interval",
+      "type": "text",
+      "sortable": false,
+      "position": 10
+    },
+    "coupon_code": {
+      "label": "Coupon Code",
+      "type": "text",
+      "sortable": false,
+      "position": 20
+    },
+    "rule_name": {
+      "label": "Price Rule",
+      "type": "text",
+      "sortable": false,
+      "position": 30
+    },
+    "coupon_uses": {
+      "label": "Uses",
+      "type": "text",
+      "sortable": false,
+      "position": 40
+    },
+    "subtotal_amount": {
+      "label": "Sales Subtotal",
+      "type": "price",
+      "sortable": false,
+      "position": 50
+    },
+    "discount_amount": {
+      "label": "Sales Discount",
+      "type": "price",
+      "sortable": false,
+      "position": 60
+    },
+    "total_amount": {
+      "label": "Sales Total",
+      "type": "price",
+      "sortable": false,
+      "position": 70
+    },
+    "subtotal_amount_actual": {
+      "label": "Subtotal",
+      "type": "price",
+      "sortable": false,
+      "position": 80
+    },
+    "discount_amount_actual": {
+      "label": "Discount",
+      "type": "price",
+      "sortable": false,
+      "position": 90
+    },
+    "total_amount_actual": {
+      "label": "Total",
+      "type": "price",
+      "sortable": false,
+      "position": 100
+    }
+  }
+}

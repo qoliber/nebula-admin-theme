@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 $viewModel = $block->getData('view_model');
 if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\CategoryTree) {
-    // nebula:allow-object-manager dynamic-snippet-view-model fallback.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaTheme\ViewModel\CategoryTree::class);
+    throw new \RuntimeException(
+        'Nebula snippet "category_navigation_tree": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\CategoryTree). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
 }
 
 $entity = $block->getData('entity');
@@ -38,12 +39,13 @@ if ($currentId && isset($items[$currentId])) {
 }
 
 $treeConfig = json_encode([
-    'tree'        => $tree,
-    'expandedIds' => (object) $expandedIds,
-    'currentId'   => $currentId,
-    'reorderUrl'  => $formBlock->getUrl('nebula/category/reorderChildren'),
-    'moveUrl'     => $formBlock->getUrl('catalog/category/move'),
-    'formKey'     => $formBlock->getFormKey(),
+    'tree'          => $tree,
+    'expandedIds'   => (object) $expandedIds,
+    'currentId'     => $currentId,
+    'reorderUrl'    => $formBlock->getUrl('nebula/category/reorderChildren'),
+    'moveUrl'       => $formBlock->getUrl('catalog/category/move'),
+    'deleteBaseUrl' => $formBlock->getUrl('catalog/category/delete'),
+    'formKey'       => $formBlock->getFormKey(),
 ], JSON_HEX_APOS | JSON_HEX_QUOT);
 ?>
 
@@ -60,6 +62,7 @@ $treeConfig = json_encode([
                 currentId: config.currentId || '',
                 reorderUrl: config.reorderUrl || '',
                 moveUrl: config.moveUrl || '',
+                deleteBaseUrl: config.deleteBaseUrl || '',
                 formKey: config.formKey || '',
                 _sortableInstances: [],
                 _sortSaving: false,
@@ -67,6 +70,9 @@ $treeConfig = json_encode([
                 sortDirty: false,
                 _savedContainerOrder: null,
                 _pendingMoves: [],
+                _deleteOpen: false,
+                _deleteTarget: null,
+                _deleteItems: [],
 
                 init: function() {
                     // Sortable is not activated on load — user must click Reorder.
@@ -241,7 +247,15 @@ $treeConfig = json_encode([
                         body: body.toString()
                     })
                     .then(function(r) { return r.json(); })
-                    .then(function(data) { return !data.error; })
+                    .then(function(data) {
+                        if (data.error && data.messages) {
+                            var tmp = document.createElement('div');
+                            tmp.innerHTML = data.messages;
+                            var text = (tmp.textContent || tmp.innerText || '').trim();
+                            if (text && window.nebulaToast) window.nebulaToast('error', text);
+                        }
+                        return !data.error;
+                    })
                     .catch(function() { return false; });
                 },
 
@@ -289,18 +303,96 @@ $treeConfig = json_encode([
                     var movedId = evt.item.dataset.catId;
                     if (!movedId) return;
 
-                    this.sortDirty = true;
-
                     var fromParentId = evt.from.dataset.parentId;
                     var toParentId = evt.to.dataset.parentId;
 
                     if (fromParentId !== toParentId) {
+                        if (String(movedId) === String(toParentId) || this._isAncestorOf(movedId, toParentId)) {
+                            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null);
+                            if (window.nebulaToast) window.nebulaToast('error', '<?= $escaper->escapeJs((string) __('A category cannot be moved into one of its own subcategories.')) ?>');
+                            return;
+                        }
                         var siblings = Array.from(evt.to.querySelectorAll(':scope > [data-cat-id]'));
                         var newIdx = siblings.indexOf(evt.item);
                         var aid = newIdx > 0 ? (siblings[newIdx - 1].dataset.catId || '0') : '0';
                         this._pendingMoves.push({ id: movedId, pid: toParentId, aid: aid });
                     }
+
+                    this.sortDirty = true;
                     // Same-parent: handled by _savePendingChanges() on Save
+                },
+
+                _findNodeInTree: function(id, nodes) {
+                    nodes = nodes || this.tree;
+                    for (var i = 0; i < nodes.length; i++) {
+                        if (String(nodes[i].id) === String(id)) return nodes[i];
+                        if (nodes[i].children && nodes[i].children.length) {
+                            var found = this._findNodeInTree(id, nodes[i].children);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                },
+
+                _countDescendants: function(id) {
+                    var node = this._findNodeInTree(id);
+                    if (!node) return 0;
+                    function count(n) {
+                        var total = 0;
+                        if (n.children) {
+                            for (var i = 0; i < n.children.length; i++) {
+                                total += 1 + count(n.children[i]);
+                            }
+                        }
+                        return total;
+                    }
+                    return count(node);
+                },
+
+                _isAncestorOf: function(ancestorId, descendantId) {
+                    var ancestor = this._findNodeInTree(ancestorId);
+                    if (!ancestor) return false;
+                    function has(n, targetId) {
+                        if (!n.children) return false;
+                        for (var i = 0; i < n.children.length; i++) {
+                            if (String(n.children[i].id) === String(targetId)) return true;
+                            if (has(n.children[i], targetId)) return true;
+                        }
+                        return false;
+                    }
+                    return has(ancestor, descendantId);
+                },
+
+                confirmDeleteCategory: function(id, name) {
+                    var items = [];
+                    function flatten(node, depth) {
+                        items.push({
+                            id: node.id,
+                            name: node.name,
+                            depth: depth,
+                            isActive: node.is_active !== false
+                        });
+                        if (node.children) {
+                            node.children.forEach(function(child) { flatten(child, depth + 1); });
+                        }
+                    }
+                    var node = this._findNodeInTree(id);
+                    if (node) { flatten(node, 0); }
+                    this._deleteTarget = { id: id, name: name };
+                    this._deleteItems = items;
+                    this._deleteOpen = true;
+                },
+
+                _cancelDelete: function() {
+                    this._deleteOpen = false;
+                    this._deleteTarget = null;
+                    this._deleteItems = [];
+                },
+
+                _executeDelete: function() {
+                    if (this._deleteTarget) {
+                        window.location.href = this.deleteBaseUrl + 'id/' + this._deleteTarget.id + '/';
+                    }
                 }
             };
         });
@@ -377,6 +469,18 @@ $treeConfig = json_encode([
             <div class="flex items-center gap-1.5">
                 <button type="button"
                         x-show="!sortMode"
+                        @click="Object.keys(expanded).length ? collapseAll() : expandAll()"
+                        :title="Object.keys(expanded).length ? '<?= $escaper->escapeJs((string) __('Collapse all categories')) ?>' : '<?= $escaper->escapeJs((string) __('Expand all categories')) ?>'"
+                        class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-100 transition">
+                    <svg x-show="!Object.keys(expanded).length" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8h18M3 12h18M3 16h18"/>
+                    </svg>
+                    <svg x-show="Object.keys(expanded).length" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18"/>
+                    </svg>
+                </button>
+                <button type="button"
+                        x-show="!sortMode"
                         @click="enableSortMode()"
                         title="<?= $escaper->escapeHtmlAttr((string) __('Reorder categories')) ?>"
                         class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 hover:bg-gray-100 transition">
@@ -434,16 +538,9 @@ $treeConfig = json_encode([
                 $hasChildren = !empty($node['children']);
                 $isCurrent = ($node['id'] === $currentId);
                 $editUrl = $formBlock->getUrl('catalog/category/edit', ['id' => $node['id']]);
-                $depthPaddingClass = match (true) {
-                    $depth <= 0 => 'pl-0',
-                    $depth === 1 => 'pl-3',
-                    $depth === 2 => 'pl-6',
-                    $depth === 3 => 'pl-9',
-                    default => 'pl-12',
-                };
                 ?>
-                <div class="<?= $escaper->escapeHtmlAttr($depthPaddingClass) ?>" data-cat-id="<?= $escaper->escapeHtmlAttr((string) $node['id']) ?>">
-                    <div class="flex items-center gap-1 py-px">
+                <div data-cat-id="<?= $escaper->escapeHtmlAttr((string) $node['id']) ?>">
+                    <div class="group relative flex items-center gap-1 py-px">
                         <button type="button"
                                 data-cat-drag-handle
                                 title="<?= $escaper->escapeHtmlAttr((string) __('Drag to reorder')) ?>"
@@ -468,16 +565,25 @@ $treeConfig = json_encode([
                             </button>
                         <?php endif; ?>
                         <?php if ($isCurrent) : ?>
-                            <span class="truncate rounded px-2 py-0.5 text-sm font-semibold text-indigo-700 bg-indigo-100 flex-1">
+                            <span class="truncate rounded px-2 py-0.5 pr-6 text-sm font-semibold text-indigo-700 bg-indigo-100 flex-1">
                                 <?= $escaper->escapeHtml($node['name']) ?>
                             </span>
                         <?php else : ?>
                             <a href="<?= $escaper->escapeUrl($editUrl) ?>"
                                @click.prevent="confirmCategorySwitch('<?= $escaper->escapeJs($editUrl) ?>')"
-                               class="truncate rounded px-2 py-0.5 text-sm hover:bg-gray-100 transition flex-1 <?= $node['is_active'] ? 'text-gray-700' : 'text-gray-400 line-through' ?>">
+                               class="truncate rounded px-2 py-0.5 pr-6 text-sm hover:bg-gray-100 transition flex-1 <?= $node['is_active'] ? 'text-gray-700' : 'text-gray-400 line-through' ?>">
                                 <?= $escaper->escapeHtml($node['name']) ?>
                             </a>
                         <?php endif; ?>
+                        <button type="button"
+                                x-show="!sortMode"
+                                @click.stop="confirmDeleteCategory('<?= $escaper->escapeJs((string) $node['id']) ?>', '<?= $escaper->escapeJs($node['name']) ?>')"
+                                title="<?= $escaper->escapeHtmlAttr((string) __('Delete %1', $node['name'])) ?>"
+                                class="absolute right-0 opacity-0 group-hover:opacity-100 p-0.5 rounded text-gray-300 hover:text-red-500 transition">
+                            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.021-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                            </svg>
+                        </button>
                     </div>
                     <?php if ($hasChildren) : ?>
                         <div x-show="expanded['<?= $escaper->escapeJs((string) $node['id']) ?>']"
@@ -497,4 +603,77 @@ $treeConfig = json_encode([
             <?php $renderNavNode($tree, $block, $formBlock, $currentId); ?>
         </div>
     </div>
+
+    <template x-teleport="body">
+        <div x-show="_deleteOpen" x-cloak
+             x-transition.opacity.duration.150ms
+             @keydown.escape.window="_cancelDelete()"
+             class="fixed inset-0 z-[2147483646] flex items-center justify-center p-4 bg-gray-900/40"
+             style="display:none;"
+             @click.self="_cancelDelete()">
+            <div x-show="_deleteOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 role="dialog" aria-modal="true"
+                 aria-labelledby="nebula-cat-delete-title"
+                 class="relative w-full max-w-lg rounded-lg bg-white shadow-xl ring-1 ring-gray-200"
+                 @click.stop>
+
+                <!-- Header -->
+                <div class="flex items-start gap-4 px-6 pt-6 pb-4">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.021-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h2 id="nebula-cat-delete-title" class="text-base font-semibold text-gray-900">
+                            <?= $escaper->escapeHtml((string) __('Delete category')) ?>
+                        </h2>
+                        <p class="mt-1 text-sm text-gray-600">
+                            <?= $escaper->escapeHtml((string) __('The following will be permanently deleted. This action cannot be undone.')) ?>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Deletion tree -->
+                <div class="mx-6 mb-4 max-h-56 overflow-y-auto rounded-md border border-red-100 bg-red-50 p-3">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-red-600">
+                        <?= $escaper->escapeHtml((string) __('Will be deleted:')) ?>
+                    </p>
+                    <template x-for="item in _deleteItems" :key="item.id">
+                        <div class="flex items-center gap-1.5 py-0.5"
+                             :style="'padding-left: ' + (item.depth * 14) + 'px'">
+                            <svg class="h-3.5 w-3.5 flex-shrink-0"
+                                 :class="item.depth === 0 ? 'text-red-500' : 'text-red-300'"
+                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/>
+                            </svg>
+                            <span class="text-sm"
+                                  :class="{
+                                      'font-semibold text-red-900': item.depth === 0,
+                                      'text-red-800': item.depth > 0 && item.isActive,
+                                      'text-red-400 line-through': !item.isActive
+                                  }"
+                                  x-text="item.name"></span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex justify-end gap-3 rounded-b-lg bg-gray-50 px-6 py-3">
+                    <button type="button" @click="_cancelDelete()"
+                            class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50">
+                        <?= $escaper->escapeHtml((string) __('Cancel')) ?>
+                    </button>
+                    <button type="button" @click="_executeDelete()"
+                            class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500">
+                        <span x-show="_deleteItems.length > 1"><?= $escaper->escapeHtml((string) __('Delete all')) ?></span>
+                        <span x-show="_deleteItems.length <= 1"><?= $escaper->escapeHtml((string) __('Delete')) ?></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>

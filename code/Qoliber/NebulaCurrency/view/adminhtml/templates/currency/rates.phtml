@@ -1,0 +1,260 @@
+<?php
+
+/**
+ * Nebula-styled Currency Rates page.
+ *
+ * Renders the per-currency rate matrix and the "Import Service" picker
+ * with Nebula chrome (Tailwind, dark mode, brand color tokens). All form
+ * data flows back to the stock controllers unchanged:
+ *
+ *   rate matrix  →  POST adminhtml/system_currency/saveRates
+ *                  payload: rate[<base>][<target>] = <float>
+ *   import       →  POST adminhtml/system_currency/fetchRates
+ *                  payload: rate_services = <service_code>
+ *
+ * The matrix data (allowed currencies, default currencies, old/new rates)
+ * comes from the stock `Magento\CurrencySymbol\Block\Adminhtml\System\Currency\Rate\Matrix`
+ * child block, exposed via $block->getMatrixBlock(). The import-service
+ * options come from the stock services child block.
+ *
+ * @var \Qoliber\NebulaCurrency\Block\Adminhtml\System\Currency $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ */
+
+declare(strict_types=1);
+
+$matrix = $block->getMatrixBlock();
+$servicesSelect = $block->getServicesSelectBlock();
+
+$allowedCurrencies = $matrix !== null ? (array) $matrix->getAllowedCurrencies() : [];
+$defaultCurrencies = $matrix !== null ? (array) $matrix->getDefaultCurrencies() : [];
+$oldRates = $matrix !== null ? (array) $matrix->getOldRates() : [];
+$newRates = $matrix !== null && is_array($matrix->getNewRates()) ? (array) $matrix->getNewRates() : [];
+$rates = !empty($newRates) ? $newRates : $oldRates;
+
+$ratesFormAction = $block->getRatesFormAction();
+$importFormAction = $block->getImportFormAction();
+$formKey = $block->getFormKey();
+
+$serviceOptions = [];
+$currentService = '';
+if ($servicesSelect !== null) {
+    $rawOptions = $servicesSelect->getOptions();
+    if (is_array($rawOptions)) {
+        foreach ($rawOptions as $opt) {
+            // Options come back as ['value' => ..., 'label' => ...] arrays.
+            if (is_array($opt) && isset($opt['value'])) {
+                $serviceOptions[] = [
+                    'value' => (string) $opt['value'],
+                    'label' => (string) ($opt['label'] ?? $opt['value']),
+                ];
+            }
+        }
+    }
+    $currentService = (string) ($servicesSelect->getValue() ?? '');
+}
+?>
+<div class="w-full"
+     x-data="nebulaCurrencyRates({ defaultService: '<?= $escaper->escapeJs($currentService) ?>' })"
+     x-cloak>
+
+    <div class="nebula-form-actions-bar sticky top-0 z-30 mb-6 shadow-sm backdrop-blur-sm rounded-lg bg-white dark:bg-gray-800 px-6 py-4 border border-gray-200 dark:border-gray-700">
+        <div class="flex flex-wrap items-center justify-end gap-2">
+            <button type="button"
+                    onclick="setLocation('<?= $escaper->escapeJs($block->getCurrencyOptionsUrl()) ?>')"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 1 1 15 0m-15 0H3m1.5 0h3m10.5 0H21m-1.5 0h-3M12 4.5v3m0 9v3"/>
+                </svg>
+                <?= $escaper->escapeHtml((string) __('Options')) ?>
+            </button>
+
+            <div class="relative" @click.outside="importOpen = false">
+                <button type="button"
+                        @click="importOpen = !importOpen"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                    </svg>
+                    <?= $escaper->escapeHtml((string) __('Import')) ?>
+                    <svg class="h-3 w-3 transition-transform" :class="importOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                    </svg>
+                </button>
+                <div x-show="importOpen"
+                     x-transition.origin.top.right
+                     class="absolute right-0 z-40 mt-2 w-80 origin-top-right rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black/5 dark:ring-white/10 p-4">
+                    <form method="post"
+                          action="<?= $escaper->escapeUrl($importFormAction) ?>"
+                          class="space-y-3">
+                        <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>"/>
+                        <div>
+                            <label for="rate_services" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                <?= $escaper->escapeHtml((string) __('Import Service')) ?>
+                            </label>
+                            <select id="rate_services"
+                                    name="rate_services"
+                                    x-model="selectedService"
+                                    class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-[var(--color-nebula-500)] focus:ring-2 focus:ring-[var(--color-nebula-500)]/20 focus:outline-none">
+                                <?php if (empty($serviceOptions)): ?>
+                                    <option value=""><?= $escaper->escapeHtml((string) __('No import services configured')) ?></option>
+                                <?php else: ?>
+                                    <?php foreach ($serviceOptions as $svc): ?>
+                                        <option value="<?= $escaper->escapeHtmlAttr($svc['value']) ?>"
+                                            <?= ($svc['value'] === $currentService) ? ' selected="selected"' : '' ?>>
+                                            <?= $escaper->escapeHtml($svc['label']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <button type="submit"
+                                class="w-full inline-flex justify-center items-center gap-1.5 rounded-lg bg-[var(--color-nebula-600)] dark:bg-[var(--color-nebula-500)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-nebula-500)] dark:hover:bg-[var(--color-nebula-400)]">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/>
+                            </svg>
+                            <?= $escaper->escapeHtml((string) __('Import Service Rates')) ?>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <button type="button"
+                    @click="onReset()"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/>
+                </svg>
+                <?= $escaper->escapeHtml((string) __('Reset')) ?>
+            </button>
+
+            <button type="button"
+                    @click="onSave()"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                </svg>
+                <?= $escaper->escapeHtml((string) __('Save Currency Rates')) ?>
+            </button>
+        </div>
+    </div>
+
+    <?php if (empty($rates) || empty($defaultCurrencies) || empty($allowedCurrencies)): ?>
+        <div class="rounded-lg border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+            <?= $escaper->escapeHtml(
+                (string) __('You must first configure currency options before being able to see currency rates.')
+            ) ?>
+        </div>
+    <?php else: ?>
+        <form name="rateForm"
+              id="rate-form"
+              method="post"
+              action="<?= $escaper->escapeUrl($ratesFormAction) ?>">
+            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>"/>
+
+            <div class="rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-900/40">
+                            <tr>
+                                <th scope="col"
+                                    class="sticky left-0 z-10 bg-gray-50 dark:bg-gray-900/40 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700">
+                                    <?= $escaper->escapeHtml((string) __('Base')) ?>
+                                </th>
+                                <?php foreach ($allowedCurrencies as $currencyCode): ?>
+                                    <th scope="col"
+                                        class="px-4 py-3 text-left text-[11px] font-mono font-semibold tracking-wider text-gray-700 dark:text-gray-300">
+                                        <?= $escaper->escapeHtml((string) $currencyCode) ?>
+                                    </th>
+                                <?php endforeach; ?>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <?php foreach ($defaultCurrencies as $baseCode): ?>
+                                <?php if (!isset($rates[$baseCode]) || !is_array($rates[$baseCode])) { continue; } ?>
+                                <tr class="hover:bg-gray-50/60 dark:hover:bg-gray-700/30">
+                                    <th scope="row"
+                                        class="sticky left-0 z-10 bg-white dark:bg-gray-800 px-4 py-3 text-left text-xs font-mono font-semibold text-[var(--color-nebula-700)] dark:text-[var(--color-nebula-300)] border-r border-gray-200 dark:border-gray-700">
+                                        <?= $escaper->escapeHtml((string) $baseCode) ?>
+                                    </th>
+                                    <?php foreach ($rates[$baseCode] as $targetCode => $value): ?>
+                                        <?php
+                                        $isSelf = ($baseCode === $targetCode);
+                                        if ($isSelf) {
+                                            $displayValue = '1.0000';
+                                        } elseif ((float) $value > 0) {
+                                            $displayValue = (string) $value;
+                                        } elseif (isset($oldRates[$baseCode][$targetCode])) {
+                                            $displayValue = (string) $oldRates[$baseCode][$targetCode];
+                                        } else {
+                                            $displayValue = '';
+                                        }
+                                        $hasNew = !empty($newRates)
+                                            && !$isSelf
+                                            && isset($oldRates[$baseCode][$targetCode]);
+                                        $inputLabel = __('Rate from %1 to %2', $baseCode, $targetCode);
+                                        ?>
+                                        <td class="px-3 py-2 align-top">
+                                            <input type="text"
+                                                   name="rate[<?= $escaper->escapeHtmlAttr((string) $baseCode) ?>][<?= $escaper->escapeHtmlAttr((string) $targetCode) ?>]"
+                                                   value="<?= $escaper->escapeHtmlAttr($displayValue) ?>"
+                                                   aria-label="<?= $escaper->escapeHtmlAttr((string) $inputLabel) ?>"
+                                                   class="w-28 rounded-md border <?= $isSelf ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 text-gray-500 dark:text-gray-400' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100' ?> px-2.5 py-1.5 text-sm font-mono tabular-nums shadow-sm focus:border-[var(--color-nebula-500)] focus:ring-2 focus:ring-[var(--color-nebula-500)]/20 focus:outline-none disabled:cursor-not-allowed"
+                                                   <?= $isSelf ? ' disabled' : '' ?>/>
+                                            <?php if ($hasNew): ?>
+                                                <div class="mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+                                                    <?= $escaper->escapeHtml((string) __('Old rate:')) ?>
+                                                    <strong class="font-mono text-gray-700 dark:text-gray-300">
+                                                        <?= $escaper->escapeHtml((string) $oldRates[$baseCode][$targetCode]) ?>
+                                                    </strong>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                    <?php endforeach; ?>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    <?php endif; ?>
+</div>
+
+<?php
+$scriptString = <<<JS
+(function () {
+    if (window._nebulaCurrencyRatesRegistered) {
+        return;
+    }
+    window._nebulaCurrencyRatesRegistered = true;
+
+    var register = function () {
+        Alpine.data('nebulaCurrencyRates', function (initial) {
+            initial = initial || {};
+            return {
+                importOpen: false,
+                selectedService: initial.defaultService || '',
+                onSave: function () {
+                    var form = document.getElementById('rate-form');
+                    if (form) {
+                        form.submit();
+                    }
+                },
+                onReset: function () {
+                    window.location.reload();
+                }
+            };
+        });
+    };
+
+    if (window.Alpine) {
+        register();
+    } else {
+        document.addEventListener('alpine:init', register);
+    }
+})();
+JS;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>

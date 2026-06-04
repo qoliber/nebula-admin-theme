@@ -1,0 +1,203 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Qoliber\NebulaTheme\Block\CreditmemoView $block */
+$creditmemo = $block->getCreditmemo();
+
+if (!$creditmemo) {
+    return;
+}
+
+$order = $creditmemo->getOrder();
+$billing = $order?->getBillingAddress();
+$shipping = $order?->getShippingAddress();
+$items = $creditmemo->getItems();
+$comments = $creditmemo->getCommentsCollection();
+?>
+
+<div class="nebula-creditmemo-view">
+    <!-- Action Bar -->
+    <div class="nebula-form-actions-bar sticky top-0 z-30 mb-6 shadow-sm backdrop-blur-sm bg-white/90 border-b border-gray-200 -mx-6 px-6 py-3">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+            <div class="flex min-w-0 flex-1 items-center gap-3">
+                <h1 class="text-xl font-bold text-gray-900 truncate">
+                    <?= $escaper->escapeHtml(__('Credit Memo #%1', $creditmemo->getIncrementId())) ?>
+                </h1>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $escaper->escapeHtmlAttr($block->getStateBadgeClass()) ?>">
+                    <?= $escaper->escapeHtml($block->getStateLabel()) ?>
+                </span>
+                <p class="text-xs text-gray-500 hidden sm:block">
+                    <a href="<?= $escaper->escapeUrl($block->getOrderUrl()) ?>" class="text-blue-600 hover:text-blue-800">
+                        <?= $escaper->escapeHtml(__('Order #%1', $order?->getIncrementId())) ?>
+                    </a>
+                    &middot; <?= $escaper->escapeHtml($block->formatDate($creditmemo->getCreatedAt(), \IntlDateFormatter::MEDIUM, true)) ?>
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>"
+                   class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm border border-gray-300 transition hover:bg-gray-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <?= $escaper->escapeHtml(__('Back')) ?>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Section: 3 columns -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Billing Address -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <?= $escaper->escapeHtml(__('Billing Address')) ?>
+            </h3>
+            <?php if ($billing) : ?>
+                <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                    <?= $escaper->escapeHtml($block->getFormattedAddress($billing)) ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <?= $escaper->escapeHtml(__('Shipping Address')) ?>
+            </h3>
+            <?php if ($shipping) : ?>
+                <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                    <?= $escaper->escapeHtml($block->getFormattedAddress($shipping)) ?>
+                </div>
+            <?php else : ?>
+                <p class="text-sm text-gray-400 italic"><?= $escaper->escapeHtml(__('Virtual Order — No shipping address')) ?></p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Payment & Refund Method -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <?= $escaper->escapeHtml(__('Payment')) ?>
+            </h3>
+            <div class="space-y-3">
+                <div>
+                    <span class="text-xs font-medium text-gray-400 uppercase"><?= $escaper->escapeHtml(__('Payment Method')) ?></span>
+                    <p class="text-sm text-gray-700 mt-0.5"><?= $escaper->escapeHtml($block->getPaymentMethodTitle()) ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Refunded -->
+    <div class="bg-white rounded-xl border border-gray-200 mb-6 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Items Refunded')) ?></h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <th class="px-5 py-3"><?= $escaper->escapeHtml(__('Product')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Price')) ?></th>
+                        <th class="px-5 py-3 text-center"><?= $escaper->escapeHtml(__('Qty')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Subtotal')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Tax')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Discount')) ?></th>
+                        <th class="px-5 py-3 text-right"><?= $escaper->escapeHtml(__('Row Total')) ?></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <?php foreach ($items as $item) : ?>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-4">
+                                <div class="font-medium text-gray-900"><?= $escaper->escapeHtml($item->getName()) ?></div>
+                                <div class="text-xs text-gray-400 font-mono mt-0.5"><?= $escaper->escapeHtml($item->getSku()) ?></div>
+                            </td>
+                            <td class="px-5 py-4 text-right text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($item->getPrice())) ?></td>
+                            <td class="px-5 py-4 text-center text-gray-700"><?= $escaper->escapeHtml((string) (int) $item->getQty()) ?></td>
+                            <td class="px-5 py-4 text-right text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($item->getRowTotal())) ?></td>
+                            <td class="px-5 py-4 text-right text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($item->getTaxAmount())) ?></td>
+                            <td class="px-5 py-4 text-right text-gray-700">
+                                <?php if ((float) $item->getDiscountAmount() > 0) : ?>
+                                    -<?= $escaper->escapeHtml($block->formatPrice($item->getDiscountAmount())) ?>
+                                <?php else : ?>
+                                    <?= $escaper->escapeHtml($block->formatPrice(0)) ?>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-5 py-4 text-right font-medium text-gray-900">
+                                <?= $escaper->escapeHtml($block->formatPrice(
+                                    $item->getRowTotal() + $item->getTaxAmount() - $item->getDiscountAmount()
+                                )) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totals -->
+        <div class="border-t border-gray-200 bg-gray-50 px-5 py-4">
+            <div class="flex justify-end">
+                <dl class="w-72 space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Subtotal')) ?></dt>
+                        <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($creditmemo->getSubtotal())) ?></dd>
+                    </div>
+                    <?php if ((float) $creditmemo->getShippingAmount() > 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Shipping Refunded')) ?></dt>
+                            <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($creditmemo->getShippingAmount())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ((float) $creditmemo->getDiscountAmount() != 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Discount')) ?></dt>
+                            <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($creditmemo->getDiscountAmount())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ((float) $creditmemo->getTaxAmount() > 0) : ?>
+                        <div class="flex justify-between">
+                            <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Tax')) ?></dt>
+                            <dd class="text-gray-700"><?= $escaper->escapeHtml($block->formatPrice($creditmemo->getTaxAmount())) ?></dd>
+                        </div>
+                    <?php endif; ?>
+                    <div class="flex justify-between pt-2 border-t border-gray-300">
+                        <dt class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Refund Total')) ?></dt>
+                        <dd class="text-base font-semibold text-red-700"><?= $escaper->escapeHtml($block->formatPrice($creditmemo->getGrandTotal())) ?></dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments -->
+    <?php if ($comments && count($comments) > 0) : ?>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Credit Memo History')) ?></h3>
+        </div>
+        <div class="px-5 py-4">
+            <div class="space-y-0">
+                <?php foreach ($comments as $comment) : ?>
+                    <div class="relative pl-6 pb-5 last:pb-0 border-l-2 border-gray-200 last:border-l-0">
+                        <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-gray-400"></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="text-xs text-gray-400">
+                                    <?= $escaper->escapeHtml($block->formatDate($comment->getCreatedAt(), \IntlDateFormatter::MEDIUM, true)) ?>
+                                </span>
+                                <?php if ($comment->getIsCustomerNotified()) : ?>
+                                    <span class="text-xs text-green-600"><?= $escaper->escapeHtml(__('Customer Notified')) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <?php if ($comment->getComment()) : ?>
+                                <p class="text-sm text-gray-700"><?= $escaper->escapeHtml($comment->getComment()) ?></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>

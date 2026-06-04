@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <remove id="Magento_Reports::report_marketing"/>
+        <remove id="Magento_Reports::report_salesroot"/>
+        <remove id="Magento_Reports::report_products"/>
+        <remove id="Magento_Reports::report_customers"/>
+        <remove id="Magento_Review::report_review"/>
+        <remove id="Magento_Reports::report_statistics"/>
+
+        <add id="Qoliber_NebulaReports::report_marketing"
+             title="Marketing" translate="title" module="Qoliber_NebulaReports"
+             sortOrder="10" parent="Magento_Reports::report"
+             resource="Magento_Reports::report_marketing"/>
+        <update id="Magento_Reports::report_shopcart_product"
+                sortOrder="10" parent="Qoliber_NebulaReports::report_marketing"/>
+        <update id="Magento_Reports::report_shopcart_abandoned"
+                sortOrder="20" parent="Qoliber_NebulaReports::report_marketing"/>
+        <update id="Magento_Search::report_search_term"
+                sortOrder="10" parent="Qoliber_NebulaReports::report_marketing"/>
+        <update id="Magento_Newsletter::newsletter_problem"
+                sortOrder="50" parent="Qoliber_NebulaReports::report_marketing"/>
+
+        <add id="Qoliber_NebulaReports::report_review"
+             title="Reviews" translate="title" module="Qoliber_NebulaReports"
+             sortOrder="20" parent="Magento_Reports::report"
+             resource="Magento_Reports::review"/>
+        <update id="Magento_Review::report_review_customer"
+                sortOrder="10" parent="Qoliber_NebulaReports::report_review"/>
+        <update id="Magento_Review::report_review_product"
+                sortOrder="20" parent="Qoliber_NebulaReports::report_review"/>
+
+        <add id="Qoliber_NebulaReports::report_salesroot"
+             title="Sales" translate="title" module="Qoliber_NebulaReports"
+             sortOrder="40" parent="Magento_Reports::report"
+             resource="Magento_Reports::salesroot"/>
+        <update id="Magento_Reports::report_salesroot_sales"
+                sortOrder="10" parent="Qoliber_NebulaReports::report_salesroot"/>
+        <update id="Magento_Reports::report_salesroot_tax"
+                sortOrder="20" parent="Qoliber_NebulaReports::report_salesroot"/>
+        <update id="Magento_Reports::report_salesroot_invoiced"
+                sortOrder="30" parent="Qoliber_NebulaReports::report_salesroot"/>
+        <update id="Magento_Reports::report_salesroot_shipping"
+                sortOrder="40" parent="Qoliber_NebulaReports::report_salesroot"/>
+        <update id="Magento_Reports::report_salesroot_refunded"
+                sortOrder="50" parent="Qoliber_NebulaReports::report_salesroot"/>
+        <update id="Magento_Reports::report_salesroot_coupons"
+                sortOrder="60" parent="Qoliber_NebulaReports::report_salesroot"/>
+        <update id="Magento_Paypal::report_salesroot_paypal_settlement_reports"
+                sortOrder="70" parent="Qoliber_NebulaReports::report_salesroot"/>
+
+        <add id="Qoliber_NebulaReports::report_customers"
+             title="Customers" translate="title" module="Qoliber_NebulaReports"
+             sortOrder="50" parent="Magento_Reports::report"
+             resource="Magento_Reports::customers"/>
+        <update id="Magento_Reports::report_customers_totals"
+                sortOrder="10" parent="Qoliber_NebulaReports::report_customers"/>
+        <update id="Magento_Reports::report_customers_orders"
+                sortOrder="20" parent="Qoliber_NebulaReports::report_customers"/>
+        <update id="Magento_Reports::report_customers_accounts"
+                sortOrder="30" parent="Qoliber_NebulaReports::report_customers"/>
+
+        <add id="Qoliber_NebulaReports::report_products"
+             title="Products" translate="title" module="Qoliber_NebulaReports"
+             sortOrder="60" parent="Magento_Reports::report"
+             resource="Magento_Reports::report_products"/>
+        <update id="Magento_Reports::report_products_viewed"
+                sortOrder="10" parent="Qoliber_NebulaReports::report_products"/>
+        <update id="Magento_Reports::report_products_bestsellers"
+                sortOrder="20" parent="Qoliber_NebulaReports::report_products"/>
+        <update id="Magento_Reports::report_products_lowstock"
+                sortOrder="30" parent="Qoliber_NebulaReports::report_products"/>
+        <update id="Magento_Reports::report_products_sold"
+                sortOrder="40" parent="Qoliber_NebulaReports::report_products"/>
+        <update id="Magento_Downloadable::report_products_downloads"
+                sortOrder="50" parent="Qoliber_NebulaReports::report_products"/>
+
+        <add id="Qoliber_NebulaReports::report_statistics"
+             title="Statistics" translate="title" module="Qoliber_NebulaReports"
+             sortOrder="80" parent="Magento_Reports::report"
+             resource="Magento_Reports::statistics"/>
+        <update id="Magento_Reports::report_statistics_refresh"
+                sortOrder="10" parent="Qoliber_NebulaReports::report_statistics"/>
+    </menu>
+</config>

@@ -1,0 +1,45 @@
+{
+  "id": "report_sales_bestsellers",
+  "acl": "Magento_Reports::salesroot_bestsellers",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "report_sales_bestsellers.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 100,
+    "pageSizes": [50, 100, 200],
+    "defaultSort": {
+      "field": "period",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "period": {
+      "label": "Interval",
+      "type": "text",
+      "sortable": false,
+      "position": 10
+    },
+    "product_name": {
+      "label": "Product",
+      "type": "text",
+      "sortable": false,
+      "position": 20
+    },
+    "product_price": {
+      "label": "Price",
+      "type": "price",
+      "sortable": false,
+      "position": 30
+    },
+    "qty_ordered": {
+      "label": "Order Quantity",
+      "type": "text",
+      "sortable": false,
+      "position": 40
+    }
+  }
+}

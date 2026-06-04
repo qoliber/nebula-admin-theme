@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @var \Magento\Sales\Block\Adminhtml\Order\Totals\Tax $block
+ */
+$_source = $block->getSource();
+$_fullInfo = $block->getFullTaxInfo();
+?>
+<tr class="align-top">
+    <th class="py-2 pr-4 text-left font-medium text-gray-600">
+        <?= $block->escapeHtml($block->displayFullSummary() ? __('Total Tax') : __('Tax')) ?>
+    </th>
+    <td class="py-2 text-right text-gray-900">
+        <?= /* @noEscape */ $block->displayAmount($_source->getTaxAmount(), $_source->getBaseTaxAmount()) ?>
+    </td>
+</tr>
+<?php if ($block->displayFullSummary() && $_fullInfo) : ?>
+    <?php foreach ($_fullInfo as $info) : ?>
+        <?php if (!empty($info['hidden'])) : ?>
+            <?php continue; ?>
+        <?php endif; ?>
+        <?php if (isset($info['rates'])) : ?>
+            <?php foreach ($info['rates'] as $rate) : ?>
+                <tr class="align-top">
+                    <th class="py-1 pr-4 pl-4 text-left text-xs font-medium text-gray-500">
+                        <?= $block->escapeHtml($rate['title']) ?>
+                        <?php if ($rate['percent'] !== null) : ?>
+                            (<?= (float) $rate['percent'] ?>%)
+                        <?php endif; ?>
+                    </th>
+                    <td class="py-1 text-right text-xs text-gray-600">
+                        <?= /* @noEscape */ $block->displayAmount($info['amount'], $info['base_amount']) ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else : ?>
+            <tr class="align-top">
+                <th class="py-1 pr-4 pl-4 text-left text-xs font-medium text-gray-500">
+                    <?= $block->escapeHtml($info['title']) ?>
+                    <?php if ($info['percent'] !== null) : ?>
+                        (<?= (float) $info['percent'] ?>%)
+                    <?php endif; ?>
+                </th>
+                <td class="py-1 text-right text-xs text-gray-600">
+                    <?= /* @noEscape */ $block->displayAmount($info['tax_amount'], $info['base_tax_amount']) ?>
+                </td>
+            </tr>
+        <?php endif; ?>
+    <?php endforeach; ?>
+<?php endif; ?>

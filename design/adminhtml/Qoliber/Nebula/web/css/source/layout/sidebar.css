@@ -113,6 +113,11 @@ body.sidebar-collapsed .nebula-sidebar-nav li > button[title="Pin"],
 body.sidebar-collapsed .nebula-sidebar-nav li > button[title="Unpin"] {
   @apply hidden;
 }
+/* Logo star icon — inside the sidebar logo link */
+.nebula-logo-star {
+    color: var(--color-nebula-100);
+}
+
 /* Footer */
 body.sidebar-collapsed .nebula-sidebar .nebula-sidebar-footer-text {
   @apply hidden;
@@ -123,4 +128,44 @@ body.sidebar-collapsed .nebula-sidebar-footer {
 }
 body.sidebar-collapsed .nebula-sidebar-footer a {
   @apply justify-center px-0;
+}
+
+/* --- Responsive: below 1024px — overlay drawer pattern --- */
+@media (max-width: 1023px) {
+    .nebula-admin-layout,
+    body.sidebar-collapsed .nebula-admin-layout {
+        grid-template-columns: 0 1fr;
+    }
+    .nebula-sidebar {
+        position: fixed;
+        z-index: 50;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--nebula-sidebar-width);
+        transform: translateX(-100%);
+        transition: transform var(--nebula-transition-speed) ease,
+                    box-shadow var(--nebula-transition-speed) ease;
+    }
+    body:not(.sidebar-collapsed) .nebula-sidebar {
+        transform: translateX(0);
+        box-shadow: 8px 0 32px rgb(0 0 0 / 0.35);
+    }
+    /* Collapsed rules that change visual layout are irrelevant in overlay mode */
+    body.sidebar-collapsed .nebula-sidebar-logo {
+        justify-content: initial;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    body.sidebar-collapsed .nebula-sidebar-nav {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+/* --- Responsive: below 768px — full-width drawer --- */
+@media (max-width: 767px) {
+    .nebula-sidebar {
+        width: min(85vw, var(--nebula-sidebar-width));
+    }
 }

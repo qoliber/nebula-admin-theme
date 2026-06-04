@@ -1,0 +1,55 @@
+{
+  "id": "variable_listing",
+  "acl": "Magento_Variable::variable",
+  "dataSource": {
+    "provider": "grid.collection",
+    "config": {
+      "collection": "variable.collection"
+    }
+  },
+  "settings": {
+    "pageSize": 20,
+    "pageSizes": [10, 20, 50, 100],
+    "defaultSort": {
+      "field": "variable_id",
+      "direction": "asc"
+    },
+    "massActions": false
+  },
+  "columns": {
+    "variable_id": {
+      "label": "Variable ID",
+      "type": "text",
+      "sortable": true,
+      "filter": "range",
+      "position": 10
+    },
+    "code": {
+      "label": "Variable Code",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 20
+    },
+    "name": {
+      "label": "Name",
+      "type": "text",
+      "sortable": true,
+      "filter": "text",
+      "searchable": true,
+      "position": 30
+    },
+    "actions": {
+      "label": "",
+      "type": "actions",
+      "actions": [
+        {
+          "label": "Edit",
+          "url": "nebulasystem/variable/edit/variable_id/{{variable_id}}"
+        }
+      ],
+      "position": 999
+    }
+  }
+}

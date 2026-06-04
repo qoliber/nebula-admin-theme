@@ -8,10 +8,8 @@
  *   - `form_block`   — the parent form block
  *   - `section`      — section config from JSON definition (carries rule_type)
  *
- * The ViewModel is resolved via `renderPhtmlSection()` which injects the
- * `view_model` argument when the `section` declares `viewModel: FQCN`.
- * If no view model is wired (legacy callers), fall back to a generic
- * ObjectManager lookup scoped to a single allow-om marker.
+ * The ViewModel is injected as `view_model` by the snippet renderer from the
+ * SnippetViewModelRegistry binding (snippet id `rule_conditions`).
  */
 
 declare(strict_types=1);
@@ -22,17 +20,14 @@ $entityData = (array) ($block->getData('entity_data') ?? []);
 $section = (array) ($block->getData('section') ?? []);
 $ruleType = (string) ($section['rule_type'] ?? 'catalog');
 
-/** @var \Qoliber\NebulaComponent\ViewModel\RuleEditor|null $viewModel */
+/** @var \Qoliber\NebulaComponent\ViewModel\RuleEditor $viewModel */
 $viewModel = $block->getData('view_model');
 
 if (!$viewModel instanceof \Qoliber\NebulaComponent\ViewModel\RuleEditor) {
-    // nebula:allow-object-manager dynamic-snippet-view-model — snippet
-    // templates are rendered at runtime via Template::class blocks that
-    // cannot receive layout-XML arguments, so resolving the view model here
-    // is the documented escape hatch until the snippet renderer is upgraded
-    // to pass the view model explicitly.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaComponent\ViewModel\RuleEditor::class);
+    throw new \RuntimeException(
+        'Nebula snippet "rule_conditions": view_model was not injected '
+        . '(expected \Qoliber\NebulaComponent\ViewModel\RuleEditor). Check the SnippetViewModelRegistry binding.'
+    );
 }
 
 $config = $viewModel->buildConfig($entityData, $ruleType);

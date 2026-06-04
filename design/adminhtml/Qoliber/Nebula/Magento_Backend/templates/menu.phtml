@@ -12,17 +12,18 @@ $pinnedItems = $data['pinnedItems'] ?? [];
 $pinnedIds = $data['pinnedIds'] ?? [];
 $pinUrl = $data['pinUrl'] ?? '';
 
-function renderNebulaItems(array $items, array $pinnedIds, string $pinUrl, int $level = 0): string
-{
+/**
+ * Closure (not free function) so the icon registry is captured via the
+ * outer `$block`. Magento includes this template multiple times per
+ * request in some flows; a free function would redeclare and fatal.
+ */
+$renderNebulaItems = function (array $items, array $pinnedIds, string $pinUrl, int $level = 0) use ($block, &$renderNebulaItems): string {
     $html = '';
 
     foreach ($items as $item) {
         $id = htmlspecialchars($item['id'], ENT_QUOTES);
         $title = htmlspecialchars($item['title'], ENT_QUOTES);
-        $icon = $item['icon'] ?? null;
-        $iconHtml = $icon
-            ? '<i class="' . $icon . ' w-5 text-center text-xs opacity-70"></i>'
-            : ($level === 0 ? '<i class="fa-solid fa-circle w-5 text-center text-[6px] opacity-40"></i>' : '');
+        $iconHtml = $block->renderIcon($item['id'], 'w-5 text-center text-xs opacity-70');
 
         $indent = $level > 0 ? ' pl-' . (($level + 1) * 3) : '';
         $isPinned = in_array($item['id'], $pinnedIds);
@@ -43,16 +44,14 @@ function renderNebulaItems(array $items, array $pinnedIds, string $pinUrl, int $
                 . '<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>'
                 . '</svg></button>'
                 . '<ul x-show="isOpen(\'' . $id . '\')" x-collapse class="mt-0.5 space-y-0.5">'
-                . renderNebulaItems($item['children'], $pinnedIds, $pinUrl, $level + 1)
+                . $renderNebulaItems($item['children'], $pinnedIds, $pinUrl, $level + 1)
                 . '</ul></li>';
         } else {
             $activeClass = $item['isActive']
                 ? 'nebula-menu-item-active font-medium'
                 : 'nebula-menu-item-muted';
 
-            $childIcon = $icon
-                ? '<i class="' . $icon . ' w-5 text-center text-xs opacity-60"></i>'
-                : '';
+            $childIcon = $block->renderIcon($item['id'], 'w-5 text-center text-xs opacity-60');
 
             $html .= '<li class="relative flex items-center' . $indent . '">'
                 . '<a href="' . htmlspecialchars($item['url'], ENT_QUOTES) . '" '
@@ -74,9 +73,17 @@ function renderNebulaItems(array $items, array $pinnedIds, string $pinUrl, int $
     }
 
     return $html;
-}
+};
+
+$menuConfig = json_encode([
+    'openSections' => $activeParents,
+    'pinUrl'       => $pinUrl,
+    'reorderUrl'   => $block->getUrl('nebula/menupin/reorder', ['_nosecret' => true]),
+], JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR);
 ?>
-<div x-data="nebulaMenu()" class="flex flex-col h-full">
+<div x-data="nebulaMenuSidebar(JSON.parse($el.dataset.nebulaMenuConfig || '{}'))"
+     data-nebula-menu-config="<?= $block->escapeHtmlAttr($menuConfig) ?>"
+     class="flex flex-col h-full">
 
     <!-- Pinned Items -->
     <?php if (!empty($pinnedItems)): ?>
@@ -86,7 +93,6 @@ function renderNebulaItems(array $items, array $pinnedIds, string $pinUrl, int $
             </p>
             <ul id="nebula-pinned-list" class="space-y-0.5">
                 <?php foreach ($pinnedItems as $pinned): ?>
-                    <?php $pinnedIcon = $pinned['icon'] ?? null; ?>
                     <li class="group flex items-center rounded-lg transition hover:bg-nebula-800/30"
                         data-pin-id="<?= htmlspecialchars($pinned['id'], ENT_QUOTES) ?>">
                         <span class="nebula-drag-handle flex items-center justify-center w-6 pl-2 cursor-grab text-white/40 hover:text-white">
@@ -95,9 +101,7 @@ function renderNebulaItems(array $items, array $pinnedIds, string $pinUrl, int $
                         <a href="<?= htmlspecialchars($pinned['url'], ENT_QUOTES) ?>"
                            class="flex-1 flex items-center gap-2 px-2 py-1.5 text-sm transition
                                   <?= $pinned['isActive'] ? 'text-white font-medium' : 'text-nebula-200 hover:text-white' ?>">
-                            <?php if ($pinnedIcon): ?>
-                                <i class="<?= $pinnedIcon ?> w-4 text-center text-xs opacity-70"></i>
-                            <?php endif; ?>
+                            <?= /* @noEscape */ $block->renderIcon($pinned['id'], 'w-4 text-center text-xs opacity-70') ?>
                             <span class="truncate"><?= htmlspecialchars($pinned['title'], ENT_QUOTES) ?></span>
                         </a>
                         <button type="button"
@@ -115,7 +119,7 @@ function renderNebulaItems(array $items, array $pinnedIds, string $pinUrl, int $
 
     <!-- Main Menu -->
     <ul class="flex-1 space-y-0.5 px-3 py-3">
-        <?= /* @noEscape */ renderNebulaItems($items, $pinnedIds, $pinUrl) ?>
+        <?= /* @noEscape */ $renderNebulaItems($items, $pinnedIds, $pinUrl) ?>
     </ul>
 
     <!-- Sidebar Footer -->
@@ -132,107 +136,14 @@ function renderNebulaItems(array $items, array $pinnedIds, string $pinUrl, int $
             <span class="nebula-menu-text"><?= $block->escapeHtml(__('Help & Support')) ?></span>
         </a>
         <div class="px-3 pt-2 pb-1 nebula-menu-text">
-            <p class="nebula-accent-soft text-[10px]">Qoliber Nebula v1.0</p>
+            <a href="https://qoliber.com/nebula"
+               target="_blank"
+               rel="noopener"
+               style="background-image:linear-gradient(135deg,#ff9f1c 0%,#fb6107 50%,#f72c25 100%);color:#fff;box-shadow:0 2px 8px rgba(251,97,7,0.45);"
+               class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold transition hover:opacity-90">
+                qoliber Nebula v0.9
+            </a>
         </div>
     </div>
 </div>
 
-<script>
-    function nebulaMenu() {
-        return {
-            openSections: <?= /* @noEscape */ json_encode($activeParents) ?>,
-
-            init() {
-                const navContainer = this.$root.closest('nav');
-                if (navContainer && !navContainer.hasAttribute('aria-label')) {
-                    if (navContainer.classList.contains('nebula-sidebar-nav')) {
-                        navContainer.setAttribute('aria-label', 'Sidebar navigation');
-                    } else if (navContainer.classList.contains('nebula-topbar-nav')) {
-                        navContainer.setAttribute('aria-label', 'Top navigation');
-                    }
-                }
-
-                // Initialize SortableJS on pinned list
-                const pinnedList = document.getElementById('nebula-pinned-list');
-                if (pinnedList && typeof Sortable !== 'undefined') {
-                    Sortable.create(pinnedList, {
-                        handle: '.nebula-drag-handle',
-                        animation: 150,
-                        ghostClass: 'opacity-30',
-                        chosenClass: 'bg-nebula-800',
-                        onEnd: (evt) => { this.savePinOrder(); }
-                    });
-                }
-
-                // UX contract: when the sidebar collapses, clear open submenu state.
-                // This prevents stale sections from reopening unexpectedly later.
-                const nebulaStore = window.Alpine && Alpine.store ? Alpine.store('nebula') : null;
-                if (nebulaStore && window.Alpine && typeof Alpine.effect === 'function') {
-                    Alpine.effect(() => {
-                        if (nebulaStore.sidebarCollapsed) {
-                            this.openSections = [];
-                        }
-                    });
-                }
-            },
-
-            toggle(id) {
-                // In collapsed mode, clicking a parent icon should expand the full sidebar
-                // and keep the clicked section open.
-                const nebulaStore = window.Alpine && Alpine.store ? Alpine.store('nebula') : null;
-                if (nebulaStore && nebulaStore.sidebarCollapsed) {
-                    if (!this.openSections.includes(id)) {
-                        this.openSections.push(id);
-                    }
-                    nebulaStore.toggleSidebar();
-                    return;
-                }
-
-                const i = this.openSections.indexOf(id);
-                i > -1 ? this.openSections.splice(i, 1) : this.openSections.push(id);
-            },
-
-            isOpen(id) {
-                return this.openSections.includes(id);
-            },
-
-            async togglePin(itemId) {
-                try {
-                    const formKey = document.querySelector('[name="form_key"]')?.value || '';
-                    const resp = await fetch('<?= /* @noEscape */ $pinUrl ?>', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: new URLSearchParams({ item_id: itemId, form_key: formKey })
-                    });
-                    const data = await resp.json();
-                    if (data.success) {
-                        window.location.reload();
-                    }
-                } catch (e) {
-                    console.error('Pin toggle failed:', e);
-                }
-            },
-
-            async savePinOrder() {
-                const items = document.querySelectorAll('#nebula-pinned-list [data-pin-id]');
-                const order = Array.from(items).map(el => el.dataset.pinId);
-                try {
-                    const formKey = document.querySelector('[name="form_key"]')?.value || '';
-                    await fetch('<?= $block->escapeJs($block->getUrl('nebula/menupin/reorder', ['_nosecret' => true])) ?>', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: new URLSearchParams({ order: JSON.stringify(order), form_key: formKey })
-                    });
-                } catch (e) {
-                    console.error('Reorder failed:', e);
-                }
-            }
-        }
-    }
-</script>

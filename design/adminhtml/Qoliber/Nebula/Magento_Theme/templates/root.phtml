@@ -1,7 +1,8 @@
 <?php
 /**
  * Qoliber Nebula — root template
- * No RequireJS, no KnockoutJS, no jQuery
+ * Nebula-native screens avoid RequireJS. Legacy admin pages can still restore
+ * the stock Magento RequireJS bootstrap by providing $requireJs.
  *
  * Available vars (from \Magento\Framework\View\Result\Page::render):
  * $htmlAttributes, $headAttributes, $bodyAttributes,
@@ -27,7 +28,6 @@ $faUrl = $this->getViewFileUrl('css/fontawesome.min.css');
 <html <?= /* @noEscape */ $htmlAttributes ?> class="h-full bg-gray-100 dark:bg-gray-900">
     <head <?= /* @noEscape */ $headAttributes ?>>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
         <script>
             // Sync dark-mode resolution — runs BEFORE the html element paints
             // so html bg picks up the dark variant on first frame. Without this,
@@ -38,6 +38,13 @@ $faUrl = $this->getViewFileUrl('css/fontawesome.min.css');
                 var dark = stored === 'true'
                     || (stored === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
                 if (dark) document.documentElement.classList.add('dark');
+                // Set colorScheme to align light-dark() tokens with the active mode.
+                // When stored is null the :root color-scheme: light dark declaration
+                // already auto-follows the OS; only override when the user has an
+                // explicit preference stored.
+                if (stored !== null) {
+                    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+                }
                 if (localStorage.getItem('nebula_sidebar') === 'collapsed') {
                     document.documentElement.classList.add('sidebar-collapsed');
                 }
@@ -50,20 +57,24 @@ $faUrl = $this->getViewFileUrl('css/fontawesome.min.css');
                byte zero, before app.css arrives over the network. */
             body[data-nebula-loading]{visibility:hidden}
         </style>
-        <script>
-            // Nebula: shim for legacy require() / require.config() calls from modules
-            // Must be defined before Magento head assets/scripts are evaluated.
-            window.require = function(deps, callback) {
-                if (typeof deps === 'object' && !Array.isArray(deps)) return; // require.config({})
-            };
-            window.require.config = function() {};
-            window.define = function() {};
-            window.define.amd = {};
-            window.toggleValueElements = function() {};
-            window.Element = window.Element || {};
-            window.Fieldset = { toggleCollapse: function() {}, applyCollapse: function() {} };
-            window.fireEvent = function() {};
-        </script>
+        <?php if (!empty($requireJs)): ?>
+            <?= /* @noEscape */ $requireJs ?>
+        <?php else: ?>
+            <script>
+                // Nebula: shim for legacy require() / require.config() calls from modules
+                // on Nebula-native pages where RequireJS is intentionally absent.
+                window.require = function(deps, callback) {
+                    if (typeof deps === 'object' && !Array.isArray(deps)) return; // require.config({})
+                };
+                window.require.config = function() {};
+                window.define = function() {};
+                window.define.amd = {};
+                window.toggleValueElements = function() {};
+                window.Element = window.Element || {};
+                window.Fieldset = { toggleCollapse: function() {}, applyCollapse: function() {} };
+                window.fireEvent = function() {};
+            </script>
+        <?php endif; ?>
         <?= /* @noEscape */ $headContent ?>
         <?= /* @noEscape */ $headCritical ?>
         <?= /* @noEscape */ $headAssets ?>
@@ -116,6 +127,12 @@ $faUrl = $this->getViewFileUrl('css/fontawesome.min.css');
                 setTimeout(reveal, 2000);
             })();
         </script>
+        <!-- Mobile sidebar backdrop — closes the drawer when tapped -->
+        <div x-show="!$store.nebula.sidebarCollapsed"
+             x-cloak
+             @click="$store.nebula.toggleSidebar()"
+             class="lg:hidden fixed inset-0 z-40 bg-black/40"
+             aria-hidden="true"></div>
         <?php include __DIR__ . '/components/confirm-dialog.phtml'; ?>
     </body>
 </html>

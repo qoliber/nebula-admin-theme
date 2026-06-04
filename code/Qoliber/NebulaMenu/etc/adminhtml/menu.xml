@@ -60,6 +60,14 @@
              title="Transactions" translate="title" module="Magento_Sales"
              sortOrder="50" parent="Magento_Sales::sales"
              action="sales/transactions" resource="Magento_Sales::transactions"/>
+        <add id="Qoliber_NebulaMenu::sales_billing_agreements"
+             title="Billing Agreements" translate="title" module="Magento_Paypal"
+             sortOrder="60" parent="Magento_Sales::sales"
+             action="paypal/billing_agreement" resource="Magento_Paypal::billing_agreement"/>
+        <add id="Qoliber_NebulaMenu::sales_payment_services"
+             title="Payment Services" translate="title" module="Magento_PaymentServicesDashboard"
+             sortOrder="70" parent="Magento_Sales::sales"
+             action="paymentservicesdashboard/dashboard/index" resource="Magento_PaymentServicesDashboard::paymentservicesdashboard"/>
 
         <!--
         =============================================================
@@ -87,14 +95,48 @@
              title="URL Rewrites" translate="title" module="Magento_UrlRewrite"
              sortOrder="40" parent="Magento_Backend::marketing"
              action="adminhtml/url_rewrite/index" resource="Magento_UrlRewrite::urlrewrite"/>
+        <add id="Qoliber_NebulaMenu::marketing_newsletter_subscribers"
+             title="Newsletter Subscribers" translate="title" module="Magento_Newsletter"
+             sortOrder="50" parent="Magento_Backend::marketing"
+             action="newsletter/subscriber/" resource="Magento_Newsletter::subscriber"/>
+        <add id="Qoliber_NebulaMenu::marketing_newsletter_templates"
+             title="Newsletter Templates" translate="title" module="Magento_Newsletter"
+             sortOrder="60" parent="Magento_Backend::marketing"
+             action="newsletter/template/" resource="Magento_Newsletter::template"/>
+        <add id="Qoliber_NebulaMenu::marketing_newsletter_queue"
+             title="Newsletter Queue" translate="title" module="Magento_Newsletter"
+             sortOrder="70" parent="Magento_Backend::marketing"
+             action="newsletter/queue/" resource="Magento_Newsletter::queue"/>
+        <add id="Qoliber_NebulaMenu::marketing_search_terms"
+             title="Search Terms" translate="title" module="Magento_Search"
+             sortOrder="80" parent="Magento_Backend::marketing"
+             action="search/term/index" resource="Magento_Search::search"/>
+        <add id="Qoliber_NebulaMenu::marketing_search_synonyms"
+             title="Search Synonyms" translate="title" module="Magento_Search"
+             sortOrder="90" parent="Magento_Backend::marketing"
+             action="search/synonyms/index" resource="Magento_Search::synonyms"/>
+        <add id="Qoliber_NebulaMenu::marketing_sitemap"
+             title="Site Map" translate="title" module="Magento_Sitemap"
+             sortOrder="100" parent="Magento_Backend::marketing"
+             action="adminhtml/sitemap/" resource="Magento_Sitemap::sitemap"/>
+        <add id="Qoliber_NebulaMenu::marketing_reviews_all"
+             title="All Reviews" translate="title" module="Magento_Review"
+             sortOrder="110" parent="Magento_Backend::marketing"
+             action="review/product/index" resource="Magento_Review::reviews_all"/>
+        <add id="Qoliber_NebulaMenu::marketing_reviews_pending"
+             title="Pending Reviews" translate="title" module="Magento_Review"
+             sortOrder="120" parent="Magento_Backend::marketing"
+             action="review/product/pending" resource="Magento_Review::pending"/>
 
         <!--
         =============================================================
-            CONTENT: Remove "Elements" and "Media" containers,
-            flatten under Content.
+            CONTENT: Remove "Elements" and "Media" containers.
+            Rebuild Design under Nebula ownership.
+            Keep Pages, Blocks, and Widgets flat under Content.
         =============================================================
         -->
         <remove id="Magento_Backend::content_elements"/>
+        <remove id="Magento_Backend::system_design"/>
         <remove id="Magento_MediaGalleryUi::media"/>
         <add id="Qoliber_NebulaMenu::content_pages"
              title="Pages" translate="title" module="Magento_Cms"
@@ -108,6 +150,16 @@
              title="Widgets" translate="title" module="Magento_Widget"
              sortOrder="30" parent="Magento_Backend::content"
              action="adminhtml/widget_instance" resource="Magento_Widget::widget_instance"/>
+        <add id="Qoliber_NebulaMenu::content_design"
+             title="Design" translate="title" module="Magento_Backend"
+             sortOrder="40" parent="Magento_Backend::content"
+             resource="Magento_Backend::design"/>
+        <update id="Magento_Theme::design_config"
+                sortOrder="10" parent="Qoliber_NebulaMenu::content_design"/>
+        <update id="Magento_Theme::system_design_theme"
+                sortOrder="20" parent="Qoliber_NebulaMenu::content_design"/>
+        <update id="Magento_Backend::system_design_schedule"
+                sortOrder="30" parent="Qoliber_NebulaMenu::content_design"/>
 
         <!--
         =============================================================
@@ -118,53 +170,53 @@
         <remove id="Magento_Backend::stores_settings"/>
         <remove id="Magento_Tax::sales_tax"/>
         <remove id="Magento_Backend::other_settings"/>
+        <add id="Qoliber_NebulaMenu::stores_settings"
+             title="Settings" translate="title" module="Magento_Backend"
+             sortOrder="10" parent="Magento_Backend::stores"
+             resource="Magento_Backend::stores_settings"/>
         <add id="Qoliber_NebulaMenu::stores_all"
              title="All Stores" translate="title" module="Magento_Backend"
-             sortOrder="10" parent="Magento_Backend::stores"
+             sortOrder="10" parent="Qoliber_NebulaMenu::stores_settings"
              action="adminhtml/system_store/" resource="Magento_Backend::store"/>
         <add id="Qoliber_NebulaMenu::stores_config"
              title="Configuration" translate="title" module="Magento_Config"
-             sortOrder="20" parent="Magento_Backend::stores"
+             sortOrder="20" parent="Qoliber_NebulaMenu::stores_settings"
              action="adminhtml/system_config" resource="Magento_Config::config"/>
+        <add id="Qoliber_NebulaMenu::stores_terms_conditions"
+             title="Terms and Conditions" translate="title" module="Magento_CheckoutAgreements"
+             sortOrder="30" parent="Qoliber_NebulaMenu::stores_settings"
+             action="nebula/agreement/index" resource="Magento_CheckoutAgreements::checkoutagreement"/>
+        <add id="Qoliber_NebulaMenu::stores_order_status"
+             title="Order Status" translate="title" module="Magento_Sales"
+             sortOrder="40" parent="Qoliber_NebulaMenu::stores_settings"
+             action="sales/order_status" resource="Magento_Sales::order_statuses"/>
+        <add id="Qoliber_NebulaMenu::stores_taxes"
+             title="Taxes" translate="title" module="Magento_Tax"
+             sortOrder="20" parent="Magento_Backend::stores"
+             resource="Magento_Tax::manage_tax"/>
         <add id="Qoliber_NebulaMenu::stores_tax_rules"
              title="Tax Rules" translate="title" module="Magento_Tax"
-             sortOrder="30" parent="Magento_Backend::stores"
+             sortOrder="10" parent="Qoliber_NebulaMenu::stores_taxes"
              action="tax/rule" resource="Magento_Tax::manage_tax"/>
-        <add id="Qoliber_NebulaMenu::stores_currency"
-             title="Currency" translate="title" module="Magento_Backend"
+        <add id="Qoliber_NebulaMenu::stores_tax_rates"
+             title="Tax Zones and Rates" translate="title" module="Magento_Tax"
+             sortOrder="20" parent="Qoliber_NebulaMenu::stores_taxes"
+             action="tax/rate" resource="Magento_Tax::manage_tax"/>
+        <add id="Qoliber_NebulaMenu::stores_attributes"
+             title="Attributes" translate="title" module="Magento_Backend"
              sortOrder="40" parent="Magento_Backend::stores"
-             action="adminhtml/system_currency" resource="Magento_CurrencySymbol::system_currency"/>
-
-        <!--
-        =============================================================
-            SYSTEM: Remove "Tools" and "Permissions" containers,
-            flatten under System.
-        =============================================================
-        -->
-        <remove id="Magento_Backend::system_tools"/>
-        <remove id="Magento_User::system_acl"/>
-        <remove id="Magento_Integration::system_extensions"/>
-        <remove id="Magento_Backend::system_convert"/>
-        <remove id="Magento_Backend::system_other_settings"/>
-        <add id="Qoliber_NebulaMenu::system_cache"
-             title="Cache Management" translate="title" module="Magento_Backend"
-             sortOrder="10" parent="Magento_Backend::system"
-             action="adminhtml/cache" resource="Magento_Backend::cache"/>
-        <add id="Qoliber_NebulaMenu::system_index"
-             title="Index Management" translate="title" module="Magento_Indexer"
-             sortOrder="20" parent="Magento_Backend::system"
-             action="indexer/indexer/list" resource="Magento_Indexer::index"/>
-        <add id="Qoliber_NebulaMenu::system_users"
-             title="All Users" translate="title" module="Magento_User"
-             sortOrder="30" parent="Magento_Backend::system"
-             action="adminhtml/user" resource="Magento_User::acl_users"/>
-        <add id="Qoliber_NebulaMenu::system_roles"
-             title="User Roles" translate="title" module="Magento_User"
-             sortOrder="40" parent="Magento_Backend::system"
-             action="adminhtml/user_role" resource="Magento_User::acl_roles"/>
-        <add id="Qoliber_NebulaMenu::system_integrations"
-             title="Integrations" translate="title" module="Magento_Integration"
-             sortOrder="50" parent="Magento_Backend::system"
-             action="adminhtml/integration" resource="Magento_Integration::integrations"/>
+             resource="Magento_Backend::stores_attributes"/>
+        <add id="Qoliber_NebulaMenu::stores_product_attributes"
+             title="Product" translate="title" module="Magento_Catalog"
+             sortOrder="10" parent="Qoliber_NebulaMenu::stores_attributes"
+             action="catalog/product_attribute/" resource="Magento_Catalog::attributes_attributes"/>
+        <add id="Qoliber_NebulaMenu::stores_attribute_sets"
+             title="Attribute Set" translate="title" module="Magento_Catalog"
+             sortOrder="20" parent="Qoliber_NebulaMenu::stores_attributes"
+             action="catalog/product_set/" resource="Magento_Catalog::sets"/>
+        <add id="Qoliber_NebulaMenu::stores_rating"
+             title="Rating" translate="title" module="Magento_Review"
+             sortOrder="30" parent="Qoliber_NebulaMenu::stores_attributes"
+             action="review/rating/" resource="Magento_Review::ratings"/>
     </menu>
 </config>

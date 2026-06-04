@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Qoliber Nebula admin theme view configuration.
+ *
+ * Declares the product-image types the admin grids render. These mirror the
+ * core Magento/backend definitions so the theme works whether or not the
+ * parent theme's view.xml is resolved at render time (e.g. the product grid
+ * thumbnail built via Image::init($product, 'product_listing_thumbnail')).
+ */
+-->
+<view xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Config/etc/view.xsd">
+    <media>
+        <images module="Magento_Catalog">
+            <image id="product_listing_thumbnail" type="thumbnail">
+                <width>75</width>
+                <height>75</height>
+            </image>
+            <image id="product_listing_thumbnail_preview" type="thumbnail"/>
+            <image id="product_thumbnail_image" type="thumbnail">
+                <width>75</width>
+                <height>75</height>
+            </image>
+        </images>
+    </media>
+</view>

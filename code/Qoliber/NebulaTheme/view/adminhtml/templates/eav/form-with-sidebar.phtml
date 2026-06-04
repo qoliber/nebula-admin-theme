@@ -11,19 +11,10 @@ declare(strict_types=1);
 $definition = $block->getDefinition();
 $sidebarRenderer = (string) ($definition['settings']['sidebarRenderer'] ?? '');
 
-// Render sidebar snippet via the EavForm block's resolveSnippet() helper —
-// no ObjectManager round-trip; the resolver is DI-injected on EavForm.
-$sidebarHtml = '';
-$snippet = $block->resolveSnippet($sidebarRenderer);
-if ($snippet !== null && !empty($snippet['template'])) {
-    $sidebarBlock = $block->getLayout()->createBlock(\Magento\Framework\View\Element\Template::class);
-    $block->setModuleOnBlock($sidebarBlock, $snippet['template']);
-    $sidebarBlock->setTemplate($snippet['template']);
-    $sidebarBlock->setData('entity', $block->getEntity());
-    $sidebarBlock->setData('entity_data', $block->getEntityData());
-    $sidebarBlock->setData('form_block', $block);
-    $sidebarHtml = $sidebarBlock->toHtml();
-}
+// Render the sidebar snippet through the EavForm block's renderSidebar()
+// helper — routes through SectionRenderer so the snippet's ViewModel is
+// injected (same path as form sections); no ObjectManager round-trip.
+$sidebarHtml = $block->renderSidebar($sidebarRenderer);
 
 // Prevent recursion — set to standard template for the include
 $block->setData('_sidebar_rendered', true);

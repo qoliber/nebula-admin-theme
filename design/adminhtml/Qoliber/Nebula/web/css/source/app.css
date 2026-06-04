@@ -39,6 +39,11 @@ body.nebula-menu-top {
     overflow-x: hidden;
 }
 
+/* === Components === */
+@import "./components/header.css";
+@import "./components/notifications.css";
+@import "./components/role-resources.css";
+
 /* === Magento-generated HTML chrome (selectors we can't change at the template) === */
 @import "./vendor/badges.css";
 @import "./vendor/messages.css";
@@ -49,6 +54,7 @@ body.nebula-menu-top {
 @import "./vendor/tables.css";
 
 /* === System Config form (nebula-owned chrome) === */
+@import "./config/array-field.css";
 @import "./config/fieldset.css";
 @import "./config/field.css";
 @import "./config/inherited.css";
@@ -60,7 +66,6 @@ body.nebula-menu-top {
 @import "./config/inherit-toggle.css";
 
 /* === Dark mode === */
-@import "./dark/tokens.css";
 @import "./dark/config-form.css";
 @import "./dark/admin-bridge.css";
 @import "./dark/reports.css";

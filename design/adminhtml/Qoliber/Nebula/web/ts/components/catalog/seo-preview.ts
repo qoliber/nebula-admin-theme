@@ -5,14 +5,18 @@ interface SeoPreviewConfig {
     baseUrl: string;
 }
 
-function createSeoPreview(config: SeoPreviewConfig) {
+interface SeoPreviewComponent extends SeoPreviewConfig {
+    init(this: SeoPreviewComponent): void;
+}
+
+function createSeoPreview(config: SeoPreviewConfig): SeoPreviewComponent {
     return {
         title: config.title,
         url: config.url,
         description: config.description,
         baseUrl: config.baseUrl,
 
-        init(this: ReturnType<typeof createSeoPreview>): void {
+        init(this: SeoPreviewComponent): void {
             const self = this;
             const listen = (attrCode: string, prop: keyof SeoPreviewConfig): void => {
                 const el = document.getElementById('nebula-eav-' + attrCode)
@@ -21,7 +25,7 @@ function createSeoPreview(config: SeoPreviewConfig) {
                     );
                 if (el) {
                     el.addEventListener('input', (e) => {
-                        (self as Record<string, unknown>)[prop] = (e.target as HTMLInputElement).value;
+                        (self as unknown as Record<string, unknown>)[prop] = (e.target as HTMLInputElement).value;
                     });
                 }
             };

@@ -41,7 +41,8 @@ class InjectFormLayoutTest extends TestCase
         $xml = $this->buildUpdateXml('cms_block_edit', ['cms_block_form']);
 
         $this->assertSame(
-            '<referenceBlock name="cms_block_form" remove="true"/>'
+            '<referenceContainer name="page.main.actions" remove="true"/>'
+            . '<referenceBlock name="cms_block_form" remove="true"/>'
             . '<referenceContainer name="content">'
             . '<block class="' . Form::class . '" name="nebula.cms_block_edit">'
             . '<arguments>'
@@ -61,7 +62,8 @@ class InjectFormLayoutTest extends TestCase
         );
 
         $this->assertSame(
-            '<referenceBlock name="adminhtml.user.edit.tabs" remove="true"/>'
+            '<referenceContainer name="page.main.actions" remove="true"/>'
+            . '<referenceBlock name="adminhtml.user.edit.tabs" remove="true"/>'
             . '<referenceBlock name="adminhtml.user.edit" remove="true"/>'
             . '<referenceBlock name="adminhtml.user.roles.grid.js" remove="true"/>'
             . '<referenceContainer name="content">'
@@ -74,16 +76,20 @@ class InjectFormLayoutTest extends TestCase
             $xml
         );
 
-        $this->assertSame(3, substr_count($xml, 'remove="true"'));
+        // 3 explicit block removes + the always-appended page.main.actions remove.
+        $this->assertSame(4, substr_count($xml, 'remove="true"'));
     }
 
     public function testNoReplacesEmitsNoRemoveLines(): void
     {
         $xml = $this->buildUpdateXml('store_group_edit', []);
 
+        // No explicit block removes, but the default page actions container is
+        // always hidden so the Nebula form can render its own action bar.
         $this->assertStringNotContainsString('referenceBlock', $xml);
         $this->assertSame(
-            '<referenceContainer name="content">'
+            '<referenceContainer name="page.main.actions" remove="true"/>'
+            . '<referenceContainer name="content">'
             . '<block class="' . Form::class . '" name="nebula.store_group_edit">'
             . '<arguments>'
             . '<argument name="form_id" xsi:type="string">store_group_edit</argument>'

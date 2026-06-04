@@ -1,21 +1,41 @@
 /* --- Status badges (cache grid, order grid, etc.) --- */
+
+/*
+ * Public API per severity:
+ *   --badge-notice-surface   (default: green-100)
+ *   --badge-critical-surface (default: red-100)
+ *   --badge-minor-surface    (default: amber-100)
+ *
+ * Text is derived via color-mix(in oklch) toward black — preserves
+ * the hue so green badges stay green-tinted, red badges red-tinted, etc.
+ */
+
 .grid-severity-notice,
 .grid-severity-notice span {
-  @apply inline-flex items-center bg-green-100 text-xs font-semibold text-green-800;
+  --_badge-surface: var(--badge-notice-surface, #dcfce7);
+  @apply inline-flex items-center text-xs font-semibold;
+  background: var(--_badge-surface);
+  color: color-mix(in oklch, var(--_badge-surface), black 62%);
   padding: var(--nebula-spacing-xs) var(--nebula-spacing-md);
   border-radius: var(--nebula-radius-full);
 }
 
 .grid-severity-critical,
 .grid-severity-critical span {
-  @apply inline-flex items-center bg-red-100 text-xs font-semibold text-red-800;
+  --_badge-surface: var(--badge-critical-surface, #fee2e2);
+  @apply inline-flex items-center text-xs font-semibold;
+  background: var(--_badge-surface);
+  color: color-mix(in oklch, var(--_badge-surface), black 62%);
   padding: var(--nebula-spacing-xs) var(--nebula-spacing-md);
   border-radius: var(--nebula-radius-full);
 }
 
 .grid-severity-minor,
 .grid-severity-minor span {
-  @apply inline-flex items-center bg-amber-100 text-xs font-semibold text-amber-800;
+  --_badge-surface: var(--badge-minor-surface, #fef3c7);
+  @apply inline-flex items-center text-xs font-semibold;
+  background: var(--_badge-surface);
+  color: color-mix(in oklch, var(--_badge-surface), black 62%);
   padding: var(--nebula-spacing-xs) var(--nebula-spacing-md);
   border-radius: var(--nebula-radius-full);
 }

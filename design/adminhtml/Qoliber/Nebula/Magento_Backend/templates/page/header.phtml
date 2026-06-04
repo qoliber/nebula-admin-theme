@@ -8,60 +8,9 @@
 
 $part = $block->getShowPart();
 ?>
-<style>
-    .nebula-accent-fg {
-        color: var(--nebula-button-primary-bg) !important;
-    }
-
-    .nebula-accent-soft {
-        color: color-mix(in srgb, var(--nebula-button-primary-bg) 72%, var(--color-nebula-100)) !important;
-    }
-
-    .dark .nebula-accent-soft {
-        color: color-mix(in srgb, var(--nebula-button-primary-bg) 84%, var(--color-nebula-200)) !important;
-    }
-
-    .nebula-accent-badge {
-        background: color-mix(in srgb, var(--nebula-button-primary-bg) 26%, transparent) !important;
-        color: var(--nebula-button-primary-bg) !important;
-        border: 1px solid color-mix(in srgb, var(--nebula-button-primary-bg) 48%, transparent);
-    }
-
-    .dark .nebula-accent-badge {
-        background: color-mix(in srgb, var(--nebula-button-primary-bg) 22%, var(--color-nebula-950)) !important;
-        color: var(--color-nebula-100) !important;
-        border-color: color-mix(in srgb, var(--nebula-button-primary-bg) 52%, transparent);
-    }
-
-    .nebula-header-icon-trigger:hover,
-    .nebula-header-icon-trigger:focus-visible {
-        background: color-mix(in srgb, var(--nebula-button-primary-bg) 16%, var(--color-nebula-50));
-        color: var(--nebula-button-primary-bg) !important;
-        outline: none;
-    }
-
-    .dark .nebula-header-icon-trigger:hover,
-    .dark .nebula-header-icon-trigger:focus-visible {
-        background: color-mix(in srgb, var(--nebula-button-primary-bg) 24%, var(--color-nebula-950));
-        color: var(--color-white) !important;
-    }
-
-    .nebula-user-trigger:hover,
-    .nebula-user-trigger:focus-visible {
-        background: color-mix(in srgb, var(--nebula-button-primary-bg) 14%, var(--color-nebula-50));
-        color: var(--nebula-button-primary-bg);
-        outline: none;
-    }
-
-    .dark .nebula-user-trigger:hover,
-    .dark .nebula-user-trigger:focus-visible {
-        background: color-mix(in srgb, var(--nebula-button-primary-bg) 22%, var(--color-nebula-950));
-        color: var(--color-nebula-100);
-    }
-</style>
 <?php if ($part === 'user'): ?>
     <?php $user = $block->getUser(); ?>
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-2">
         <!-- Dark Mode Toggle -->
         <button @click="$store.nebula.toggleDark()"
                 class="nebula-header-icon-trigger nebula-accent-fg flex items-center justify-center h-9 w-9 rounded-lg transition cursor-pointer"

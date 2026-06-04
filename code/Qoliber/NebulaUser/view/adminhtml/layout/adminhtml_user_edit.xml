@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Layout for the admin-user edit page.
+ *
+ * The Nebula form block + the `replaces` block removals are injected by
+ * Qoliber\NebulaForm\Plugin\InjectFormLayout from the admin_user_edit form
+ * JSON definition. This stub only flattens the page layout (the stock vendor
+ * layout is `admin-2columns-left` because it carries the side Tabs block,
+ * which Nebula renders inline as fieldsets — no left column needed).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd"/>

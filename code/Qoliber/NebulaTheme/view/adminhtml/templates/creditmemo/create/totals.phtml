@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Sales\Block\Adminhtml\Order\Totals $block */
+$totals = $block->getTotals('');
+$footerTotals = $block->getTotals('footer');
+?>
+<div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+    <table class="order-subtotal-table w-full text-sm">
+        <?php if ($totals) : ?>
+            <tbody class="divide-y divide-gray-100">
+                <?php foreach ($totals as $code => $total) : ?>
+                    <?php if ($total->getBlockName()) : ?>
+                        <?= $block->getChildHtml($total->getBlockName(), false) ?>
+                    <?php else : ?>
+                        <tr class="align-top">
+                            <th class="py-2 pr-4 text-left font-medium text-gray-600">
+                                <?php if ($total->getStrong()) : ?>
+                                    <strong><?= $block->escapeHtml($total->getLabel()) ?></strong>
+                                <?php else : ?>
+                                    <?= $block->escapeHtml($total->getLabel()) ?>
+                                <?php endif; ?>
+                            </th>
+                            <td class="py-2 text-right text-gray-900">
+                                <?php if ($total->getStrong()) : ?>
+                                    <strong><?= /* @noEscape */ $block->formatValue($total) ?></strong>
+                                <?php else : ?>
+                                    <?= /* @noEscape */ $block->formatValue($total) ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </tbody>
+        <?php endif; ?>
+
+        <?php if ($footerTotals) : ?>
+            <tfoot class="border-t border-gray-200">
+                <?php foreach ($footerTotals as $code => $total) : ?>
+                    <?php if ($total->getBlockName()) : ?>
+                        <?= $block->getChildHtml($total->getBlockName(), false) ?>
+                    <?php else : ?>
+                        <tr class="align-top">
+                            <th class="py-3 pr-4 text-left text-base font-semibold text-gray-900">
+                                <?= $block->escapeHtml($total->getLabel()) ?>
+                            </th>
+                            <td class="py-3 text-right text-base font-semibold text-gray-900">
+                                <?= /* @noEscape */ $block->formatValue($total) ?>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </tfoot>
+        <?php endif; ?>
+    </table>
+</div>

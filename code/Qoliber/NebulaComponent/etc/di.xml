@@ -106,6 +106,7 @@
             <argument name="allowedCollectionNamespaces" xsi:type="array">
                 <item name="magento" xsi:type="string">Magento\</item>
                 <item name="qoliber" xsi:type="string">Qoliber\</item>
+                <item name="siteation" xsi:type="string">Siteation\</item>
             </argument>
         </arguments>
     </type>

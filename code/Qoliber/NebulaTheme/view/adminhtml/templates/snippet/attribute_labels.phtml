@@ -6,11 +6,10 @@
 
 $viewModel = $block->getData('view_model');
 if (!$viewModel instanceof \Qoliber\NebulaTheme\ViewModel\AttributeLabels) {
-    // Defensive: snippet renderer should populate `view_model` from the
-    // SnippetViewModelRegistry binding. nebula:allow-object-manager
-    // dynamic-snippet-view-model fallback for misconfiguration.
-    $viewModel = \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Qoliber\NebulaTheme\ViewModel\AttributeLabels::class);
+    throw new \RuntimeException(
+        'Nebula snippet "attribute_labels": view_model was not injected '
+        . '(expected \Qoliber\NebulaTheme\ViewModel\AttributeLabels). Check the SnippetViewModelRegistry binding or layout wiring.'
+    );
 }
 
 $formBlock = $block->getData('form_block');

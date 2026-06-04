@@ -11,30 +11,51 @@
   text-decoration: none;
   line-height: 1.1;
 }
+
 .action-primary,
 button.primary,
 button.action-primary {
-  @apply text-white border-none;
-  background: var(--nebula-button-primary-bg);
+  /* Public API: set --btn-primary-surface to reskin without touching this rule */
+  --_btn-primary-surface: var(--btn-primary-surface, var(--nebula-button-primary-bg));
+  --_btn-primary-surface-hover: var(--btn-primary-surface-hover,
+    color-mix(in srgb, var(--_btn-primary-surface), white 18%));
+
+  @apply border-none;
+  background: var(--_btn-primary-surface);
+  color: white; /* fallback */
+  color: contrast-color(var(--_btn-primary-surface));
   box-shadow: var(--nebula-shadow-sm);
   border-radius: var(--nebula-radius-lg);
 }
 .action-primary:hover,
 button.primary:hover,
 button.action-primary:hover {
-  @apply bg-nebula-500;
+  background: var(--_btn-primary-surface-hover);
+  color: white; /* fallback */
+  color: contrast-color(var(--_btn-primary-surface-hover));
   box-shadow: var(--nebula-shadow-md);
 }
+
 .action-secondary,
 button.secondary {
-  @apply text-gray-700 border border-gray-200;
-  background: var(--nebula-button-bg);
+  /* Public API: set --btn-secondary-surface to reskin without touching this rule */
+  --_btn-secondary-surface: var(--btn-secondary-surface, var(--nebula-button-bg));
+  --_btn-secondary-surface-hover: var(--btn-secondary-surface-hover,
+    color-mix(in srgb, var(--_btn-secondary-surface), var(--nebula-neutral-mix) 8%));
+
+  @apply border border-gray-200;
+  background: var(--_btn-secondary-surface);
+  color: #374151; /* fallback */
+  color: contrast-color(var(--_btn-secondary-surface));
   border-radius: var(--nebula-radius-lg);
 }
 .action-secondary:hover,
 button.secondary:hover {
-  @apply bg-gray-50;
+  background: var(--_btn-secondary-surface-hover);
+  color: #374151; /* fallback */
+  color: contrast-color(var(--_btn-secondary-surface-hover));
 }
+
 .page-actions-buttons {
   @apply flex gap-2;
 }

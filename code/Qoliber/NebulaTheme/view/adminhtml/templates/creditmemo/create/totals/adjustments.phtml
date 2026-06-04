@@ -1,0 +1,83 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Magento\Sales\Block\Adminhtml\Order\Creditmemo\Create\Adjustments $block */
+$_source = $block->getSource();
+?>
+<?php if ($_source) : ?>
+    <tr class="align-top">
+        <th class="py-2 pr-4 text-left font-medium text-gray-600">
+            <label for="shipping_amount"><?= $block->escapeHtml($block->getShippingLabel()) ?></label>
+            <div id="shipping_amount_adv" class="mt-1 text-xs text-red-600"></div>
+        </th>
+        <td class="py-2 text-right">
+            <input type="text"
+                   name="creditmemo[shipping_amount]"
+                   value="<?= /* @noEscape */ $block->formatValue($block->getShippingAmount()) ?>"
+                   class="not-negative-amount w-32 rounded-lg border border-gray-300 px-3 py-2 text-right text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                   id="shipping_amount" />
+        </td>
+    </tr>
+    <tr class="align-top">
+        <th class="py-2 pr-4 text-left font-medium text-gray-600">
+            <label for="adjustment_positive"><?= $block->escapeHtml(__('Adjustment Refund')) ?></label>
+            <div id="adjustment_positive_adv" class="mt-1 text-xs text-red-600"></div>
+        </th>
+        <td class="py-2 text-right">
+            <input type="text"
+                   name="creditmemo[adjustment_positive]"
+                   value="<?= /* @noEscape */ $block->formatValue($_source->getBaseAdjustmentPositive()) ?>"
+                   class="not-negative-amount w-32 rounded-lg border border-gray-300 px-3 py-2 text-right text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                   id="adjustment_positive" />
+        </td>
+    </tr>
+    <tr class="align-top">
+        <th class="py-2 pr-4 text-left font-medium text-gray-600">
+            <label for="adjustment_negative"><?= $block->escapeHtml(__('Adjustment Fee')) ?></label>
+            <div id="adjustment_negative_adv" class="mt-1 text-xs text-red-600"></div>
+        </th>
+        <td class="py-2 text-right">
+            <input type="text"
+                   name="creditmemo[adjustment_negative]"
+                   value="<?= /* @noEscape */ $block->formatValue($_source->getBaseAdjustmentNegative()) ?>"
+                   class="not-negative-amount w-32 rounded-lg border border-gray-300 px-3 py-2 text-right text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                   id="adjustment_negative"/>
+        </td>
+    </tr>
+
+    <?php
+    $scriptString = <<<script
+require(['prototype'], function() {
+    Validation.addAllThese([
+        [
+            'not-negative-amount',
+            '{$block->escapeJs(__('Please enter a positive number in this field.'))}',
+            function(v) {
+                if (v.length) {
+                    return /^\\s*\\d+([,.]\\d+)*\\s*%?\\s*$/.test(v);
+                }
+
+                return true;
+            }
+        ]
+    ]);
+
+    ['shipping_amount', 'adjustment_positive', 'adjustment_negative'].forEach(function(id) {
+        if (!$(id)) {
+            return;
+        }
+
+        $(id).advaiceContainer = $(id + '_adv');
+        $(id).observe('focus', function() {
+            enableElements('submit-button');
+        });
+        $(id).observe('change', function() {
+            enableElements('submit-button');
+        });
+    });
+});
+script;
+    ?>
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+<?php endif; ?>
